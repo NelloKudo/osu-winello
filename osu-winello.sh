@@ -26,11 +26,11 @@ function install()
     Info "Installing game script:"
     cp ./osu-wine "/usr/bin/osu-wine" && chmod 755 "/usr/bin/osu-wine"
     Info "Installing wine-osu:"
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osuwinello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
     mv '/opt/opt/wine-osu' /opt
     Info "Downloading and configuring Wineprefix:"
-    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu" --output-document "$HOME/osuwinello/stuff/osu-wineprefix.tar.gz" && rm -rf /tmp/cookies.txt
+    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu" --output-document "$HOME/osu-winello/stuff/osu-wineprefix.tar.gz" && rm -rf /tmp/cookies.txt
     mkdir $HOME/.local/share/osu-wine && mkdir $HOME/.local/share/osu-wine/osu
     mkdir $HOME/.local/share/osu-wine/osu-wineprefix
     WINEPREFIX="$SCRIPTDIR/osu-wineprefix"
@@ -67,7 +67,7 @@ function update()
 {
     if [$LASTWINEVERSION!=$WINEVERSION]; then
     rm -rf "/opt/wine-osu"
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osuwinello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
     mv '/opt/opt/wine-osu' /opt
     LASTWINEVERSION=$WINEVERSION
