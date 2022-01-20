@@ -56,7 +56,7 @@ function uninstall()
     Info "Uninstalling wine-osu:"
     rm -rf /opt/wine-osu
     read -p "$(Info "Do you want to uninstall game files and Wineprefix? (y/n)")" choice
-    if [[$CHOICE = 'y' || $CHOICE = 'Y']]; then
+    if [$choice = 'y'] || [$choice = 'Y']; then
 		Info "Uninstalling game and Wineprefix:"
 		rm -rf $HOME/.local/share/osu-wine
     fi
