@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+export PATH="/opt/wine-osu/bin:$PATH"
+export WINEARCH=win32
+export WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix"
+#chown -R $USER: "$HOME/.local/share/osu-wine/osu-wineprefix"
+wine "$HOME/.local/share/osu-wine/osu/osu!.exe"

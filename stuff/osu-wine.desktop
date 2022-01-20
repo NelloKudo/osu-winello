@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=osu!
+Comment=osu!
+MimeType=x-scheme-handler/osu
+Type=Application
+Exec=osu-wine %U
+Icon=osu-wine
+Terminal=false
+Categories=Wine;Game;
