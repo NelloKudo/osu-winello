@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 WINEVERSION=7.0
 LASTWINEVERSION=7.0
 HOME="$(getent passwd $SUDO_USER | cut -d: -f6)"
@@ -33,8 +34,8 @@ function install()
     wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu" --output-document "$HOME/osu-winello/stuff/osu-wineprefix.tar.gz" && rm -rf /tmp/cookies.txt
     mkdir $HOME/.local/share/osu-wine && mkdir $HOME/.local/share/osu-wine/osu
     mkdir $HOME/.local/share/osu-wine/osu-wineprefix
-    WINEPREFIX="$SCRIPTDIR/osu-wineprefix"
-    OSUPATH="$SCRIPTDIR/osu"
+    export WINEPREFIX="$SCRIPTDIR/osu-wineprefix"
+    export OSUPATH="$SCRIPTDIR/osu"
     chown -R $SUDO_USER: "$HOME/.local/share/osu-wine"
     tar -xf ./stuff/osu-wineprefix.tar.gz -C "$SCRIPTDIR/osu-wineprefix"
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/x:"
@@ -65,7 +66,7 @@ function uninstall()
 
 function update()
 {
-    if [$LASTWINEVERSION!=$WINEVERSION]; then
+    if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
     rm -rf "/opt/wine-osu"
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
