@@ -83,7 +83,7 @@ function update()
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
     mv '/opt/opt/wine-osu' /opt
-    "$LASTWINEVERSION"="$WINEVERSION"
+    LASTWINEVERSION="$WINEVERSION"
     else
     Error "Your wine-osu is already up-to-date!"
     fi
