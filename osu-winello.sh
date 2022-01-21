@@ -8,12 +8,12 @@ SCRIPTDIR="$HOME/.local/share/osu-wine"
 
 Info()
 { 
-    echo -e "Winello:\033[0m $*"; 
+    echo -e '\033[1;31m'"Winello:\033[0m $*"; 
 }
 
 Error()
 {  
-    echo -e "Error:\033[0m $*"; exit 1; 
+    echo -e '\033[1;36m'"Error:\033[0m $*"; exit 1; 
 }
 
 function install()
