@@ -1,7 +1,7 @@
 # osu-winello
 osu! installer for Linux with pre-packaged Wineprefix and patched wine-osu.
 
-![HJuwGZG](https://user-images.githubusercontent.com/98063377/150559364-1b12181f-1c78-4a2d-a0a1-d77ab70ce6bd.jpg)
+![HJuwGZG_840x480](https://user-images.githubusercontent.com/98063377/150559685-50bbfeb2-aecf-495f-86f6-cbd3f89f3b81.jpg)
 
 # Installation
 
@@ -24,20 +24,20 @@ You can now launch osu! with:
 
 ## Flags:
 **Installation script:** 
-'''
+```
 sudo ./osu-winello.sh # Installs the game
 sudo ./osu-winello.sh uninstall # Uninstalls the game
 sudo ./osu-winello.sh update" # Updates wine-osu version
 sudo ./osu-winello.sh help # Shows the previous commands
-'''
+```
 
 **Game script:**
-'''
+```
 osu-wine: Runs osu!
 osu-wine --winecfg : Runs winecfg on the osu! Wineprefix  
 osu-wine --winetricks: Install packages on osu! Wineprefix
 osu-wine --update: Updates wine-osu to latest version"
-'''
+```
 
 And that's all. Have fun playing osu!
 
