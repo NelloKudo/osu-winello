@@ -1,6 +1,47 @@
 #!/usr/bin/env bash
 export PATH="/opt/wine-osu/bin:$PATH"
-export WINEARCH=win32
+export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix"
-#chown -R $USER: "$HOME/.local/share/osu-wine/osu-wineprefix"
-wine "$HOME/.local/share/osu-wine/osu/osu!.exe"
+
+Info()
+{
+    echo -e '\033[1;34m'"Winello:\033[0m $*";
+}
+
+function help()
+{
+    Info "osu-wine: Runs osu!
+    osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
+    osu-wine --winetricks: Install packages on osu! Wineprefix
+    osu-wine --update: Updates wine-osu to latest version"
+}
+
+case "$1" in
+  '--winecfg')
+  WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix" winecfg
+	;;
+
+	'--winetricks')
+	WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix" winetricks ${@:2}
+	;;
+
+	'--update')
+	if [ "$EUID" -ne 0 ]; then Info "Run the script as root with sudo!" ;
+	else
+	HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+	cd "$HOME/osu-winello" || exit
+	./osu-winello.sh update
+	fi
+	;;
+
+	'')
+	wine "$HOME/.local/share/osu-wine/osu/osu!.exe"
+	;;
+
+	'help')
+	help
+	;;
+
+esac
+
+
