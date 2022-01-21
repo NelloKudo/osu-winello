@@ -5,6 +5,8 @@ WINEVERSION=7.0
 LASTWINEVERSION=7.0
 HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
 SCRIPTDIR="$HOME/.local/share/osu-wine"
+CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
+MINGLIBC=2.32
 
 Info()
 { 
@@ -31,10 +33,40 @@ function install()
     cp ./osu-wine "/usr/bin/osu-wine" && chmod 755 "/usr/bin/osu-wine"
     
     Info "Installing wine-osu:"
+    if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
+    Info "1 - Ubuntu and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
+          2 - openSUSE Tumbleweed
+          3 - openSUSE Leap 15.3
+          4 - exit"
+    read -r -p "$(Info "Choose your distro: ")" distro
+    case "$distro" in 
+        '1')
+        echo 'deb http://download.opensuse.org/repositories/home:/hwsnemo:/packaged-wine-osu/xUbuntu_20.04/ /' | sudo tee /etc/apt/sources.list.d/home:hwsnemo:packaged-wine-osu.list
+        curl -fsSL https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/xUbuntu_20.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_hwsnemo_packaged-wine-osu.gpg > /dev/null
+        sudo apt update
+        sudo apt install wine-osu
+        ;;
+        '2')
+        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Tumbleweed/home:hwsnemo:packaged-wine-osu.repo
+        zypper refresh
+        zypper install wine-osu 
+        ;;
+        '3')
+        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Leap_15.3/home:hwsnemo:packaged-wine-osu.repo
+        zypper refresh
+        zypper install wine-osu
+        ;; 
+	'4')
+	exit 0
+	;;
+    esac
+    else
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
     mv '/opt/opt/wine-osu' /opt
-    
+    rm -f "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    fi
+
     Info "Downloading Wineprefix:"
     wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_" --output-document "$HOME/osu-winello/stuff/osu-wineprefix.7z" && rm -rf /tmp/cookies.txt
 
@@ -45,10 +77,11 @@ function install()
     export OSUPATH="$SCRIPTDIR/osu"
     7z x -y -o"$SCRIPTDIR" ./stuff/osu-wineprefix.7z
     chown -R "$SUDO_USER:" "$HOME/.local/share/osu-wine"
+    rm -f "$HOME/osu-winello/stuff/osu-wineprefix.7z"
 
     Info "Downloading osu!"
     wget  --output-document "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
-    
+
     Info "Installation is completed! Run 'osu-wine' to play osu!"
 }
 
@@ -77,7 +110,31 @@ function uninstall()
 }
 
 function update()
-{
+{   
+    if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
+    Info "1 - Ubuntu and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
+          2 - openSUSE Tumbleweed
+          3 - openSUSE Leap 15.3
+          4 - exit"
+    read -r -p "$(Info "Choose your distro: ")" distro
+    case "$distro" in 
+        '1')
+        sudo apt update
+        sudo apt install wine-osu
+        ;;
+        '2')
+        zypper refresh
+        zypper install wine-osu 
+        ;;
+        '3')
+        zypper refresh
+        zypper install wine-osu
+        ;; 
+	'4')
+	exit 0
+	;;
+    esac
+    else
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
     rm -rf "/opt/wine-osu"
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
@@ -86,6 +143,7 @@ function update()
     LASTWINEVERSION="$WINEVERSION"
     else
     Error "Your wine-osu is already up-to-date!"
+    fi
     fi
 }
 
@@ -99,7 +157,7 @@ Info "To install the game, run sudo ./osu-winello.sh
 }
 
 case "$1" in
-        'uninstall')	
+    'uninstall')	
 	uninstall
 	exit 0
 	;;
