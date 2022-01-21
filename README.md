@@ -1,11 +1,10 @@
 # osu-winello
 osu! installer for Linux with pre-packaged Wineprefix and patched wine-osu.
 
-*NOTE: This is still WIP but install should work perfectly fine (at least that xD)*
+##Installation
 
-#Installation
+#Prerequisites* 
 
-*Prerequisites* : git p7zip wget
 
 Instructions:
 ```
