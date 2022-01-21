@@ -8,12 +8,12 @@ SCRIPTDIR="$HOME/.local/share/osu-wine"
 
 Info()
 { 
-    echo -e '\033[1;31m'"Winello:\033[0m $*"; 
+    echo -e '\033[1;34m'"Winello:\033[0m $*";
 }
 
 Error()
 {  
-    echo -e '\033[1;36m'"Error:\033[0m $*"; exit 1; 
+    echo -e '\033[1;31m'"Error:\033[0m $*"; exit 1;
 }
 
 function install()
@@ -35,17 +35,17 @@ function install()
     tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
     mv '/opt/opt/wine-osu' /opt
     
-    Info "Downloading and configuring Wineprefix:"
-    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OrG2pueboJb-sR_8SfmjJn54bGGOAccu" --output-document "$HOME/osu-winello/stuff/osu-wineprefix.tar.gz" && rm -rf /tmp/cookies.txt
-    mkdir "$HOME/.local/share/osu-wine" && mkdir "$HOME/.local/share/osu-wine/osu"
-    mkdir "$HOME/.local/share/osu-wine/osu-wineprefix"
+    Info "Downloading Wineprefix:"
+    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_" --output-document "$HOME/osu-winello/stuff/osu-wineprefix.7z" && rm -rf /tmp/cookies.txt
+
+    Info "Extracting and configuring Wineprefix:"
+    mkdir "$HOME/.local/share/osu-wine"
+    mkdir "$HOME/.local/share/osu-wine/osu"
     export WINEPREFIX="$SCRIPTDIR/osu-wineprefix"
     export OSUPATH="$SCRIPTDIR/osu"
+    7z x -y -o"$SCRIPTDIR" ./stuff/osu-wineprefix.7z
     chown -R "$SUDO_USER:" "$HOME/.local/share/osu-wine"
-    tar -xf ./stuff/osu-wineprefix.tar.gz -C "$SCRIPTDIR/osu-wineprefix"
-    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/x:"
-    ln -s "$HOME" "$WINEPREFIX/dosdevices/z:"
-    
+
     Info "Downloading osu!"
     wget  --output-document "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
     
