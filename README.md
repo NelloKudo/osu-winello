@@ -36,7 +36,7 @@ sudo ./osu-winello.sh help # Shows the previous commands
 osu-wine: Runs osu!
 osu-wine --winecfg : Runs winecfg on the osu! Wineprefix  
 osu-wine --winetricks: Install packages on osu! Wineprefix
-osu-wine --update: Updates wine-osu to latest version"
+osu-wine --update: Updates wine-osu to latest version
 ```
 
 And that's all. Have fun playing osu!
