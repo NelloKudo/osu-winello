@@ -5,11 +5,34 @@ osu! installer for Linux with pre-packaged Wineprefix and patched wine-osu.
 
 # Installation
 
-## Prerequisites
+## Prerequisites 
 
-This package is based on the [guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1) I've written on the osu! website: check the prerequisites listed there.
-It also depends on Pipewire: instructions for most distros are there as well.
-Go to: [osu! guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1)
+This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1) I've written on the osu! website: more trobleshooting and tools can be found there.
+
+**Packages:**
+
+<details>
+  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
+  ``` 
+  sudo apt update && sudo apt upgrade && sudo apt install git build-essential zstd p7zip
+  ```
+</details>
+
+<details>
+  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
+  ``` 
+  sudo pacman -Syu git p7zip wget
+  ```
+</details>
+
+<details>
+  <summary> Fedora </summary>
+  ``` 
+  sudo dnf update
+  sudo dnf install git zstd p7zip p7zip-plugins wget
+  sudo dnf groupinstall "Development Tools" "Development Libraries"
+  ```
+</details>
 
 ## Instructions:
 ```
