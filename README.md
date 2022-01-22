@@ -13,25 +13,19 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 
 <details>
   <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
-  ``` 
-  sudo apt update && sudo apt upgrade && sudo apt install git build-essential zstd p7zip
-  ```
+  <pre>sudo apt update && sudo apt upgrade && sudo apt install git build-essential zstd p7zip</pre>
 </details>
 
 <details>
   <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
-  <pre>
-  sudo pacman -Syu git p7zip wget
-  </pre>
+  <pre>sudo pacman -Syu git p7zip wget </pre>
 </details>
 
 <details>
   <summary> Fedora </summary>
-  ``` 
-  sudo dnf update
+  <pre>sudo dnf update
   sudo dnf install git zstd p7zip p7zip-plugins wget
-  sudo dnf groupinstall "Development Tools" "Development Libraries"
-  ```
+  sudo dnf groupinstall "Development Tools" "Development Libraries"</pre>
 </details>
 
 ## Instructions:
