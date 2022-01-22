@@ -9,7 +9,7 @@ osu! installer for Linux with pre-packaged Wineprefix and patched wine-osu.
 
 This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1) I've written on the osu! website: more details, troubleshooting and tools can be found there.
 
-**Packages:**
+### Packages:
 
 <details>
   <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
@@ -29,7 +29,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
   sudo dnf groupinstall "Development Tools" "Development Libraries"</pre>
 </details>
 
-**Wine and dependencies:**
+### Wine and dependencies:
 
 <details>
   <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
