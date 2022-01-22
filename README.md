@@ -20,9 +20,9 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 
 <details>
   <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
-  ``` 
+  <pre>
   sudo pacman -Syu git p7zip wget
-  ```
+  </pre>
 </details>
 
 <details>
