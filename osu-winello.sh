@@ -21,9 +21,16 @@ Error()
 function install()
 {
     if [ "$EUID" -ne 0 ]; then Error "Run the script as root with sudo!" ; fi
+
+    if [ -d "$HOME/.local/share/osu-wine/WINE.win32" ]; then #checking diamondburned's osu-wine
+    rm -f "/usr/bin/osu-wine"
+    rm -f "/usr/share/icons/hicolor/256x256/apps/osu-wine.png"
+    rm -f "/usr/share/applications/osu-wine.desktop"
+    fi
+
     if [ -e /usr/bin/osu-wine ]; then Error "Please uninstall before installing!" ; fi
     
-    Info "Installing icons:"
+    Info "Installing icons:"    
     cp "./stuff/osu-wine.png" "/usr/share/icons/hicolor/256x256/apps/osu-wine.png" && chmod 644 "/usr/share/icons/hicolor/256x256/apps/osu-wine.png"
     
     Info "Installing .desktop:"
@@ -56,9 +63,9 @@ function install()
         zypper refresh
         zypper install wine-osu
         ;; 
-	'4')
-	exit 0
-	;;
+	    '4')
+	    exit 0
+	    ;;
     esac
     else
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
@@ -67,22 +74,41 @@ function install()
     rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     fi
 
-    Info "Downloading Wineprefix:"
-    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_" --output-document "/tmp/osu-wineprefix.7z" && rm -rf /tmp/cookies.txt
-
-    Info "Extracting and configuring Wineprefix:"
+    Info "Configuring osu! folder:"
+    if [ -d "$HOME/.local/share/osu-wine" ]; then
+    Info "osu-wine folder already exists: skipping.."
+    else
     mkdir "$HOME/.local/share/osu-wine"
-    mkdir "$HOME/.local/share/osu-wine/osu"
+    fi
+
+    if [ -d "$HOME/.local/share/osu-wine/OSU" ] || [ -d "$HOME/.local/share/osu-wine/osu!" ]; then
+    Info "osu! folder already exists: skipping.."
+    else
+    mkdir "$SCRIPTDIR/osu!"
+    export OSUPATH="$SCRIPTDIR/osu!"
+    fi
+
+    Info "Downloading and configuring Wineprefix:"
+    if [ -d "$HOME/.local/share/osu-wine/osu-wineprefix" ]; then
     export WINEPREFIX="$SCRIPTDIR/osu-wineprefix"
-    export OSUPATH="$SCRIPTDIR/osu"
+    Info "osu-wineprefix already exists: skipping.."
+    else
+    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_" --output-document "/tmp/osu-wineprefix.7z" && rm -rf /tmp/cookies.txt
+    export WINEPREFIX="$SCRIPTDIR/osu-wineprefix"
     7z x -y -o"$SCRIPTDIR" "/tmp/osu-wineprefix.7z"
     chown -R "$SUDO_USER:" "$HOME/.local/share/osu-wine"
     rm -f "/tmp/osu-wineprefix.7z"
+    fi
 
     Info "Downloading osu!"
+    if [ -d "$HOME/.local/share/osu-wine/OSU" ]; then
+    Info "Installation is completed! Run 'osu-wine' to play osu!"
+    exit 0
+    else
     wget  --output-document "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
+    fi
 }
 
 function uninstall() 
@@ -103,6 +129,8 @@ function uninstall()
     read -r -p "$(Info "Do you want to uninstall game files and Wineprefix? (y/n)")" choice
     if [ "$choice" = 'y' ] || [ "$choice" = 'Y' ]; then
 		Info "Uninstalling game and Wineprefix:"
+        rm -rf "$HOME/.local/share/osu-wine/osu-wineprefix"
+        rm -rf "$HOME/.local/share/osu-wine/osu"
 		rm -rf "$HOME/.local/share/osu-wine"
     fi
     
@@ -179,3 +207,4 @@ case "$1" in
 	Error "Unknown argument, see ./osu-winello.sh help"
 	;;
 esac
+
