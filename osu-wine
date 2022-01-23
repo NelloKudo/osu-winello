@@ -2,6 +2,11 @@
 export PATH="/opt/wine-osu/bin:$PATH"
 export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix"
+if [ -d "$HOME/.local/share/osu-wine/WINE.win32" ]; then
+export OSUPATH="$HOME/.local/share/osu-wine/OSU"
+else
+export OSUPATH="$HOME/.local/share/osu-wine/osu!"
+fi
 
 Info()
 {
@@ -16,26 +21,63 @@ function help()
     osu-wine --update: Updates wine-osu to latest version"
 }
 
+function update()
+{   
+    if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
+    Info "1 - Ubuntu and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
+          2 - openSUSE Tumbleweed
+          3 - openSUSE Leap 15.3
+          4 - exit"
+    read -r -p "$(Info "Choose your distro: ")" distro
+    case "$distro" in 
+        '1')
+        sudo apt update
+        sudo apt install wine-osu
+        ;;
+        '2')
+        zypper refresh
+        zypper install wine-osu 
+        ;;
+        '3')
+        zypper refresh
+        zypper install wine-osu
+        ;; 
+	'4')
+	exit 0
+	;;
+    esac
+    else
+    if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
+    rm -rf "/opt/wine-osu"
+    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C /opt
+    mv '/opt/opt/wine-osu' /opt
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    LASTWINEVERSION="$WINEVERSION"
+    else
+    Error "Your wine-osu is already up-to-date!"
+    fi
+    fi
+}
+
 case "$1" in
   '--winecfg')
   WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix" winecfg
 	;;
 
 	'--winetricks')
-	WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix" winetricks ${@:2}
+	WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix" winetricks "${@:2}"
 	;;
 
 	'--update')
 	if [ "$EUID" -ne 0 ]; then Info "Run the script as root with sudo!" ;
 	else
-	HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-	cd "$HOME/osu-winello" || exit
-	./osu-winello.sh update
+	update
 	fi
 	;;
 
 	'')
-	wine "$HOME/.local/share/osu-wine/osu/osu!.exe"
+	wine "$OSUPATH/osu!.exe"
 	;;
 
 	'help')
