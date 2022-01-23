@@ -61,23 +61,23 @@ function install()
 	;;
     esac
     else
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
-    tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
+    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C /opt
     mv '/opt/opt/wine-osu' /opt
-    rm -f "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     fi
 
     Info "Downloading Wineprefix:"
-    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_" --output-document "$HOME/osu-winello/stuff/osu-wineprefix.7z" && rm -rf /tmp/cookies.txt
+    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1O_iBywTIU4R85d74H1Am7cJ0uxMypM-_" --output-document "/tmp/osu-wineprefix.7z" && rm -rf /tmp/cookies.txt
 
     Info "Extracting and configuring Wineprefix:"
     mkdir "$HOME/.local/share/osu-wine"
     mkdir "$HOME/.local/share/osu-wine/osu"
     export WINEPREFIX="$SCRIPTDIR/osu-wineprefix"
     export OSUPATH="$SCRIPTDIR/osu"
-    7z x -y -o"$SCRIPTDIR" ./stuff/osu-wineprefix.7z
+    7z x -y -o"$SCRIPTDIR" "/tmp/osu-wineprefix.7z"
     chown -R "$SUDO_USER:" "$HOME/.local/share/osu-wine"
-    rm -f "$HOME/osu-winello/stuff/osu-wineprefix.7z"
+    rm -f "/tmp/osu-wineprefix.7z"
 
     Info "Downloading osu!"
     wget  --output-document "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
@@ -137,9 +137,10 @@ function update()
     else
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
     rm -rf "/opt/wine-osu"
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "$HOME/osu-winello/stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
-    tar -xf ./stuff/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst -C /opt
+    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C /opt
     mv '/opt/opt/wine-osu' /opt
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     LASTWINEVERSION="$WINEVERSION"
     else
     Error "Your wine-osu is already up-to-date!"
