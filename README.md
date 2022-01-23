@@ -67,7 +67,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 ### Pipewire:
 
 <details>
-  <summary>Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
+  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
   <pre>
   sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
   sudo apt update
