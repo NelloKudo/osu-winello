@@ -13,7 +13,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 
 <details>
   <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
-  <pre>sudo apt update && sudo apt upgrade && sudo apt install git build-essential zstd p7zip</pre>
+  <pre>sudo apt update && sudo apt upgrade && sudo apt install git curl build-essential zstd p7zip</pre>
 </details>
 
 <details>
@@ -64,6 +64,41 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
   </pre>
 </details>
 
+### Pipewire:
+
+<details>
+  <summary>Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
+  <pre>
+  sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
+  sudo apt update
+  sudo apt install pipewire
+  sudo apt install libspa-0.2-bluetooth
+  sudo apt install pipewire-audio-client-libraries
+  systemctl --user daemon-reload
+  systemctl --user --now disable pulseaudio.service pulseaudio.socket
+  systemctl --user mask pulseaudio
+  systemctl --user --now enable pipewire-media-session.service pipewire pipewire-pulse
+  </pre>
+</details>  
+
+<details>
+  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
+  Remove PulseAudio:
+  <pre>sudo pacman -Rdd pulseaudio</pre>
+  And then install PipeWire:
+  <pre>sudo pacman -S pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber</pre>
+</details>
+
+<details>
+  <summary> Fedora </summary>
+  Fedora's latest versions already ship with Pipewire ; you might want to check with this:
+  <pre>
+  sudo dnf install pulseaudio-utils
+  pactl info
+  </pre>
+</details>
+
+Rebooting your system is recommended e.e
 
 ## Installing osu!:
 ```
