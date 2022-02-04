@@ -14,13 +14,13 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 <details>
   <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
   
-  <pre>sudo apt update && sudo apt upgrade && sudo apt install git curl build-essential zstd p7zip</pre>
+  <pre>sudo apt update && sudo apt upgrade && sudo apt install git curl build-essential zstd p7zip zenity</pre>
 </details>
 
 <details>
   <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
   
-  <pre>sudo pacman -Syu git p7zip wget </pre>
+  <pre>sudo pacman -Syu git p7zip wget zenity</pre>
 </details>
 
 <details>
@@ -28,7 +28,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
   
   <pre>
   sudo dnf update
-  sudo dnf install git zstd p7zip p7zip-plugins wget
+  sudo dnf install git zstd p7zip p7zip-plugins wget zenity
   sudo dnf groupinstall "Development Tools" "Development Libraries"</pre>
 </details>
 
