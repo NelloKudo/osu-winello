@@ -1,8 +1,6 @@
 # osu-winello
 osu! installer for Linux with patched wine-osu and other features.
 
-![HJuwGZG_840x480](https://user-images.githubusercontent.com/98063377/150559685-50bbfeb2-aecf-495f-86f6-cbd3f89f3b81.jpg)
-
 # Installation
 
 ## Prerequisites 
@@ -20,7 +18,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 <details>
   <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
   
-  <pre>sudo pacman -Syu git p7zip wget zenity</pre>
+  <pre>sudo pacman -Syu git base-devel p7zip wget zenity</pre>
 </details>
 
 <details>
