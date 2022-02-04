@@ -1,5 +1,5 @@
 # osu-winello
-osu! installer for Linux with pre-packaged Wineprefix and patched wine-osu.
+osu! installer for Linux with patched wine-osu and other features.
 
 ![HJuwGZG_840x480](https://user-images.githubusercontent.com/98063377/150559685-50bbfeb2-aecf-495f-86f6-cbd3f89f3b81.jpg)
 
