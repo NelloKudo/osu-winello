@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
-export PATH="/opt/wine-osu/bin:$PATH"
+Info()
+{ 
+    echo -e '\033[1;34m'"Winello:\033[0m $*";
+}
+
+export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
 export WINEARCH=win64
-export WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix"
-if [ -d "$HOME/.local/share/osu-wine/WINE.win32" ]; then
-export OSUPATH="$HOME/.local/share/osu-wine/OSU"
+if [ -d "$HOME/.local/share/Wineprefixs/osu-wineprefix" ] ; then
+export WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix"
 else
-export OSUPATH="$HOME/.local/share/osu-wine/osu!"
-fi
+Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
+Info "Remember to skip Wine Mono:"
+WINEARCH=win64 WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" winetricks -q dotnet48 vlgothic cjkfonts gdiplus_winxp meiryo
+export WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" ; fi
+osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
+export OSUPATH="$osuinstall"
 
 Info()
 {
@@ -33,14 +41,23 @@ function update()
         '1')
         sudo apt update
         sudo apt install wine-osu
+        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
+        Info "Update is completed!"
         ;;
         '2')
         zypper refresh
-        zypper install wine-osu 
+        zypper install wine-osu
+        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu" 
+        Info "Update is completed!"
         ;;
         '3')
         zypper refresh
         zypper install wine-osu
+        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
+        Info "Update is completed!"
         ;; 
 	'4')
 	exit 0
@@ -48,12 +65,20 @@ function update()
     esac
     else
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-    rm -rf "/opt/wine-osu"
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
-    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C /opt
-    mv '/opt/opt/wine-osu' /opt
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
+    rm -rf "$HOME/.local/share/osuconfig/wine-osu"
+    mv "$HOME/.local/share/opt/opt/wine-osu" "$HOME/.local/share/osuconfig/"
+    rm -rf "$HOME/.local/share/opt"
     rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     LASTWINEVERSION="$WINEVERSION"
+    read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
+    if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
+    rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
+    cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
+    else
+    Info "Skipping...." ;fi
+    Info "Update is completed!"
     else
     Error "Your wine-osu is already up-to-date!"
     fi
@@ -62,11 +87,11 @@ function update()
 
 case "$1" in
   '--winecfg')
-  WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix" winecfg
+    WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" winecfg
 	;;
 
 	'--winetricks')
-	WINEPREFIX="$HOME/.local/share/osu-wine/osu-wineprefix" winetricks "${@:2}"
+	WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" winetricks "${@:2}"
 	;;
 
 	'--update')
@@ -85,5 +110,3 @@ case "$1" in
 	;;
 
 esac
-
-
