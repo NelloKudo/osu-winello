@@ -5,7 +5,14 @@ osu! installer for Linux with patched wine-osu and other features.
 
 # Index
 
-
+- [Features] (#features)
+- [Installation] (#installation)
+	- [Prerequisites] (#prerequisites)
+		- [Packages] (#packages)
+		- [Wine and dependencies] (#wine-and-dependencies)
+		- [PipeWire] (#pipewire)
+	- [Installing osu!] (#installing-osu)
+	- [Flags] (#flags)
 
 # Features
 
