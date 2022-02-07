@@ -1,6 +1,22 @@
 # osu-winello
 osu! installer for Linux with patched wine-osu and other features.
 
+![2022-02-07_15-53](https://user-images.githubusercontent.com/98063377/152811963-a46d4ca8-e25d-41f8-abfb-937c0af40aef.png)
+
+# Index
+
+
+
+# Features
+
+- works on most distros (script checks libc by itself)
+- uses patched wine-osu with the latest community patches (by PooN's ds etc.)
+- installs osu! on either default or custom path (using GUI) 
+- integrates with both already existing osu! installations from Windows or with [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
+- uses 64-bits Wineprefix (it might take a while to download it, blame winetricks xD)
+- support for installing Windows fonts (fix for Japanese and special characters)
+- ~~updates wine-osu by itself~~ coming soon!
+
 # Installation
 
 ## Prerequisites 
@@ -10,21 +26,17 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 ### Packages:
 
 <details>
-  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
-  
-  <pre>sudo apt update && sudo apt upgrade && sudo apt install git curl build-essential zstd p7zip zenity</pre>
+  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary><pre>
+  sudo apt update && sudo apt upgrade && sudo apt install git curl build-essential zstd p7zip zenity</pre>
 </details>
 
 <details>
-  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
-  
-  <pre>sudo pacman -Syu git base-devel p7zip wget zenity</pre>
+  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary> <pre>
+  sudo pacman -Syu git base-devel p7zip wget zenity</pre>
 </details>
 
 <details>
-  <summary> Fedora </summary>
-  
-  <pre>
+  <summary> Fedora </summary><pre>
   sudo dnf update
   sudo dnf install git zstd p7zip p7zip-plugins wget zenity
   sudo dnf groupinstall "Development Tools" "Development Libraries"</pre>
@@ -33,9 +45,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 ### Wine and dependencies:
 
 <details>
-  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
-  
-  <pre>
+  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary><pre>
   sudo dpkg --add-architecture i386
   wget -nc https://dl.winehq.org/wine-builds/winehq.key
   sudo apt-key add winehq.key
@@ -47,10 +57,8 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 </details>
 
 <details>
-  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
+  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary><pre>
   enable multilib first in /etc/pacman.conf
-  
-  <pre>
   sudo pacman -Sy
   sudo pacman -S wine-staging winetricks
   sudo pacman -S giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox
@@ -58,9 +66,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 </details>
 
 <details>
-  <summary> Fedora </summary>
-  
-  <pre>
+  <summary> Fedora </summary><pre>
   sudo dnf install alsa-plugins-pulseaudio.i686 glibc-devel.i686 glibc-devel libgcc.i686 libX11-devel.i686 freetype-devel.i686 libXcursor-devel.i686 libXi-devel.i686 libXext-devel.i686 libXxf86vm-devel.i686 libXrandr-devel.i686 libXinerama-devel.i686 mesa-libGLU-devel.i686 mesa-libOSMesa-devel.i686 libXrender-devel.i686 libpcap-devel.i686 ncurses-devel.i686 libzip-devel.i686 lcms2-devel.i686 zlib-devel.i686 libv4l-devel.i686 libgphoto2-devel.i686 cups-devel.i686 libxml2-devel.i686 openldap-devel.i686 libxslt-devel.i686 gnutls-devel.i686 libpng-devel.i686 flac-libs.i686 json-c.i686 libICE.i686 libSM.i686 libXtst.i686 libasyncns.i686 liberation-narrow-fonts.noarch libieee1284.i686 libogg.i686 libsndfile.i686 libuuid.i686 libva.i686 libvorbis.i686 libwayland-client.i686 libwayland-server.i686 llvm-libs.i686 mesa-dri-drivers.i686 mesa-filesystem.i686 mesa-libEGL.i686 mesa-libgbm.i686 nss-mdns.i686 ocl-icd.i686 pulseaudio-libs.i686 sane-backends-libs.i686 tcp_wrappers-libs.i686 unixODBC.i686 samba-common-tools.x86_64 samba-libs.x86_64 samba-winbind.x86_64 samba-winbind-clients.x86_64 samba-winbind-modules.x86_64 mesa-libGL-devel.i686 fontconfig-devel.i686 libXcomposite-devel.i686 libtiff-devel.i686 openal-soft-devel.i686 mesa-libOpenCL-devel.i686 opencl-utils-devel.i686 alsa-lib-devel.i686 gsm-devel.i686 libjpeg-turbo-devel.i686 pulseaudio-libs-devel.i686 pulseaudio-libs-devel gtk3-devel.i686 libattr-devel.i686 libva-devel.i686 libexif-devel.i686 libexif.i686 glib2-devel.i686 mpg123-devel.i686 mpg123-devel.x86_64 libcom_err-devel.i686 libcom_err-devel.x86_64 libFAudio-devel.i686 libFAudio-devel.x86_64
   sudo dnf groupinstall "C Development Tools and Libraries"
   sudo dnf groupinstall "Development Tools"
@@ -71,9 +77,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 ### Pipewire:
 
 <details>
-  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary>
-  
-  <pre>
+  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary><pre>
   sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
   sudo apt update
   sudo apt install pipewire
@@ -96,10 +100,12 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
   And then install PipeWire:
   
   <pre>sudo pacman -S pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber</pre>
+  
 </details>
 
 <details>
   <summary> Fedora </summary>
+  
   
   Fedora's latest versions already ship with Pipewire ; you might want to check with this:
   
@@ -107,6 +113,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
   sudo dnf install pulseaudio-utils
   pactl info
   </pre>
+  
 </details>
 
 Rebooting your system is recommended e.e
