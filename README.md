@@ -13,6 +13,7 @@ osu! installer for Linux with patched wine-osu and other features.
 		- [PipeWire](#pipewire)
 	- [Installing osu!](#installing-osu)
 	- [Flags](#flags)
+- [Credits](#credits)
 
 # Features
 
@@ -70,7 +71,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 	
   <pre>sudo nano /etc/pacman.conf</pre>	
 	
-  and uncomment <pre>[multilib]</pre> like this:
+  and uncomment [multilib] like this:
 	
   <pre>
   /etc/pacman.conf
@@ -151,6 +152,8 @@ sudo ./osu-winello.sh
 You can now launch osu! with:
 ```osu-wine```
 
+General recommendations: use -40ms offset to make up for Wine (or -25 if you're using audio compatibility mode)
+
 ## Flags:
 **Installation script:** 
 ```
@@ -167,6 +170,17 @@ osu-wine --winecfg # Runs winecfg on the osu! Wineprefix
 osu-wine --winetricks # Install packages on osu! Wineprefix
 osu-wine --update # Updates wine-osu to latest version
 ```
+
+# Credits
+
+Special thanks to:
+
+- [ThePooN's Discord](https://discord.gg/bc4qaYjqyT)
+- [gonX's wine-osu](https://drive.google.com/drive/folders/17MVlyXixv7uS3JW4B-H8oS4qgLn7eBw5)
+- [KatouMegumi's guide](https://wiki.archlinux.org/title/User:Katoumegumi#osu!_(stable)_on_Arch_Linux)
+- [hwsnemo's wine-osu](https://software.opensuse.org//download.html?project=home%3Ahwsnemo%3Apackaged-wine-osu&package=wine-osu)
+- [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
+- [Windows fonts hosted by w7df](https://www.w7df.com/)
 
 And that's all. Have fun playing osu!
 
