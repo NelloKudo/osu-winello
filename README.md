@@ -65,6 +65,7 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 
 <details>
   <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
+	
   enable multilib first in /etc/pacman.conf
 	
   <pre>sudo nano /etc/pacman.conf</pre>	
