@@ -168,12 +168,12 @@ function install()
     esac
 
     Info "Configuring Wineprefix:"
-    if [ -d "$HOME/.local/share/Wineprefixs" ]; then
-    chown -R "$SUDO_USER:" "$HOME/.local/share/Wineprefixs"
-    Info "Wineprefixs folder already exists: skipping"
+    if [ -d "$HOME/.local/share/wineprefixes" ]; then
+    chown -R "$SUDO_USER:" "$HOME/.local/share/wineprefixes"
+    Info "wineprefixes folder already exists: skipping"
     else
-    mkdir "$HOME/.local/share/Wineprefixs"
-    chown -R "$SUDO_USER:" "$HOME/.local/share/Wineprefixs"
+    mkdir "$HOME/.local/share/wineprefixes"
+    chown -R "$SUDO_USER:" "$HOME/.local/share/wineprefixes"
     fi
 
     if [ -d "/usr/share/fonts/WindowsFonts" ]; then
@@ -221,7 +221,7 @@ function uninstall()
     
     read -r -p "$(Info "Do you want to uninstall Wineprefix? (y/n)")" wineprch
     if [ "$wineprch" = 'y' ] || [ "$wineprch" = 'Y' ]; then
-    rm -rf "$HOME/.local/share/Wineprefixs/osu-wineprefix"
+    rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
     else
     Info "Skipping.." ; fi
 
