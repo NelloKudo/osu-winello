@@ -6,13 +6,15 @@ Info()
 
 export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
 export WINEARCH=win64
-if [ -d "$HOME/.local/share/Wineprefixs/osu-wineprefix" ] ; then
-export WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix"
+if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
+export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 else
 Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
 Info "Remember to skip Wine Mono:"
-WINEARCH=win64 WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" winetricks -q dotnet48 vlgothic cjkfonts gdiplus_winxp meiryo
-export WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" ; fi
+WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 comctl32 vlgothic cjkfonts gdiplus_winxp
+WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
+WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
+export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" ; fi
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
 export OSUPATH="$osuinstall"
 
@@ -86,12 +88,12 @@ function update()
 }
 
 case "$1" in
-  '--winecfg')
-    WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" winecfg
+  	'--winecfg')
+    	WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winecfg
 	;;
 
 	'--winetricks')
-	WINEPREFIX="$HOME/.local/share/Wineprefixs/osu-wineprefix" winetricks "${@:2}"
+	WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks "${@:2}"
 	;;
 
 	'--update')
