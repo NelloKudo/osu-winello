@@ -1,11 +1,19 @@
 #!/bin/bash
 set -e
 
+#Variables
 WINEVERSION=7.0
-LASTWINEVERSION=7.0
-HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.32
+
+#W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
+#If the package will be updated (and I won't have modified it yet) you can just edit the next 4 variables according to the link above
+pkgver=19043.928.210409
+_minor=1212.21h1
+_type="release_svc_refresh"
+sha256sumiso="026607e7aa7ff80441045d8830556bf8899062ca9b3c543702f112dd6ffe6078"
+_file="${pkgver}-${_minor}_${_type}_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso"
 
 Info()
 { 
@@ -19,24 +27,47 @@ Error()
 
 function install()
 {
-    if [ "$EUID" -ne 0 ]; then Error "Run the script as root with sudo!" ; fi
+    if [ -e /usr/bin/osu-wine ] ; then Error "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!" ; fi #Checking DiamondBurned's osu-wine
+    if [ -e "$HOME/.local/bin/osu-wine" ] ; then Error "Please uninstall osu-wine before installing!" ; fi
 
-    if [ -d "$HOME/.local/share/osu-wine/WINE.win32" ]; then #checking diamondburned's osu-wine
-    rm -f "/usr/bin/osu-wine"
-    rm -f "/usr/share/icons/hicolor/256x256/apps/osu-wine.png"
-    rm -f "/usr/share/applications/osu-wine.desktop"
+    #/.local/bin check
+    if [ ! -d "$HOME/.local/bin" ] ; then
+        mkdir -p "$HOME/.local/bin"
+        if (grep -q "bash" "$SHELL" || [[ -f "$HOME/.bashrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.bashrc"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.bashrc"
+            source "$HOME/.bashrc"
+        fi
+
+        if (grep -q "zsh" "$SHELL" || [[ -f "$HOME/.zshrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.zshrc"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.zshrc"
+            source "$HOME/.zshrc"
+        fi
+
+        if [[ -f "$HOME/.config/fish/config.fish" ]] && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.config/fish/config.fish"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.config/fish/config.fish" 
+            source "$HOME/.config/fish/config.fish"
+        fi
     fi
 
-    if [ -e /usr/bin/osu-wine ] ; then Error "Please uninstall before installing!" ; fi
-    
-    Info "Installing icons:"    
-    cp "./stuff/osu-wine.png" "/usr/share/icons/hicolor/256x256/apps/osu-wine.png" && chmod 644 "/usr/share/icons/hicolor/256x256/apps/osu-wine.png"
+    Info "Installing game script:"
+    cp ./osu-wine "$HOME/.local/bin/osu-wine" && chmod 755 "$HOME/.local/bin/osu-wine"
+
+    Info "Installing icons:"
+    mkdir -p "$HOME/.local/share/icons"    
+    cp "./stuff/osu-wine.png" "$HOME/.local/share/icons/osu-wine.png" && chmod 644 "$HOME/.local/share/icons/osu-wine.png"
     
     Info "Installing .desktop:"
-    cp "./stuff/osu-wine.desktop" "/usr/share/applications/osu-wine.desktop" && chmod 644 "/usr/share/applications/osu-wine.desktop"
-    
-    Info "Installing game script:"
-    cp ./osu-wine "/usr/bin/osu-wine" && chmod 755 "/usr/bin/osu-wine"
+    mkdir -p "$HOME/.local/share/applications"
+    echo "[Desktop Entry]
+    Name=osu!
+    Comment=osu! - Rhythm is just a *click* away!
+    MimeType=x-scheme-handler/osu
+    Type=Application
+    Exec=/home/$USER/.local/bin/osu-wine %U
+    Icon=/home/$USER/.local/share/icons/osu-wine.png
+    Terminal=false
+    Categories=Wine;Game;" >> "$HOME/.local/share/applications/osu-wine.desktop"
+    chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
     
     Info "Installing wine-osu:"
     if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
@@ -52,11 +83,9 @@ function install()
         sudo apt update
         sudo apt install wine-osu
         if [ -d "$HOME/.local/share/osuconfig" ]; then
-        chown -R "$SUDO_USER:" "$HOME/.local/share/osuconfig"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
         else
         mkdir "$HOME/.local/share/osuconfig"
-        chown -R "$SUDO_USER:" "$HOME/.local/share/osuconfig"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
         fi
         ;;
@@ -65,11 +94,9 @@ function install()
         zypper refresh
         zypper install wine-osu
         if [ -d "$HOME/.local/share/osuconfig" ]; then
-        chown -R "$SUDO_USER:" "$HOME/.local/share/osuconfig"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
         else
         mkdir "$HOME/.local/share/osuconfig"
-        chown -R "$SUDO_USER:" "$HOME/.local/share/osuconfig"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
         fi
         ;;
@@ -78,11 +105,9 @@ function install()
         zypper refresh
         zypper install wine-osu
         if [ -d "$HOME/.local/share/osuconfig" ]; then
-        chown -R "$SUDO_USER:" "$HOME/.local/share/osuconfig"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
         else
         mkdir "$HOME/.local/share/osuconfig"
-        chown -R "$SUDO_USER:" "$HOME/.local/share/osuconfig"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
         fi
         ;; 
@@ -93,31 +118,38 @@ function install()
     else
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
+    LASTWINEVERSION="$WINEVERSION"
+    
     if [ -d "$HOME/.local/share/osuconfig" ]; then
     Info "Skipping osuconfig.."
     else
-    mkdir "$HOME/.local/share/osuconfig" ; fi
-    chown -R "$SUDO_USER:" "$HOME/.local/share/osuconfig"
+    mkdir "$HOME/.local/share/osuconfig"
+    fi
+    
     mv "$HOME/.local/share/opt/wine-osu" "$HOME/.local/share/osuconfig"
     rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     rm -rf "$HOME/.local/share/opt"
+    Info "Installing script copy for updates.."
+    mkdir -p "$HOME/.local/share/osuconfig/update"
+    git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update"
+    echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
     fi
-
+    
     #LutrisCheck
     if [ -d "$HOME/.local/share/lutris" ]; then
     Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
     read -r -p "$(Info "Choose your option: ")" lutrischoice
-    if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
-    if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
-        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-        Info "wine-osu is already installed in Lutris, skipping..."
+        if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
+            if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
+                if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+                Info "wine-osu is already installed in Lutris, skipping..."
+                else
+                cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+            else
+            mkdir "$HOME/.local/share/lutris/runners/wine"
+            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
         else
-        cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
-    else
-    mkdir "$HOME/.local/share/lutris/runners/wine"
-    cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
-    else
-    Info "Skipping.."; fi
+        Info "Skipping.."; fi
     fi
 
     Info "Configuring osu! folder:"
@@ -125,13 +157,13 @@ function install()
           1 - Default path (~/.local/share/osu-wine)
           2 - Custom path"
     read -r -p "$(Info "Choose your option: ")" installpath
+    if [ "$installpath" = 1 ] || [ "$installpath" = 2 ] ; then  
     case "$installpath" in
         '1')
         if [ -d "$HOME/.local/share/osu-wine" ]; then
         Info "osu-wine folder already exists: skipping.."
         else
         mkdir "$HOME/.local/share/osu-wine"
-        chown -R "$SUDO_USER:" "$HOME/.local/share/osu-wine"
         fi
         GAMEDIR="$HOME/.local/share/osu-wine"
         if [ -d "$GAMEDIR/OSU" ] || [ -d "$GAMEDIR/osu!" ]; then
@@ -166,55 +198,128 @@ function install()
         fi
         ;;
     esac
+    else
+    Info "No option chosen, installing to default.. (~/.local/share/osu-wine)"
+    if [ -d "$HOME/.local/share/osu-wine" ]; then
+        Info "osu-wine folder already exists: skipping.."
+        else
+        mkdir "$HOME/.local/share/osu-wine"
+        fi
+        GAMEDIR="$HOME/.local/share/osu-wine"
+        if [ -d "$GAMEDIR/OSU" ] || [ -d "$GAMEDIR/osu!" ]; then
+        Info "osu! folder already exists: skipping.."
+        if [ -d "$GAMEDIR/OSU" ]; then
+        OSUPATH="$GAMEDIR/OSU"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        if [ -d "$GAMEDIR/osu!" ]; then
+        OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        else
+        mkdir "$GAMEDIR/osu!"
+        export OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+        fi
+    fi
+
+    #W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
+    Info "Skipping to Windows fonts... (read below)"
+    Info "WARNING: Download is ~5gb, you can also install them later with osu-wine --w10fonts"
+    read -r -p "$(Info "Do you want to install Windows fonts in your system? - Needed for jp characters! (y/n): ")" fontschoice 
+    if [ "$fontschoice" = 'y' ] || [ "$fontschoice" = 'Y' ]; then
+    
+    if [ -e "$HOME/${_file}" ]; then
+    Info "Iso already exists; skipping download..."
+    else
+    wget "https://software-download.microsoft.com/download/pr/${_file}" --output-document "$HOME/${_file}" ; fi
+    
+    Info "Running checksum.."
+    if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
+    
+    Info "Checksum passes; extracting fonts.."
+    mkdir -p "$HOME/.local/share/fonts"
+    mkdir -p "$HOME/.local/share/fonts/Microsoft"
+    mkdir -p "$HOME/.local/share/licenses"
+    7z e "$HOME/${_file}" sources/install.wim
+    7z e install.wim Windows/Fonts/* -o"$HOME/.local/share/fonts/Microsoft"
+    7z x install.wim Windows/System32/Licenses/neutral/"*"/"*"/license.rtf -o"$HOME/.local/share/licenses" -y
+    fc-cache -f "$HOME/.local/share/fonts/Microsoft/"
+    rm -f "$HOME/${_file}"
+    rm -f ./install.wim
+    
+    else
+    Info "Checksum doesn't pass, your download may be corrupted: cleaning"
+    Info "Try again later with osu-wine --w10fonts"
+    rm -f "$HOME/${_file}" ; fi
+    fi
 
     Info "Configuring Wineprefix:"
-    if [ -d "$HOME/.local/share/wineprefixes" ]; then
-    chown -R "$SUDO_USER:" "$HOME/.local/share/wineprefixes"
-    Info "wineprefixes folder already exists: skipping"
-    else
-    mkdir "$HOME/.local/share/wineprefixes"
-    chown -R "$SUDO_USER:" "$HOME/.local/share/wineprefixes"
-    fi
+    mkdir -p "$HOME/.local/share/wineprefixes"
+    if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
+        Info "Wineprefix already exists; do you want to reinstall it?"
+        read -r -p "$(Info "Choose: (Y/N)")" prefchoice
+        if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
 
-    if [ -d "/usr/share/fonts/WindowsFonts" ]; then
-    Info "Fonts already installed; skipping..."
+        Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
+        Info "Remember to skip Wine Mono:"
+        #Install needed components
+        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts 
+
+        #Fix for Linux Mint which doesn't accept gdiplus_winxp for some reason lol
+        if [ -d "/etc/linuxmint" ] ; then
+        Info "Mint detected; installing gdiplus to fix..."
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f gdiplus ; fi
+
+        #Sets Windows version to 2003, seems to solve osu!.db problems etc.
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
+        
+        #Hides Wine version (only with staging - needed to fix cursor and numbers)
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
+        
+        #Skips creating filetype associations
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
+        
+        else
+        Info "Skipping..." ; fi
     else
-    read -r -p "$(Info "Do you want to install Windows fonts in your system? - Needed for jp characters! (y/n): ")" fontschoice # Fonts found at https://www.w7df.com/
-    if [ "$fontschoice" = 'y' ] || [ "$fontschoice" = 'Y' ]; then
-    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1M5tGl5-g0ih8wc-w5-_Hs6kQcJLQwCEQ' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1M5tGl5-g0ih8wc-w5-_Hs6kQcJLQwCEQ" --output-document "/tmp/w10fonts.zip" && rm -rf /tmp/cookies.txt
-    unzip -q "/tmp/w10fonts.zip" -d "/tmp/w10fonts"
-    mkdir /usr/share/fonts/WindowsFonts
-    mv -f /tmp/w10fonts/Windows10DefaultFonts/Fonts/* "/usr/share/fonts/WindowsFonts"
-    chmod -R 755 "/usr/share/fonts/WindowsFonts" 
-    rm -f "/tmp/w10fonts.zip"
-    fc-cache -sf    
-    fi
+    export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+        Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
+        Info "Remember to skip Wine Mono:"
+        #Install needed components
+        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts
+        
+        #Sets Windows version to 2003, seems to solve osu!.db problems etc.
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
+
+        #Hides Wine version (only with staging - needed to fix cursor and numbers)
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
+
+        #Skips creating filetype associations
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N 
     fi
 
     Info "Downloading osu!"
     if [ -e "$OSUPATH/osu!.exe" ]; then
-    chown -R "$SUDO_USER:" "$OSUPATH"
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     exit 0
     else
     wget  --output-document "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
-    chown -R "$SUDO_USER:" "$OSUPATH"
     Info "Installation is completed! Run 'osu-wine' to play osu!"
+    Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
     fi
 }
 
 function uninstall() 
 {
-    if [ "$EUID" -ne 0 ]; then Error "Run the script as root with sudo!" ; fi
     
     Info "Uninstalling icons:"
-    rm -f "/usr/share/icons/hicolor/256x256/apps/osu-wine.png"
+    rm -f "$HOME/.local/share/icons/osu-wine.png"
     
     Info "Uninstalling .desktop:"
-    rm -f "/usr/share/applications/osu-wine.desktop"
+    rm -f "$HOME/.local/share/applications/osu-wine.desktop"
     
     Info "Uninstalling game script:"
-    rm -f "/usr/bin/osu-wine"
+    rm -f "$HOME/.local/bin/osu-wine"
     
     Info "Uninstalling wine-osu:"
     rm -rf "$HOME/.local/share/osuconfig/wine-osu"
@@ -258,27 +363,61 @@ function update()
         sudo apt install wine-osu
         rm -rf "$HOME/.local/share/osuconfig/wine-osu"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
+
+        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
+        if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
+        rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
+        cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
+        else
+        Info "Skipping...." ;fi
+        fi
+
         Info "Update is completed!"
         ;;
+
         '2')
         zypper refresh
         zypper install wine-osu 
         rm -rf "$HOME/.local/share/osuconfig/wine-osu"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
+        
+        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
+        if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
+        rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
+        cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
+        else
+        Info "Skipping...." ;fi
+        fi
+
         Info "Update is completed!"
         ;;
+
         '3')
         zypper refresh
         zypper install wine-osu
         rm -rf "$HOME/.local/share/osuconfig/wine-osu"
         cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
+        
+        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then   
+        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
+        if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
+        rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
+        cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
+        else
+        Info "Skipping...." ;fi
+        fi
+
         Info "Update is completed!"
-        ;; 
+        ;;
+
 	'4')
 	exit 0
 	;;
     esac
     else
+    LASTWINEVERSION=$(</"$HOME/.local/share/osuconfig/wineverupdate")
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
@@ -287,12 +426,18 @@ function update()
     rm -rf "$HOME/.local/share/opt"
     rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     LASTWINEVERSION="$WINEVERSION"
+    rm -f "$HOME/.local/share/osuconfig/wineverupdate"
+    echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
+
+    if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
     read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
     if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
-    rm -rf "$HOME/.local/share/lutris/ruunners/wine/wine-osu"
+    rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
     cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
     else
     Info "Skipping...." ;fi
+    fi
+    
     Info "Update is completed!"
     else
     Error "Your wine-osu is already up-to-date!"
@@ -304,9 +449,9 @@ function update()
 function help() 
 {   
 
-Info "To install the game, run sudo ./osu-winello.sh
-    To uninstall the game, run sudo ./osu-winello.sh uninstall
-    To update the wine-osu version, run sudo ./osu-winello.sh update"
+Info "To install the game, run ./osu-winello.sh
+    To uninstall the game, run ./osu-winello.sh uninstall
+    To update the wine-osu version, run ./osu-winello.sh update"
     
 }
 
@@ -328,6 +473,31 @@ case "$1" in
 	install
 	;;
 	
+    'w10fonts')
+    if [ -e "$HOME/${_file}" ]; then
+    Info "Iso already exists; skipping download..."
+    else
+    wget "https://software-download.microsoft.com/download/pr/${_file}" --output-document "$HOME/${_file}" ; fi
+    
+    Info "Running checksum.."
+    if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
+    
+    Info "Checksum passes; extracting fonts.."
+    mkdir -p "$HOME/.local/share/fonts"
+    mkdir -p "$HOME/.local/share/fonts/Microsoft"
+    mkdir -p "$HOME/.local/share/licenses"
+    7z e "$HOME/${_file}" sources/install.wim
+    7z e install.wim Windows/Fonts/* -o"$HOME/.local/share/fonts/Microsoft"
+    7z x install.wim Windows/System32/Licenses/neutral/"*"/"*"/license.rtf -o"$HOME/.local/share/licenses" -y
+    fc-cache -f "$HOME/.local/share/fonts/Microsoft/"
+    rm -f "$HOME/${_file}"
+    rm -f ./install.wim
+    
+    else
+    Info "Checksum doesn't pass, your download may be corrupted: cleaning"
+    Info "Try again later with osu-wine --w10fonts"
+    rm -f "$HOME/${_file}" ; fi
+    ;;
 	*)				
 	Error "Unknown argument, see ./osu-winello.sh help"
 	;;
