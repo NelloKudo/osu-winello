@@ -4,31 +4,38 @@ Info()
     echo -e '\033[1;34m'"Winello:\033[0m $*";
 }
 
-export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" #Path to wine-osu
 export WINEARCH=win64
-if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
-else
-Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-Info "Remember to skip Wine Mono:"
-WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 comctl32 vlgothic cjkfonts gdiplus_winxp
-WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
-WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
-export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" ; fi
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
 export OSUPATH="$osuinstall"
-
-Info()
-{
-    echo -e '\033[1;34m'"Winello:\033[0m $*";
-}
+export vblank_mode=0            #disables vsync for mesa
+export __GL_SYNC_TO_VBLANK=0    #disables vsync for NVIDIA
+export WINE_BLOCK_GET_VERSION=1 #blocks wine's version on hwsmm's wine-osu (ty oglfreak)
 
 function help()
 {
     Info "osu-wine: Runs osu!
     osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
     osu-wine --winetricks: Install packages on osu! Wineprefix
-    osu-wine --update: Updates wine-osu to latest version"
+    osu-wine --update: Updates wine-osu to latest version
+    osu-wine --w10fonts: Installs Windows 10 fonts from iso (5GB) (Needed for JP characters etc.)
+    osu-wine --fixprefix: Reinstalls the osu! Wineprefix
+    osu-wine --info: Troubleshooting and more info
+    osu-wine --lutris: Copies wine-osu to lutris"
+}
+
+function checkshort() #Deletes Wine's automatic shortcuts
+{
+    if [ -e "$HOME/.local/share/applications/wine/Programs/osu!.desktop" ] ; then
+    rm -f "$HOME/.local/share/applications/wine/Programs/osu!.desktop" ; fi
+
+    DESKTOPDIR=$(xdg-user-dir DESKTOP)
+    if [ -e "$DESKTOPDIR/osu!.desktop" ] ; then
+    rm -f "$DESKTOPDIR/osu!.desktop" ; fi
+
+    if [ -e "$DESKTOPDIR/osu!.lnk" ] ; then
+    rm -f "$DESKTOPDIR/osu!.lnk" ; fi
 }
 
 function update()
@@ -65,31 +72,23 @@ function update()
 	exit 0
 	;;
     esac
+
     else
-    if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
-    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
-    rm -rf "$HOME/.local/share/osuconfig/wine-osu"
-    mv "$HOME/.local/share/opt/opt/wine-osu" "$HOME/.local/share/osuconfig/"
-    rm -rf "$HOME/.local/share/opt"
-    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
-    LASTWINEVERSION="$WINEVERSION"
-    read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
-    if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
-    rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
-    cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
-    else
-    Info "Skipping...." ;fi
-    Info "Update is completed!"
-    else
-    Error "Your wine-osu is already up-to-date!"
-    fi
+    git -C "$HOME/.local/share/osuconfig/update" pull --quiet
+    bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" update
     fi
 }
 
 case "$1" in
+    '')
+	wine "$OSUPATH/osu!.exe" #osu! launcher
+
+    #Checks if Wine creates shortcuts which aren't supposed to be used
+    checkshort
+	;;
+
   	'--winecfg')
-    	WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winecfg
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winecfg
 	;;
 
 	'--winetricks')
@@ -97,15 +96,50 @@ case "$1" in
 	;;
 
 	'--update')
-	if [ "$EUID" -ne 0 ]; then Info "Run the script as root with sudo!" ;
-	else
 	update
-	fi
 	;;
 
-	'')
-	wine "$OSUPATH/osu!.exe"
-	;;
+
+    '--lutris')
+    if [ -d "$HOME/.local/share/lutris" ]; then
+    Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
+    read -r -p "$(Info "Choose your option: ")" lutrischoice
+        if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
+            if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
+                if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+                Info "wine-osu is already installed in Lutris, skipping..."
+                else
+                cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+            else
+            mkdir "$HOME/.local/share/lutris/runners/wine"
+            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+        else
+        Info "Skipping.."; fi
+    else
+    Info "Lutris not detected; if you installed it, launch it at least once."
+    fi
+
+    ;;
+
+    '--w10fonts')
+    git -C "$HOME/.local/share/osuconfig/update" pull --quiet
+    bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" w10fonts
+    ;;
+
+    '--fixprefix')
+    Info "Deleting old Wineprefix..."
+    rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
+    Info "Configuring new Wineprefix..."
+    WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts 
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
+    Info "Wineprefix is now working; launch osu! with osu-wine"
+    ;;
+
+    '--info')
+    Info "You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1"
+    ;;
 
 	'help')
 	help
