@@ -152,8 +152,8 @@ chmod +x ./osu-winello.sh
 
 You can now launch osu! with:
 ```osu-wine```
-__WARNING__: you might need to close and relaunch your terminal to use the command. 
 
+__WARNING__: you might need to close and relaunch your terminal to use the command. 
 General recommendations: use -40ms offset to make up for Wine (or -25 if you're using audio compatibility mode)
 
 ## Flags:
