@@ -36,6 +36,8 @@ function checkshort() #Deletes Wine's automatic shortcuts
 
     if [ -e "$DESKTOPDIR/osu!.lnk" ] ; then
     rm -f "$DESKTOPDIR/osu!.lnk" ; fi
+
+    echo "Checkshort done" >> "$HOME/.local/share/osuconfig/checkshort"
 }
 
 function update()
@@ -84,7 +86,9 @@ case "$1" in
 	wine "$OSUPATH/osu!.exe" #osu! launcher
 
     #Checks if Wine creates shortcuts which aren't supposed to be used
+    if [ ! -e "$HOME/.local/share/osuconfig/checkshort" ] ; then
     checkshort
+    fi
 	;;
 
   	'--winecfg')
