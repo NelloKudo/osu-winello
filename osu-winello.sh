@@ -258,7 +258,6 @@ function install()
         Info "Wineprefix already exists; do you want to reinstall it?"
         read -r -p "$(Info "Choose: (Y/N)")" prefchoice
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
-        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
 
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
         Info "Remember to skip Wine Mono:"
@@ -345,6 +344,8 @@ function uninstall()
         rm -rf "$HOME/.local/share/osuconfig"
         Info "Exiting.."
         fi
+    else
+    rm -rf "$HOME/.local/share/osuconfig"
     fi
     Info "Uninstallation completed!"
 }
