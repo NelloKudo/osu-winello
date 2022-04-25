@@ -2,7 +2,7 @@
 set -e
 
 #Variables
-WINEVERSION=7.0
+WINEVERSION=7.7
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.32
@@ -116,7 +116,7 @@ function install()
 	    ;;
     esac
     else
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=14kY1DKWpb1tyN4MNdl0snbsI8OAtOF_9' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     LASTWINEVERSION="$WINEVERSION"
     
@@ -420,7 +420,7 @@ function update()
     else
     LASTWINEVERSION=$(</"$HOME/.local/share/osuconfig/wineverupdate")
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=14kY1DKWpb1tyN4MNdl0snbsI8OAtOF_9' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     rm -rf "$HOME/.local/share/osuconfig/wine-osu"
     mv "$HOME/.local/share/opt/opt/wine-osu" "$HOME/.local/share/osuconfig/"
