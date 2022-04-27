@@ -262,7 +262,7 @@ function install()
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
         Info "Remember to skip Wine Mono:"
         #Install needed components
-        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts 
+        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp cjkfonts 
 
         #Fix for Linux Mint which doesn't accept gdiplus_winxp for some reason lol
         if [ -d "/etc/linuxmint" ] ; then
@@ -278,14 +278,19 @@ function install()
         #Skips creating filetype associations
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
         
+        #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
+        cp "./stuff/folderfixosu" "$HOME/.local/bin/folderfixosu" && chmod +x "$HOME/.local/bin/folderfixosu"
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
+
         else
         Info "Skipping..." ; fi
     else
-    export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
         Info "Remember to skip Wine Mono:"
         #Install needed components
-        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts
+        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp cjkfonts
         
         #Sets Windows version to 2003, seems to solve osu!.db problems etc.
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
@@ -295,11 +300,19 @@ function install()
 
         #Skips creating filetype associations
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N 
+
+        #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
+        cp "./stuff/folderfixosu" "$HOME/.local/bin/folderfixosu" && chmod +x "$HOME/.local/bin/folderfixosu"
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
+        
     fi
 
     Info "Downloading osu!"
     if [ -e "$OSUPATH/osu!.exe" ]; then
     Info "Installation is completed! Run 'osu-wine' to play osu!"
+    Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
     exit 0
     else
     wget  --output-document "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
@@ -317,9 +330,10 @@ function uninstall()
     Info "Uninstalling .desktop:"
     rm -f "$HOME/.local/share/applications/osu-wine.desktop"
     
-    Info "Uninstalling game script:"
+    Info "Uninstalling game script & folderfix:"
     rm -f "$HOME/.local/bin/osu-wine"
-    
+    rm -f "$HOME/.local/bin/folderfixosu"
+
     Info "Uninstalling wine-osu:"
     rm -rf "$HOME/.local/share/osuconfig/wine-osu"
     
