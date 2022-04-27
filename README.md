@@ -181,6 +181,7 @@ Special thanks to:
 
 - [ThePooN's Discord](https://discord.gg/bc4qaYjqyT)
 - [gonX's wine-osu](https://drive.google.com/drive/folders/17MVlyXixv7uS3JW4B-H8oS4qgLn7eBw5)
+- [Integrating native file manager by Maot](https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2)
 - [KatouMegumi's guide](https://wiki.archlinux.org/title/User:Katoumegumi#osu!_(stable)_on_Arch_Linux)
 - [hwsnemo's wine-osu](https://software.opensuse.org//download.html?project=home%3Ahwsnemo%3Apackaged-wine-osu&package=wine-osu)
 - [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
