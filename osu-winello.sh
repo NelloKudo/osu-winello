@@ -230,7 +230,7 @@ function install()
     if [ -e "$HOME/${_file}" ]; then
     Info "Iso already exists; skipping download..."
     else
-    wget "https://software-download.microsoft.com/download/pr/${_file}" --output-document "$HOME/${_file}" ; fi
+    wget --no-check-certificate "https://software-download.microsoft.com/download/pr/${_file}" --output-document "$HOME/${_file}" ; fi
     
     Info "Running checksum.."
     if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
