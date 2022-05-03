@@ -61,7 +61,6 @@ function install()
     echo "[Desktop Entry]
     Name=osu!
     Comment=osu! - Rhythm is just a *click* away!
-    MimeType=x-scheme-handler/osu
     Type=Application
     Exec=/home/$USER/.local/bin/osu-wine %U
     Icon=/home/$USER/.local/share/icons/osu-wine.png
