@@ -6,6 +6,7 @@ WINEVERSION=7.0
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.32
+GDRIVEID=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc #Google Drive ID for wine-osu
 
 #W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
 #If the package will be updated (and I won't have modified it yet) you can just edit the next 4 variables according to the link above
@@ -115,7 +116,7 @@ function install()
 	    ;;
     esac
     else
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget --no-check-certificate "https://docs.google.com/uc?export=download&id=${GDRIVEID}" --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     LASTWINEVERSION="$WINEVERSION"
     
@@ -251,6 +252,42 @@ function install()
     rm -f "$HOME/${_file}" ; fi
     fi
 
+    Info "Configuring osu-mime and osu-handler:"
+    #Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
+    wget --no-check-certificate "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" --output-document "/tmp/osu-mime.tar.gz"
+    tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
+    mkdir -p "$HOME/.local/share/mime"
+    mkdir -p "$HOME/.local/share/mime/packages"
+    cp "/tmp/osu-mime/osu-file-extensions.xml" "$HOME/.local/share/mime/packages"
+    update-mime-database "$HOME/.local/share/mime"
+    rm -f "/tmp/osu-mime.tar.gz"
+    rm -rf "/tmp/osu-mime"
+    
+    #Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
+    wget --no-check-certificate "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" --output-document "$HOME/.local/share/osuconfig/osu-handler-wine"
+    chmod +x "$HOME/.local/share/osuconfig/osu-handler-wine"
+
+    echo "[Desktop Entry]
+    Type=Application
+    Name=osu!
+    MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
+    Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %f
+    NoDisplay=true
+    StartupNotify=true
+    Icon=/home/$USER/.local/share/icons/osu-wine.png" >> "$HOME/.local/share/applications/osu-file-extensions-handler.desktop"
+    chmod +x "$HOME/.local/share/applications/osu-file-extensions-handler.desktop"
+
+    echo "[Desktop Entry]
+    Type=Application
+    Name=osu!
+    MimeType=x-scheme-handler/osu;
+    Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %u
+    NoDisplay=true
+    StartupNotify=true
+    Icon=/home/$USER/.local/share/icons/osu-wine.png" >> "$HOME/.local/share/applications/osu-url-handler.desktop"
+    chmod +x "$HOME/.local/share/applications/osu-url-handler.desktop"
+    update-desktop-database "$HOME/.local/share/applications"
+
     Info "Configuring Wineprefix:"
     mkdir -p "$HOME/.local/share/wineprefixes"
     if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
@@ -274,14 +311,15 @@ function install()
         #Hides Wine version (only with staging - needed to fix cursor and numbers)
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
         
-        #Skips creating filetype associations
+        #Skips creating filetype associations and desktop entries
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
-        
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
+
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
-        cp "./stuff/folderfixosu" "$HOME/.local/bin/folderfixosu" && chmod +x "$HOME/.local/bin/folderfixosu"
+        cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
         else
         Info "Skipping..." ; fi
@@ -291,21 +329,38 @@ function install()
         #Install needed components
         WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp cjkfonts
         
+        #Fix for Linux Mint which doesn't accept gdiplus_winxp for some reason lol
+        if [ -d "/etc/linuxmint" ] ; then
+        Info "Mint detected; installing gdiplus to fix..."
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f gdiplus ; fi
+
         #Sets Windows version to 2003, seems to solve osu!.db problems etc.
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
 
         #Hides Wine version (only with staging - needed to fix cursor and numbers)
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
 
-        #Skips creating filetype associations
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N 
+        #Skips creating filetype associations and desktop entries
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
-        cp "./stuff/folderfixosu" "$HOME/.local/bin/folderfixosu" && chmod +x "$HOME/.local/bin/folderfixosu"
+        cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
         
+    fi
+    
+    #Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
+    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
+    Info "Configuring Winestreamproxy (Discord RPC)"
+    wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+    mkdir -p "/tmp/winestreamproxy"
+    tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
+    WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
+    rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+    rm -rf "/tmp/winestreamproxy"
     fi
 
     Info "Downloading osu!"
@@ -433,7 +488,7 @@ function update()
     else
     LASTWINEVERSION=$(</"$HOME/.local/share/osuconfig/wineverupdate")
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc' --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget --no-check-certificate "https://docs.google.com/uc?export=download&id=${GDRIVEID}" --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     rm -rf "$HOME/.local/share/osuconfig/wine-osu"
     mv "$HOME/.local/share/opt/wine-osu" "$HOME/.local/share/osuconfig/"
