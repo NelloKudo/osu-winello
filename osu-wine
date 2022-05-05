@@ -12,6 +12,7 @@ export OSUPATH="$osuinstall"
 export vblank_mode=0            #disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    #disables vsync for NVIDIA
 export WINE_BLOCK_GET_VERSION=1 #blocks wine's version on hwsmm's wine-osu (ty oglfreak)
+export WINEDLLOVERRIDES=winemenubuilder.exe=d# #blocks wine from creating .desktop files
 
 function help()
 {
@@ -23,6 +24,16 @@ function help()
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix
     osu-wine --info: Troubleshooting and more info
     osu-wine --lutris: Copies wine-osu to lutris"
+}
+
+function checkshort()
+{
+    if [ -e "$HOME/.local/share/applications/wine/Programs/osu!.desktop" ] ; then
+    rm -f "$HOME/.local/share/applications/wine/Programs/osu!.desktop" ; fi
+
+    DESKTOPDIR=$(xdg-user-dir DESKTOP)
+    if [ -e "$DESKTOPDIR/osu!.lnk" ] ; then
+    rm -f "$DESKTOPDIR/osu!.lnk" ; fi
 }
 
 function update()
@@ -69,6 +80,7 @@ function update()
 case "$1" in
     '')
 	wine "$OSUPATH/osu!.exe" #osu! launcher
+	checkshort
 	;;
 
   	'--winecfg')
