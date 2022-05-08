@@ -2,11 +2,11 @@
 set -e
 
 #Variables
-WINEVERSION=7.0
+WINEVERSION=7.8
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.32
-GDRIVEID=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc #Google Drive ID for wine-osu
+GDRIVEID=1GFC5DKXmSKStYWH0BhSiVYhL1aJIGTEZ #Google Drive ID for wine-osu
 
 #W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
 #If the package will be updated (and I won't have modified it yet) you can just edit the next 4 variables according to the link above
