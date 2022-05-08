@@ -116,7 +116,7 @@ function install()
 	    ;;
     esac
     else
-    wget --no-check-certificate "https://docs.google.com/uc?export=download&id=${GDRIVEID}" --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     LASTWINEVERSION="$WINEVERSION"
     
@@ -230,7 +230,7 @@ function install()
     if [ -e "$HOME/${_file}" ]; then
     Info "Iso already exists; skipping download..."
     else
-    wget --no-check-certificate "https://software-download.microsoft.com/download/pr/${_file}" --output-document "$HOME/${_file}" ; fi
+    wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" ; fi
     
     Info "Running checksum.."
     if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
@@ -254,7 +254,7 @@ function install()
 
     Info "Configuring osu-mime and osu-handler:"
     #Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
-    wget --no-check-certificate "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" --output-document "/tmp/osu-mime.tar.gz"
+    wget -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" 
     tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
     mkdir -p "$HOME/.local/share/mime"
     mkdir -p "$HOME/.local/share/mime/packages"
@@ -264,7 +264,7 @@ function install()
     rm -rf "/tmp/osu-mime"
     
     #Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
-    wget --no-check-certificate "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" --output-document "$HOME/.local/share/osuconfig/osu-handler-wine"
+    wget -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" 
     chmod +x "$HOME/.local/share/osuconfig/osu-handler-wine"
 
     echo "[Desktop Entry]
@@ -355,22 +355,21 @@ function install()
     #Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
     Info "Configuring Winestreamproxy (Discord RPC)"
-    wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+    wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" 
     mkdir -p "/tmp/winestreamproxy"
     tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-    export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
     rm -rf "/tmp/winestreamproxy"
     fi
 
     Info "Downloading osu!"
-    if [ -e "$OSUPATH/osu!.exe" ]; then
+    if [ -s "$OSUPATH/osu!.exe" ]; then
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
     exit 0
     else
-    wget  --output-document "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
+    wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
     fi
@@ -489,7 +488,7 @@ function update()
     else
     LASTWINEVERSION=$(</"$HOME/.local/share/osuconfig/wineverupdate")
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-    wget --no-check-certificate "https://docs.google.com/uc?export=download&id=${GDRIVEID}" --output-document "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}"
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     rm -rf "$HOME/.local/share/osuconfig/wine-osu"
     mv "$HOME/.local/share/opt/wine-osu" "$HOME/.local/share/osuconfig/"
@@ -547,7 +546,7 @@ case "$1" in
     if [ -e "$HOME/${_file}" ]; then
     Info "Iso already exists; skipping download..."
     else
-    wget "https://software-download.microsoft.com/download/pr/${_file}" --output-document "$HOME/${_file}" ; fi
+    wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" ; fi
     
     Info "Running checksum.."
     if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
