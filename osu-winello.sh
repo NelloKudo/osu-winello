@@ -116,7 +116,12 @@ function install()
 	    ;;
     esac
     else
-    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}"
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" && wgetcheck="$?"
+    
+    if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" ; fi
+
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     LASTWINEVERSION="$WINEVERSION"
     
@@ -230,7 +235,12 @@ function install()
     if [ -e "$HOME/${_file}" ]; then
     Info "Iso already exists; skipping download..."
     else
-    wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" ; fi
+    wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" && wgetcheck="$?"
+    
+     if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" ; fi
+    fi
     
     Info "Running checksum.."
     if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
@@ -254,7 +264,12 @@ function install()
 
     Info "Configuring osu-mime and osu-handler:"
     #Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
-    wget -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" 
+    wget -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" && wgetcheck="$?"
+    
+    if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" ; fi
+    
     tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
     mkdir -p "$HOME/.local/share/mime"
     mkdir -p "$HOME/.local/share/mime/packages"
@@ -264,7 +279,12 @@ function install()
     rm -rf "/tmp/osu-mime"
     
     #Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
-    wget -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" 
+    wget -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" && wgetcheck="$?"
+    
+    if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" ; fi
+    
     chmod +x "$HOME/.local/share/osuconfig/osu-handler-wine"
 
     echo "[Desktop Entry]
@@ -355,7 +375,12 @@ function install()
     #Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
     Info "Configuring Winestreamproxy (Discord RPC)"
-    wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" 
+    wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" && wgetcheck="$?"
+    
+    if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" ; fi
+    
     mkdir -p "/tmp/winestreamproxy"
     tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
@@ -369,7 +394,12 @@ function install()
     Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
     exit 0
     else
-    wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
+    wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && wgetcheck="$?"
+    
+    if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" ; fi
+    
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
     fi
@@ -488,7 +518,12 @@ function update()
     else
     LASTWINEVERSION=$(</"$HOME/.local/share/osuconfig/wineverupdate")
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}"
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" && wgetcheck="$?"
+    
+    if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" ; fi
+    
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
     rm -rf "$HOME/.local/share/osuconfig/wine-osu"
     mv "$HOME/.local/share/opt/wine-osu" "$HOME/.local/share/osuconfig/"
@@ -546,7 +581,13 @@ case "$1" in
     if [ -e "$HOME/${_file}" ]; then
     Info "Iso already exists; skipping download..."
     else
-    wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" ; fi
+    wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" && wgetcheck="$?" 
+    
+    if [ ! "$wgetcheck" = 0 ] ; then
+    echo "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" ; fi
+   
+    fi
     
     Info "Running checksum.."
     if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
