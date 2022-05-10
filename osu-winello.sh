@@ -120,8 +120,8 @@ function install()
     
     if [ ! "$wgetcheck1" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" && wgetcheckdrive="$?" ; fi
-
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" && wgetcheckdrive="$?" 
+    
     if [ ! "$wgetcheckdrive" = 0 ] ; then
     Info "Google Drive download failed; cleaning install..."
     rm -f "$HOME/.local/share/icons/osu-wine.png"
@@ -129,6 +129,7 @@ function install()
     rm -f "$HOME/.local/bin/osu-wine"
     Info "Try running again ./osu-winello.sh"
     exit 0 
+    fi    
     fi
 
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
