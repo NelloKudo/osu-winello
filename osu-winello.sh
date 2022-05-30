@@ -352,6 +352,10 @@ function install()
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
         else
+		if [ ! -e "$HOME/.local/share/osuconfig/folderfixosu" ] ; then
+		cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
+		fi
+		
         Info "Skipping..." ; fi
     else
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
@@ -393,6 +397,9 @@ function install()
     
     mkdir -p "/tmp/winestreamproxy"
     tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
+	wineserver -k #Kills Wineserver to prevent errors using wine-osu
+	export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+	wineserver -k #Kills Wineserver to prevent errors using wine-osu
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
     rm -rf "/tmp/winestreamproxy"
