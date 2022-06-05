@@ -397,9 +397,7 @@ function install()
     
     mkdir -p "/tmp/winestreamproxy"
     tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-	wineserver -k #Kills Wineserver to prevent errors using wine-osu
-	export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
-	wineserver -k #Kills Wineserver to prevent errors using wine-osu
+    export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
     rm -rf "/tmp/winestreamproxy"
