@@ -385,23 +385,6 @@ function install()
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
         
     fi
-    
-    #Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
-    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
-    Info "Configuring Winestreamproxy (Discord RPC)"
-    wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" && wgetcheck5="$?"
-    
-    if [ ! "$wgetcheck5" = 0 ] ; then
-    Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" ; fi
-    
-    mkdir -p "/tmp/winestreamproxy"
-    tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-    export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
-    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
-    rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
-    rm -rf "/tmp/winestreamproxy"
-    fi
 
     Info "Downloading osu!"
     if [ -s "$OSUPATH/osu!.exe" ]; then
