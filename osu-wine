@@ -5,7 +5,7 @@ Info()
 }
 
 export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" #Path to wine-osu
-export WINEARCH=win64
+export WINEARCH=win32
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
 export OSUPATH="$osuinstall"
@@ -16,14 +16,18 @@ export WINEDLLOVERRIDES=winemenubuilder.exe=d# #blocks wine from creating .deskt
 
 function help()
 {
-    Info "osu-wine: Runs osu!
+    Info "Script features:
+    osu-wine: Runs osu!
     osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
     osu-wine --winetricks: Install packages on osu! Wineprefix
+    osu-wine --regedit: Opens regedit on osu! Wineprefix
+    osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
+    osu-wine --kill9: Kills osu! but with wineserver -k9
     osu-wine --update: Updates wine-osu to latest version
-    osu-wine --w10fonts: Installs Windows 10 fonts from iso (5GB) (Needed for JP characters etc.)
-    osu-wine --fixprefix: Reinstalls the osu! Wineprefix
+    osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed for JP characters etc.)
+    osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
     osu-wine --info: Troubleshooting and more info
-    osu-wine --lutris: Copies wine-osu to lutris"
+    osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)"
 }
 
 function checkshort()
@@ -83,6 +87,10 @@ case "$1" in
 	checkshort
 	;;
 
+    '--regedit')
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" regedit
+    ;;
+
   	'--winecfg')
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winecfg
 	;;
@@ -91,10 +99,17 @@ case "$1" in
 	WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks "${@:2}"
 	;;
 
+    '--kill')
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k
+    ;;
+
+    '--kill9')
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k9
+    ;;
+
 	'--update')
 	update
 	;;
-
 
     '--lutris')
     if [ -d "$HOME/.local/share/lutris" ]; then
@@ -114,7 +129,6 @@ case "$1" in
     else
     Info "Lutris not detected; if you installed it, launch it at least once."
     fi
-
     ;;
 
     '--w10fonts')
@@ -127,7 +141,7 @@ case "$1" in
     rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
     
     Info "Configuring new Wineprefix..."
-    WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts 
+    WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts 
     if [ -d "/etc/linuxmint" ] ; then
     Info "Mint detected; installing gdiplus to fix..."
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f gdiplus ; fi
@@ -141,11 +155,11 @@ case "$1" in
     
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
     Info "Configuring Winestreamproxy (Discord RPC)"
-    wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+    wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-i386.tar.gz"
     mkdir -p "/tmp/winestreamproxy"
-    tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
+    tar -xf "/tmp/winestreamproxy-2.0.3-i386.tar.gz" -C "/tmp/winestreamproxy"
     WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
-    rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+    rm -f "/tmp/winestreamproxy-2.0.3-i386.tar.gz"
     rm -rf "/tmp/winestreamproxy" ; fi
 
     Info "Wineprefix is now working; launch osu! with osu-wine"
@@ -156,6 +170,8 @@ case "$1" in
     Wineprefix location: ~/.local/share/wineprefixes/osu-wineprefix
     osu! folder: '$OSUPATH'
     
+    If you need to add more options to osu!, see around line 86 of the script (ex. nano ~/.local/bin/osu-wine)
+
     You can run 'osu-wine help' to see all the script's functions (fix prefix, w10 fonts etc.)
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1"
     ;;
@@ -163,5 +179,9 @@ case "$1" in
 	'help')
 	help
 	;;
+
+    '--help')
+    help
+    ;;
 
 esac
