@@ -8,14 +8,6 @@ CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.32
 GDRIVEID=1xgJIe18ccBx6yjPcmBxDbTnS1XxwrAcc #Google Drive ID for wine-osu
 
-#W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
-#If the package will be updated (and I won't have modified it yet) you can just edit the next 4 variables according to the link above
-pkgver=19043.928.210409
-_minor=1212.21h1
-_type="release_svc_refresh"
-sha256sumiso="026607e7aa7ff80441045d8830556bf8899062ca9b3c543702f112dd6ffe6078"
-_file="${pkgver}-${_minor}_${_type}_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso"
-
 Info()
 { 
     echo -e '\033[1;34m'"Winello:\033[0m $*";
@@ -236,41 +228,62 @@ function install()
         fi
     fi
 
-    #W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
-    Info "Skipping to Windows fonts... (read below)"
-    Info "WARNING: Download is ~5gb, you can also install them later with osu-wine --w10fonts"
-    read -r -p "$(Info "Do you want to install Windows fonts in your system? - Needed for jp characters! (y/n): ")" fontschoice 
-    if [ "$fontschoice" = 'y' ] || [ "$fontschoice" = 'Y' ]; then
+    #W10fonts by https://github.com/YourRandomGuy/ttf-mswin10-arch 
+    Info "Installing Windows fonts... (read below)"
     
-    if [ -e "$HOME/${_file}" ]; then
-    Info "Iso already exists; skipping download..."
+    #Classic fonts
+    if [ -e "/tmp/w10fonts.tar.zst" ] ; then
+    Info "Skipping..."
+
     else
-    wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" && wgetcheck2="$?"
-    
-     if [ ! "$wgetcheck2" = 0 ] ; then
+    wget -O "/tmp/w10fonts.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck2="$?"
+    if [ ! "$wgetcheck2" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" ; fi
+    wget --no-check-certificate -O "/tmp/w10fonts.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
     fi
     
-    Info "Running checksum.."
-    if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
-    
-    Info "Checksum passes; extracting fonts.."
-    mkdir -p "$HOME/.local/share/fonts"
-    mkdir -p "$HOME/.local/share/fonts/Microsoft"
-    mkdir -p "$HOME/.local/share/licenses"
-    7z e "$HOME/${_file}" sources/install.wim
-    7z e install.wim Windows/Fonts/* -o"$HOME/.local/share/fonts/Microsoft"
-    7z x install.wim Windows/System32/Licenses/neutral/"*"/"*"/license.rtf -o"$HOME/.local/share/licenses" -y
-    fc-cache -f "$HOME/.local/share/fonts/Microsoft/"
-    rm -f "$HOME/${_file}"
-    rm -f ./install.wim
-    
+    #Japanese fonts
+    if [ -e "/tmp/w10fontsjp.tar.zst" ] ; then
+    Info "Skipping..."
+
     else
-    Info "Checksum doesn't pass, your download may be corrupted: cleaning"
-    Info "Try again later with osu-wine --w10fonts"
-    rm -f "$HOME/${_file}" ; fi
+    wget -O "/tmp/w10fontsjp.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-japanese-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck21="$?"
+    if [ ! "$wgetcheck21" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fontsjp.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-japanese-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
     fi
+
+    #Korean fonts
+    if [ -e "/tmp/w10fontskr.tar.zst" ] ; then
+    Info "Skipping..."
+
+    else
+    wget -O "/tmp/w10fontskr.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-korean-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck22="$?"
+    if [ ! "$wgetcheck22" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fontskr.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-korean-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
+    fi
+
+    #Preparing folders
+    mkdir -p "/tmp/fontinstall"
+    mkdir -p "$HOME/.local/share/fonts/W10Fonts"
+
+    mkdir -p "/tmp/fontinstall/w10"
+    tar -xf "/tmp/w10fonts.tar.zst" -C "/tmp/fontinstall/w10"
+    cp /tmp/fontinstall/w10/usr/share/fonts/TTF/* "$HOME/.local/share/fonts/W10Fonts"
+
+    mkdir -p "/tmp/fontinstall/w10jp"
+    tar -xf "/tmp/w10fontsjp.tar.zst" -C "/tmp/fontinstall/w10jp"
+    cp /tmp/fontinstall/w10jp/usr/share/fonts/TTF/* "$HOME/.local/share/fonts/W10Fonts"    
+    
+    mkdir -p "/tmp/fontinstall/w10kr"
+    tar -xf "/tmp/w10fontskr.tar.zst" -C "/tmp/fontinstall/w10kr"
+    cp /tmp/fontinstall/w10kr/usr/share/fonts/TTF/* "$HOME/.local/share/fonts/W10Fonts"
+
+    fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
+
+    rm -rf "/tmp/fontinstall"
+    Info "Finished installing fonts.."
 
     Info "Configuring osu-mime and osu-handler:"
     #Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
@@ -324,25 +337,30 @@ function install()
         Info "Wineprefix already exists; do you want to reinstall it?"
         read -r -p "$(Info "Choose: (Y/N)")" prefchoice
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
-
+	
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-        Info "Remember to skip Wine Mono:"
-        #Install needed components
-        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp cjkfonts 
+        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+        wget "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" -O "/tmp/WINE.win32.7z" ; fi
+        7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
+        cp -r "/tmp/osu-wineprefix/WINE.win32/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+        rm -rf "/tmp/osu-wineprefix/"
+        
+        export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
+        
+        #Time to remove all the bloat there lmao
+        rm -rf "$WINEPREFIX/dosdevices/{d::,e::,f:,f::,g::,h::,i:,i::,x:}"
+	    ln -s / "$WINEPREFIX/dosdevices/z:"
+	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
 
-        #Fix for Linux Mint which doesn't accept gdiplus_winxp for some reason lol
-        if [ -d "/etc/linuxmint" ] ; then
-        Info "Mint detected; installing gdiplus to fix..."
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f gdiplus ; fi
-
-        #Sets Windows version to 2003, seems to solve osu!.db problems etc.
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+        
+        #Fixes crashes in timing panel
+	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32
         
         #Hides Wine version (only with staging - needed to fix cursor and numbers)
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
         
         #Skips creating filetype associations and desktop entries
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
@@ -352,30 +370,35 @@ function install()
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
         else
-		if [ ! -e "$HOME/.local/share/osuconfig/folderfixosu" ] ; then
-		cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
-		fi
+	if [ ! -e "$HOME/.local/share/osuconfig/folderfixosu" ] ; then
+	cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
+	fi
 		
         Info "Skipping..." ; fi
     else
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-        Info "Remember to skip Wine Mono:"
-        #Install needed components
-        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp cjkfonts
+        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+        wget "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" -O "/tmp/WINE.win32.7z" ; fi
+        7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
+        cp -r "/tmp/osu-wineprefix/WINE.win32/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+        rm -rf "/tmp/osu-wineprefix/"
         
-        #Fix for Linux Mint which doesn't accept gdiplus_winxp for some reason lol
-        if [ -d "/etc/linuxmint" ] ; then
-        Info "Mint detected; installing gdiplus to fix..."
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f gdiplus ; fi
+        export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
+        
+        #Time to remove all the bloat there lmao
+        rm -rf "$WINEPREFIX/dosdevices/{d::,e::,f:,f::,g::,h::,i:,i::,x:}"
+	    ln -s / "$WINEPREFIX/dosdevices/z:"
+	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
 
-        #Sets Windows version to 2003, seems to solve osu!.db problems etc.
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
 
         #Hides Wine version (only with staging - needed to fix cursor and numbers)
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
 
+	    #Fixes crashes in timing panel
+	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32
+	
         #Skips creating filetype associations and desktop entries
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
@@ -386,20 +409,19 @@ function install()
         
     fi
 
-    #Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
+#Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
     Info "Configuring Winestreamproxy (Discord RPC)"
-    wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" && wgetcheck5="$?"
+    wget -O "/tmp/winestreamproxy-2.0.3-i386.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" && wgetcheck5="$?"
     
     if [ ! "$wgetcheck5" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" ; fi
+    wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-i386.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" ; fi
     
     mkdir -p "/tmp/winestreamproxy"
-    tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-    export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+    tar -xf "/tmp/winestreamproxy-2.0.3-i386.tar.gz" -C "/tmp/winestreamproxy"
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k && WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh"
-    rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+    rm -f "/tmp/winestreamproxy-2.0.3-i386.tar.gz"
     rm -rf "/tmp/winestreamproxy"
     fi
 
@@ -565,6 +587,235 @@ function update()
 
 }
 
+function basic()
+{
+    Info "This is the basic installer, it will only install basic features to get the game running.."
+    if [ -e /usr/bin/osu-wine ] ; then Error "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!" ; fi #Checking DiamondBurned's osu-wine
+    if [ -e "$HOME/.local/bin/osu-wine" ] ; then Error "Please uninstall osu-wine before installing!" ; fi
+
+    #/.local/bin check
+    if [ ! -d "$HOME/.local/bin" ] ; then
+        mkdir -p "$HOME/.local/bin"
+        if (grep -q "bash" "$SHELL" || [[ -f "$HOME/.bashrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.bashrc"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.bashrc"
+            source "$HOME/.bashrc"
+        fi
+
+        if (grep -q "zsh" "$SHELL" || [[ -f "$HOME/.zshrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.zshrc"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.zshrc"
+            source "$HOME/.zshrc"
+        fi
+
+        if [[ -f "$HOME/.config/fish/config.fish" ]] && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.config/fish/config.fish"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.config/fish/config.fish" 
+            source "$HOME/.config/fish/config.fish"
+        fi
+    fi
+
+    Info "Installing game script:"
+    cp ./osu-wine "$HOME/.local/bin/osu-wine" && chmod 755 "$HOME/.local/bin/osu-wine"
+
+    Info "Installing icons:"
+    mkdir -p "$HOME/.local/share/icons"    
+    cp "./stuff/osu-wine.png" "$HOME/.local/share/icons/osu-wine.png" && chmod 644 "$HOME/.local/share/icons/osu-wine.png"
+    
+    Info "Installing .desktop:"
+    mkdir -p "$HOME/.local/share/applications"
+    echo "[Desktop Entry]
+    Name=osu!
+    Comment=osu! - Rhythm is just a *click* away!
+    Type=Application
+    Exec=/home/$USER/.local/bin/osu-wine %U
+    Icon=/home/$USER/.local/share/icons/osu-wine.png
+    Terminal=false
+    Categories=Wine;Game;" >> "$HOME/.local/share/applications/osu-wine.desktop"
+    chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
+    
+    Info "Installing wine-osu:"
+    if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
+    Info "1 - Ubuntu and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
+          2 - openSUSE Tumbleweed
+          3 - openSUSE Leap 15.3
+          4 - exit"
+    read -r -p "$(Info "Choose your distro: ")" distro
+    case "$distro" in 
+        '1')
+        echo 'deb http://download.opensuse.org/repositories/home:/hwsnemo:/packaged-wine-osu/xUbuntu_20.04/ /' | sudo tee /etc/apt/sources.list.d/home:hwsnemo:packaged-wine-osu.list
+        curl -fsSL https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/xUbuntu_20.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_hwsnemo_packaged-wine-osu.gpg > /dev/null
+        sudo apt update
+        sudo apt install wine-osu
+        if [ -d "$HOME/.local/share/osuconfig" ]; then
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
+        else
+        mkdir "$HOME/.local/share/osuconfig"
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
+        fi
+        ;;
+        '2')
+        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Tumbleweed/home:hwsnemo:packaged-wine-osu.repo
+        zypper refresh
+        zypper install wine-osu
+        if [ -d "$HOME/.local/share/osuconfig" ]; then
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
+        else
+        mkdir "$HOME/.local/share/osuconfig"
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
+        fi
+        ;;
+        '3')
+        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Leap_15.3/home:hwsnemo:packaged-wine-osu.repo
+        zypper refresh
+        zypper install wine-osu
+        if [ -d "$HOME/.local/share/osuconfig" ]; then
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
+        else
+        mkdir "$HOME/.local/share/osuconfig"
+        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
+        fi
+        ;; 
+	    '4')
+	    exit 0
+	    ;;
+    esac
+    else
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" && wgetcheck1="$?"
+    
+    if [ ! "$wgetcheck1" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" "https://docs.google.com/uc?export=download&id=${GDRIVEID}" && wgetcheckdrive="$?" 
+    
+    if [ ! "$wgetcheckdrive" = 0 ] ; then
+    Info "Google Drive download failed; cleaning install..."
+    rm -f "$HOME/.local/share/icons/osu-wine.png"
+    rm -f "$HOME/.local/share/applications/osu-wine.desktop"
+    rm -f "$HOME/.local/bin/osu-wine"
+    Info "Try running again ./osu-winello.sh"
+    exit 0 
+    fi    
+    fi
+
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst" -C "$HOME/.local/share/"
+    LASTWINEVERSION="$WINEVERSION"
+    
+    if [ -d "$HOME/.local/share/osuconfig" ]; then
+    Info "Skipping osuconfig.."
+    else
+    mkdir "$HOME/.local/share/osuconfig"
+    fi
+    
+    mv "$HOME/.local/share/opt/wine-osu" "$HOME/.local/share/osuconfig"
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.zst"
+    rm -rf "$HOME/.local/share/opt"
+    Info "Installing script copy for updates.."
+    mkdir -p "$HOME/.local/share/osuconfig/update"
+    git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update"
+    echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
+    fi
+
+    Info "Configuring osu! folder:"
+    Info "Where do you want to install the game?: 
+          1 - Default path (~/.local/share/osu-wine)
+          2 - Custom path"
+    read -r -p "$(Info "Choose your option: ")" installpath
+    if [ "$installpath" = 1 ] || [ "$installpath" = 2 ] ; then  
+    case "$installpath" in
+        '1')
+        if [ -d "$HOME/.local/share/osu-wine" ]; then
+        Info "osu-wine folder already exists: skipping.."
+        else
+        mkdir "$HOME/.local/share/osu-wine"
+        fi
+        GAMEDIR="$HOME/.local/share/osu-wine"
+        if [ -d "$GAMEDIR/OSU" ] || [ -d "$GAMEDIR/osu!" ]; then
+        Info "osu! folder already exists: skipping.."
+        if [ -d "$GAMEDIR/OSU" ]; then
+        OSUPATH="$GAMEDIR/OSU"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        if [ -d "$GAMEDIR/osu!" ]; then
+        OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        else
+        mkdir "$GAMEDIR/osu!"
+        export OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+        fi
+        ;;
+        '2')
+        Info "Choose your directory: "
+        GAMEDIR="$(zenity --file-selection --directory)"
+        if [ -d "$GAMEDIR/osu!" ] || [ -e "$GAMEDIR/osu!.exe" ]; then
+        Info "osu! folder/game already exists: skipping.."
+        if [ -d "$GAMEDIR/osu!" ]; then
+        OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        if [ -e "$GAMEDIR/osu!.exe" ]; then
+        OSUPATH="$GAMEDIR"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        else
+        mkdir "$GAMEDIR/osu!"
+        OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+        fi
+        ;;
+    esac
+    else
+    Info "No option chosen, installing to default.. (~/.local/share/osu-wine)"
+    if [ -d "$HOME/.local/share/osu-wine" ]; then
+        Info "osu-wine folder already exists: skipping.."
+        else
+        mkdir "$HOME/.local/share/osu-wine"
+        fi
+        GAMEDIR="$HOME/.local/share/osu-wine"
+        if [ -d "$GAMEDIR/OSU" ] || [ -d "$GAMEDIR/osu!" ]; then
+        Info "osu! folder already exists: skipping.."
+        if [ -d "$GAMEDIR/OSU" ]; then
+        OSUPATH="$GAMEDIR/OSU"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        if [ -d "$GAMEDIR/osu!" ]; then
+        OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        else
+        mkdir "$GAMEDIR/osu!"
+        export OSUPATH="$GAMEDIR/osu!"
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+        fi
+    fi
+
+    Info "Configuring Wineprefix:"
+    mkdir -p "$HOME/.local/share/wineprefixes"
+    if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
+        Info "Wineprefix already exists; do you want to reinstall it?"
+        read -r -p "$(Info "Choose: (Y/N)")" prefchoice
+        if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
+	
+        Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
+	    WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet40 
+        
+        else
+        Info "Skipping..." ; fi
+
+    else
+        Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
+        WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet40 ; fi
+
+    Info "Downloading osu!"
+    if [ -s "$OSUPATH/osu!.exe" ]; then
+    Info "Installation is completed! Run 'osu-wine' to play osu!"
+    Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    exit 0
+    else
+    wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && wgetcheck6="$?"
+    
+    if [ ! "$wgetcheck6" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" ; fi
+    
+    Info "Installation is completed! Run 'osu-wine' to play osu!"
+    Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    fi
+
+}
+
 function help() 
 {   
 
@@ -575,6 +826,7 @@ Info "To install the game, run ./osu-winello.sh
 }
 
 case "$1" in
+
     'uninstall')	
 	uninstall
 	exit 0
@@ -593,6 +845,87 @@ case "$1" in
 	;;
 	
     'w10fonts')
+
+    Info "Which way do you want to install fonts?
+    1: GitHub (Faster, Small Download, Classic JP and KR fonts)
+    2: Iso (5GBs, includes ALL fonts from W10 isos"
+
+    read -r -p "$(Info "Choose your option: ")" fontsch
+    if [ "$fontsch" = 1 ] || [ "$fontsch" = 2 ] ; then  
+    case "$installpath" in
+
+    '1')
+    if [ -d "$HOME/.local/share/fonts/W10Fonts" ] ; then
+    Info "Fonts already found, skipping.." ; 
+    
+    else
+    #W10fonts by https://github.com/YourRandomGuy/ttf-mswin10-arch 
+    Info "Installing Windows fonts... (read below)"
+    
+    #Classic fonts
+    if [ -e "/tmp/w10fonts.tar.zst" ] ; then
+    Info "Skipping..."
+
+    else
+    wget -O "/tmp/w10fonts.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck2="$?"
+    if [ ! "$wgetcheck2" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fonts.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
+    fi
+    
+    #Japanese fonts
+    if [ -e "/tmp/w10fontsjp.tar.zst" ] ; then
+    Info "Skipping..."
+
+    wget -O "/tmp/w10fontsjp.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-japanese-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck21="$?"
+    if [ ! "$wgetcheck21" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fontsjp.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-japanese-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
+    fi
+
+    #Korean fonts
+    if [ -e "/tmp/w10fontskr.tar.zst" ] ; then
+    Info "Skipping..."
+    
+    wget -O "/tmp/w10fontskr.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-korean-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck22="$?"
+    if [ ! "$wgetcheck22" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fontskr.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-korean-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
+    fi
+
+    #Preparing folders
+    mkdir -p "/tmp/fontinstall"
+    mkdir -p "$HOME/.local/share/fonts/W10Fonts"
+
+    mkdir -p "/tmp/fontinstall/w10"
+    tar -xf "/tmp/w10fonts.tar.zst" -C "/tmp/fontinstall/w10"
+    cp "/tmp/fontinstall/w10/usr/share/fonts/TTF/*" "$HOME/.local/share/fonts/W10Fonts"
+
+    mkdir -p "/tmp/fontinstall/w10jp"
+    tar -xf "/tmp/w10fontsjp.tar.zst" -C "/tmp/fontinstall/w10jp"
+    cp "/tmp/fontinstall/w10jp/usr/share/fonts/TTF/*" "$HOME/.local/share/fonts/W10Fonts"    
+    
+    mkdir -p "/tmp/fontinstall/w10kr"
+    tar -xf "/tmp/w10fontskr.tar.zst" -C "/tmp/fontinstall/w10kr"
+    cp "/tmp/fontinstall/w10kr/usr/share/fonts/TTF/*" "$HOME/.local/share/fonts/W10Fonts"
+
+    fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
+
+    rm -rf mkdir -p "/tmp/fontinstall"
+    Info "Finished installing fonts.."
+    fi
+    ;;
+
+    '2')
+
+    #W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
+    #If the package will be updated (and I won't have modified it yet) you can just edit the next 4 variables according to the link above
+    pkgver=19043.928.210409
+    _minor=1212.21h1
+    _type="release_svc_refresh"
+    sha256sumiso="026607e7aa7ff80441045d8830556bf8899062ca9b3c543702f112dd6ffe6078"
+    _file="${pkgver}-${_minor}_${_type}_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso"
+
     if [ -e "$HOME/${_file}" ]; then
     Info "Iso already exists; skipping download..."
     else
@@ -623,6 +956,79 @@ case "$1" in
     Info "Try again later with osu-wine --w10fonts"
     rm -f "$HOME/${_file}" ; fi
     ;;
+
+    esac
+
+    else
+    Info "Unknown argument, using github.."
+    if [ -d "$HOME/.local/share/fonts/W10Fonts" ] ; then
+    Info "Fonts already found, skipping.." ; 
+    
+    else
+    #W10fonts by https://github.com/YourRandomGuy/ttf-mswin10-arch 
+    Info "Installing Windows fonts... (read below)"
+    
+    #Classic fonts
+    if [ -e "/tmp/w10fonts.tar.zst" ] ; then
+    Info "Skipping..."
+
+    else
+    wget -O "/tmp/w10fonts.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck2="$?"
+    if [ ! "$wgetcheck2" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fonts.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
+    fi
+    
+    #Japanese fonts
+    if [ -e "/tmp/w10fontsjp.tar.zst" ] ; then
+    Info "Skipping..."
+
+    else
+    wget -O "/tmp/w10fontsjp.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-japanese-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck21="$?"
+    if [ ! "$wgetcheck21" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fontsjp.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-japanese-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
+    fi
+
+    #Korean fonts
+    if [ -e "/tmp/w10fontskr.tar.zst" ] ; then
+    Info "Skipping..."
+
+    else
+    wget -O "/tmp/w10fontskr.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-korean-10.0.19043.1055-1-any.pkg.tar.zst" && wgetcheck22="$?"
+    if [ ! "$wgetcheck22" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "/tmp/w10fontskr.tar.zst" "https://github.com/YourRandomGuy/ttf-mswin10-arch/raw/master/ttf-ms-win10-korean-10.0.19043.1055-1-any.pkg.tar.zst" ; fi
+    fi
+
+    #Preparing folders
+    mkdir -p "/tmp/fontinstall"
+    mkdir -p "$HOME/.local/share/fonts/W10Fonts"
+
+    mkdir -p "/tmp/fontinstall/w10"
+    tar -xf "/tmp/w10fonts.tar.zst" -C "/tmp/fontinstall/w10"
+    cp /tmp/fontinstall/w10/usr/share/fonts/TTF/* "$HOME/.local/share/fonts/W10Fonts"
+
+    mkdir -p "/tmp/fontinstall/w10jp"
+    tar -xf "/tmp/w10fontsjp.tar.zst" -C "/tmp/fontinstall/w10jp"
+    cp /tmp/fontinstall/w10jp/usr/share/fonts/TTF/* "$HOME/.local/share/fonts/W10Fonts"    
+    
+    mkdir -p "/tmp/fontinstall/w10kr"
+    tar -xf "/tmp/w10fontskr.tar.zst" -C "/tmp/fontinstall/w10kr"
+    cp /tmp/fontinstall/w10kr/usr/share/fonts/TTF/* "$HOME/.local/share/fonts/W10Fonts"
+
+    fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
+
+    rm -rf "/tmp/fontinstall"
+    Info "Finished installing fonts.."
+    fi
+    fi
+    ;;
+
+    '--basic')
+    basic
+    ;;
+
 	*)				
 	Error "Unknown argument, see ./osu-winello.sh help"
 	;;
