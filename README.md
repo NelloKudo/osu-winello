@@ -18,11 +18,11 @@ osu! stable installer for Linux with patched wine-osu and other features.
 # Features
 
 - no need for root to install osu! e.e
-- works on most distros (script checks libc by itself)
+- comes with utilities like osu-handler, osu-mime, winestreamproxy and native support for Linux file managers
+- works on most recent distros (script checks libc by itself)
 - uses patched wine-osu with the latest community patches (by PooN's ds etc.)
 - installs osu! on either default or custom path (using GUI) 
 - integrates with both already existing osu! installations from Windows or with [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
-- uses 64-bits Wineprefix (it might take a while to download it, blame winetricks xD)
 - support for installing Windows fonts (fix for Japanese and special characters)
 - updates wine-osu's version according to the repo
 
@@ -148,6 +148,10 @@ git clone https://github.com/NelloKudo/osu-winello.git
 cd osu-winello
 chmod +x ./osu-winello.sh
 ./osu-winello.sh
+
+## OR
+
+./osu-winello.sh --basic #if you want a clean install without tweaks (advanced)
 ```
 
 You can now launch osu! with:
@@ -155,12 +159,13 @@ You can now launch osu! with:
 
 __WARNING__: you might need to close and relaunch your terminal to use the command. 
 
-__General recommendations__: use -40ms offset to make up for Wine (or -25 if you're using audio compatibility mode)
+__General recommendations__: use -40/35ms offset to make up for Wine (or -25 if you're using audio compatibility mode)
 
 ## Flags:
 **Installation script:** 
 ```
 ./osu-winello.sh # Installs the game
+./osu-winello.sh --basic # Installs the game with only dotnet40 and w/o tweaks
 ./osu-winello.sh uninstall # Uninstalls the game
 ```
 
@@ -169,10 +174,14 @@ __General recommendations__: use -40ms offset to make up for Wine (or -25 if you
 osu-wine: Runs osu!
 osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
 osu-wine --winetricks: Install packages on osu! Wineprefix
+osu-wine --regedit: Opens regedit on osu! Wineprefix
+osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
+osu-wine --kill9: Kills osu! but with wineserver -k9
 osu-wine --update: Updates wine-osu to latest version
-osu-wine --w10fonts: Installs Windows 10 fonts from iso (5GB) (Needed for JP characters etc.)
-osu-wine --fixprefix: Reinstalls the osu! Wineprefix
+osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed for JP characters etc.)
+osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
 osu-wine --info: Troubleshooting and more info
+osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)"
 ```
 
 # Credits
