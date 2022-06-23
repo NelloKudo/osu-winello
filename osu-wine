@@ -27,7 +27,8 @@ function help()
     osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed for JP characters etc.)
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
     osu-wine --info: Troubleshooting and more info
-    osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)"
+    osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)
+    osu-wine --devserver <address>: runs osu on with the specified devserver"
 }
 
 function checkshort()
@@ -86,6 +87,11 @@ case "$1" in
 	wine "$OSUPATH/osu!.exe" #osu! launcher
 	checkshort
 	;;
+
+    '--devserver')
+    wine "$OSUPATH/osu!.exe" -devserver $2 #osu! launcher with specified devserver
+    checkshort
+    ;;
 
     '--regedit')
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" regedit
