@@ -5,142 +5,69 @@ osu! stable installer for Linux with patched wine-osu and other features.
 
 # Index
 
-- [Features](#features)
 - [Installation](#installation)
 	- [Prerequisites](#prerequisites)
-		- [Packages](#packages)
-		- [Wine and dependencies](#wine-and-dependencies)
 		- [PipeWire](#pipewire)
 	- [Installing osu!](#installing-osu)
-	- [Flags](#flags)
+- [Features](#features)
+- [Flags](#flags)
 - [Credits](#credits)
-
-# Features
-
-- no need for root to install osu! e.e
-- comes with utilities like osu-handler, osu-mime, winestreamproxy and native support for Linux file managers
-- works on most recent distros (script checks libc by itself)
-- uses patched wine-osu with the latest community patches (by PooN's ds etc.)
-- installs osu! on either default or custom path (using GUI) 
-- integrates with both already existing osu! installations from Windows or with [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
-- support for installing Windows fonts (fix for Japanese and special characters)
-- updates wine-osu's version according to the repo
 
 # Installation
 
 ## Prerequisites 
 
-This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1) I've written on the osu! website: more details, troubleshooting and tools can be found there.
+The only real requirement is actually `git`, as the script will install the rest itself.
+You can easily get it like this:
 
-### Packages:
+**Ubuntu/Debian:** `sudo apt install -y git`
 
-<details>
-  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary><pre>
-  sudo apt update && sudo apt upgrade && sudo apt install git curl build-essential zstd p7zip zenity</pre>
-</details>
+**Arch Linux:** `sudo pacman -Sy --needed  --noconfirm git`
 
-<details>
-  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary> <pre>
-  sudo pacman -Syu git base-devel p7zip wget zenity</pre>
-</details>
+**Fedora:** `sudo dnf install -y git`
 
-<details>
-  <summary> Fedora </summary><pre>
-  sudo dnf update
-  sudo dnf install git zstd p7zip p7zip-plugins wget zenity
-  sudo dnf groupinstall "Development Tools" "Development Libraries"</pre>
-</details>
+## PipeWire:
 
-### Wine and dependencies:
+`PipeWire` **isn't really a dependency but is highly recommended, especially with this script.**
 
-<details>
-  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary><pre>
-  sudo dpkg --add-architecture i386
-  wget -nc https://dl.winehq.org/wine-builds/winehq.key
-  sudo apt-key add winehq.key
-  sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
-  sudo apt update
-  sudo apt install --install-recommends winehq-staging
-  sudo apt install winetricks
-  </pre>
-</details>
+You can install it like this:
 
-<details>
-  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
-	
-  enable multilib first in /etc/pacman.conf
-	
-  <pre>sudo nano /etc/pacman.conf</pre>	
-	
-  and uncomment [multilib] like this:
-	
-  <pre>
-  /etc/pacman.conf
-  --------------------------------------------------------------------------------------
-  [multilib]
-  Include = /etc/pacman.d/mirrorlist</pre>
-	
-  now install wine:
-	
-  <pre>
-  sudo pacman -Sy
-  sudo pacman -S wine-staging winetricks
-  sudo pacman -S giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox
-  </pre>
-</details>
+### Debian (Ubuntu, Linux Mint, Pop!_OS etc..):
 
-<details>
-  <summary> Fedora </summary><pre>
-  sudo dnf install alsa-plugins-pulseaudio.i686 glibc-devel.i686 glibc-devel libgcc.i686 libX11-devel.i686 freetype-devel.i686 libXcursor-devel.i686 libXi-devel.i686 libXext-devel.i686 libXxf86vm-devel.i686 libXrandr-devel.i686 libXinerama-devel.i686 mesa-libGLU-devel.i686 mesa-libOSMesa-devel.i686 libXrender-devel.i686 libpcap-devel.i686 ncurses-devel.i686 libzip-devel.i686 lcms2-devel.i686 zlib-devel.i686 libv4l-devel.i686 libgphoto2-devel.i686 cups-devel.i686 libxml2-devel.i686 openldap-devel.i686 libxslt-devel.i686 gnutls-devel.i686 libpng-devel.i686 flac-libs.i686 json-c.i686 libICE.i686 libSM.i686 libXtst.i686 libasyncns.i686 liberation-narrow-fonts.noarch libieee1284.i686 libogg.i686 libsndfile.i686 libuuid.i686 libva.i686 libvorbis.i686 libwayland-client.i686 libwayland-server.i686 llvm-libs.i686 mesa-dri-drivers.i686 mesa-filesystem.i686 mesa-libEGL.i686 mesa-libgbm.i686 nss-mdns.i686 ocl-icd.i686 pulseaudio-libs.i686 sane-backends-libs.i686 tcp_wrappers-libs.i686 unixODBC.i686 samba-common-tools.x86_64 samba-libs.x86_64 samba-winbind.x86_64 samba-winbind-clients.x86_64 samba-winbind-modules.x86_64 mesa-libGL-devel.i686 fontconfig-devel.i686 libXcomposite-devel.i686 libtiff-devel.i686 openal-soft-devel.i686 mesa-libOpenCL-devel.i686 opencl-utils-devel.i686 alsa-lib-devel.i686 gsm-devel.i686 libjpeg-turbo-devel.i686 pulseaudio-libs-devel.i686 pulseaudio-libs-devel gtk3-devel.i686 libattr-devel.i686 libva-devel.i686 libexif-devel.i686 libexif.i686 glib2-devel.i686 mpg123-devel.i686 mpg123-devel.x86_64 libcom_err-devel.i686 libcom_err-devel.x86_64 libFAudio-devel.i686 libFAudio-devel.x86_64
-  sudo dnf groupinstall "C Development Tools and Libraries"
-  sudo dnf groupinstall "Development Tools"
-  sudo dnf install wine winetricks
-  </pre>
-</details>
+```
+sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
+sudo apt update
+sudo apt install -y pipewire libspa-0.2-bluetooth pipewire-audio-client-libraries
+sudo add-apt-repository ppa:pipewire-debian/wireplumber-upstream
+sudo apt update 
+sudo apt install -y wireplumber
+systemctl --user daemon-reload
+systemctl --user --now disable pulseaudio.service pulseaudio.socket
+systemctl --user mask pulseaudio
+systemctl --user --now enable pipewire-media-session.service pipewire pipewire-pulse
+```
 
-### Pipewire:
-
-<details>
-  <summary> Debian (Ubuntu, Linux Mint, Pop!_OS etc..) </summary><pre>
-  sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
-  sudo apt update
-  sudo apt install pipewire
-  sudo apt install libspa-0.2-bluetooth
-  sudo apt install pipewire-audio-client-libraries
-  systemctl --user daemon-reload
-  systemctl --user --now disable pulseaudio.service pulseaudio.socket
-  systemctl --user mask pulseaudio
-  systemctl --user --now enable pipewire-media-session.service pipewire pipewire-pulse
-  </pre>
-</details>  
-
-<details>
-  <summary> Arch Linux (Manjaro, Endeavour OS, etc.) </summary>
+### Arch Linux (Manjaro, Endeavour OS, etc.):
   
-  Remove PulseAudio:
+**Remove PulseAudio:** `sudo pacman -Rdd pulseaudio`
+ 
+And then:
   
-  <pre>sudo pacman -Rdd pulseaudio</pre>
+```  
+sudo pacman -Sy --needed --noconfirm pipewire pipewire-pulse pipewire-alsa wireplumber
+``` 
+ 
+### Fedora:
+ 
+**Fedora's latest versions already ship with Pipewire ; you might want to check with this:**
   
-  And then install PipeWire:
-  
-  <pre>sudo pacman -S pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber</pre>
-  
-</details>
-
-<details>
-  <summary> Fedora </summary>
-  
-  
-  Fedora's latest versions already ship with Pipewire ; you might want to check with this:
-  
-  <pre>
-  sudo dnf install pulseaudio-utils
-  pactl info
-  </pre>
-  
-</details>
+```   
+sudo dnf install pulseaudio-utils
+pactl info
+``` 
 
 Rebooting your system is recommended e.e
+
 
 ## Installing osu!:
 ```
@@ -157,11 +84,25 @@ chmod +x ./osu-winello.sh
 You can now launch osu! with:
 ```osu-wine```
 
-__WARNING__: you might need to close and relaunch your terminal to use the command. 
+**WARNING: you might need to close and relaunch your terminal to use the command.**
 
 __General recommendations__: use -40/35ms offset to make up for Wine (or -25 if you're using audio compatibility mode)
 
-## Flags:
+# Features:
+
+- installs every needed wine dependency by itself (for distros using apt, pacman and dnf)
+- comes with utilities like osu-handler, Discord RPC (winestreamproxy) and native support for Linux file managers!
+- uses patched wine-osu with the latest community patches (audio, fsync etc. by gonX/oglfreak)
+- works on most recent distros (script checks for glibc (2.31) itself)
+- installs osu! on either default or custom path (using GUI) 
+- integrates with both already existing osu! installations from Windows or with [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
+- skips the pain of downloading prefix stuff thanks to https://gitlab.com/osu-wine/osu-wineprefix
+- support for installing Windows fonts (fix for Japanese and special characters)
+- updates wine-osu's version according to the repo
+
+This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1) I've written on the osu! website: more troubleshooting on the game itself can be found there e.e
+
+# Flags:
 **Installation script:** 
 ```
 ./osu-winello.sh # Installs the game
@@ -181,7 +122,8 @@ osu-wine --update: Updates wine-osu to latest version
 osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed for JP characters etc.)
 osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
 osu-wine --info: Troubleshooting and more info
-osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)"
+osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)
+osu-wine --devserver <server>: Runs osu on the specified devserver
 ```
 
 # Credits
