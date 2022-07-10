@@ -4,6 +4,12 @@ Info()
     echo -e '\033[1;34m'"Winello:\033[0m $*";
 }
 
+#Welcome to your osu! launch script!
+#Most stuff here is explained with comments, but if you just need to add
+#something to osu (example: adding gamemode) see line ~86, you'll find the osu! launcher there.
+
+export WINEESYNC=1 #enables esync
+export WINEFSYNC=1 #enables fsync (when possible)
 export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" #Path to wine-osu
 export WINEARCH=win32
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
@@ -24,11 +30,11 @@ function help()
     osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
     osu-wine --kill9: Kills osu! but with wineserver -k9
     osu-wine --update: Updates wine-osu to latest version
-    osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed for JP characters etc.)
+    osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed to fix P characters etc.)
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
     osu-wine --info: Troubleshooting and more info
     osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)
-    osu-wine --devserver <address>: runs osu on with the specified devserver"
+    osu-wine --devserver <address>: Runs osu on with the specified devserver"
 }
 
 function checkshort()
@@ -89,7 +95,7 @@ case "$1" in
 	;;
 
     '--devserver')
-    wine "$OSUPATH/osu!.exe" -devserver $2 #osu! launcher with specified devserver
+    wine "$OSUPATH/osu!.exe" -devserver "$2" #osu! launcher with specified devserver
     checkshort
     ;;
 
