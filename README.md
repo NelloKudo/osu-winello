@@ -44,7 +44,7 @@ sudo apt install -y wireplumber
 systemctl --user daemon-reload
 systemctl --user --now disable pulseaudio.service pulseaudio.socket
 systemctl --user mask pulseaudio
-systemctl --user --now enable pipewire-media-session.service pipewire pipewire-pulse
+systemctl --user --now enable pipewire pipewire-pulse
 ```
 
 ### Arch Linux (Manjaro, Endeavour OS, etc.):
