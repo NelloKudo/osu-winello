@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.11
+WINEVERSION=7.12
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
-MINGLIBC=2.31
-WINELINK=https://www.dropbox.com/s/66248e7vo32sin5/wine-osu-7.11-x86_64.pkg.tar.gz
+MINGLIBC=2.27
+WINELINK=https://www.dropbox.com/s/eluiy5pkga4l0v2/wine-osu-7.12-x86_64.pkg.tar.xz
 
 #Useful functions
 Info()
@@ -20,15 +20,15 @@ Revert()
     rm -f "$HOME/.local/share/applications/osu-wine.desktop"
     rm -f "$HOME/.local/bin/osu-wine"
     rm -rf "$HOME/.local/share/osuconfig"
-    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz"
-    rm -f "/tmp/osu-mime.tar.gz"
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz"
+    rm -f "/tmp/osu-mime.tar.xz"
     rm -f "$HOME/.local/share/mime/packages"
     rm -rf "/tmp/osu-mime"
     rm -f "$HOME/.local/share/mime/packages/osuwinello-file-extensions.xml"
     rm -f "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
     rm -f "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
     rm -rf "/tmp/tempfonts"
-    rm -f "/tmp/winestreamproxy-2.0.3-i386.tar.gz"
+    rm -f "/tmp/winestreamproxy-2.0.3-i386.tar.xz"
     rm -rf "/tmp/winestreamproxy"
     echo -e '\033[1;31m'"Reverting done, try again with ./osu-winello.sh\033[0m"
 }
@@ -82,7 +82,7 @@ function install()
     sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
     sudo apt update
     sudo apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
-    sudo apt install -y winetricks git curl build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+    sudo apt install -y winetricks git curl build-essential steam zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
     Info "Dependencies done, skipping.."
     fi
 
@@ -188,14 +188,14 @@ function install()
 	    ;;
     esac
     else
-    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" "$WINELINK" && wgetcheck1="$?"
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck1="$?"
     
     if [ ! "$wgetcheck1" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" "$WINELINK" || Error "Download failed, check your connection" 
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" || Error "Download failed, check your connection" 
     fi
 
-    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" -C "$HOME/.local/share/"
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/"
     LASTWINEVERSION="$WINEVERSION"
     
     if [ -d "$HOME/.local/share/osuconfig" ]; then
@@ -205,7 +205,7 @@ function install()
     fi
     
     mv "$HOME/.local/share/wine-osu" "$HOME/.local/share/osuconfig"
-    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz"
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz"
     Info "Installing script copy for updates.."
     mkdir -p "$HOME/.local/share/osuconfig/update"
     git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update" || Error "Git failed, check your connection.."
@@ -604,16 +604,16 @@ function update()
     else
     LASTWINEVERSION=$(</"$HOME/.local/share/osuconfig/wineverupdate")
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" "$WINELINK" && wgetcheck7="$?"
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck7="$?"
     
     if [ ! "$wgetcheck7" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" "$WINELINK" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"; fi
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"; fi
     
-    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" -C "$HOME/.local/share/"
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/"
     rm -rf "$HOME/.local/share/osuconfig/wine-osu"
     mv "$HOME/.local/share/wine-osu" "$HOME/.local/share/osuconfig/"
-    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz"
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz"
     LASTWINEVERSION="$WINEVERSION"
     rm -f "$HOME/.local/share/osuconfig/wineverupdate"
     echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
@@ -660,7 +660,7 @@ function basic()
     sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
     sudo apt update
     sudo apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
-    sudo apt install -y winetricks git curl build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+    sudo apt install -y winetricks git steam curl build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
     Info "Dependencies done, skipping.."
     fi
 
@@ -669,8 +669,10 @@ function basic()
     Info "Please enter your password when asked"
     Info "------------------------------------"
 
-    Info "Enabling multilib.."
-    ! grep "osu-install" >/dev/null 2>&1 < /etc/pacman.conf && printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | sudo tee -a /etc/pacman.conf
+    if ! grep -q -E '^\[multilib\]' '/etc/pacman.conf'; then
+        Info "Enabling multilib.."
+        printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | sudo tee -a /etc/pacman.conf
+    fi
 
     Info "Installing packages and wine-staging dependencies.."
     sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
@@ -783,14 +785,14 @@ function basic()
 	    ;;
     esac
     else
-    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" "$WINELINK" && wgetcheck1="$?"
+    wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck1="$?"
     
     if [ ! "$wgetcheck1" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" "$WINELINK" || Error "Download failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" || Error "Download failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
     fi
 
-    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz" -C "$HOME/.local/share/"
+    tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/"
     LASTWINEVERSION="$WINEVERSION"
     
     if [ -d "$HOME/.local/share/osuconfig" ]; then
@@ -800,7 +802,7 @@ function basic()
     fi
     
     mv "$HOME/.local/share/wine-osu" "$HOME/.local/share/osuconfig"
-    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.gz"
+    rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz"
     Info "Installing script copy for updates.."
     mkdir -p "$HOME/.local/share/osuconfig/update"
     git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update"
