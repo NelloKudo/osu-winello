@@ -57,6 +57,8 @@ And then:
 sudo pacman -Sy --needed --noconfirm pipewire pipewire-pulse pipewire-alsa wireplumber
 systemctl --user enable --now pipewire.service pipewire.socket pipewire-media-session.service pipewire-pulse.service pipewire-pulse.socket
 ``` 
+
+Manjaro users can instead use their distro's package: `sudo pacman -S --needed --noconfirm manjaro-pipewire`
  
 ### Fedora:
  
