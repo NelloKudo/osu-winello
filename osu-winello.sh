@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.12
+WINEVERSION=7.13
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK=https://www.dropbox.com/s/eluiy5pkga4l0v2/wine-osu-7.12-x86_64.pkg.tar.xz
+WINELINK=https://www.dropbox.com/s/44b1ef558gpw9ok/wine-osu-7.13-x86_64.pkg.tar.xz
 
 #Useful functions
 Info()
@@ -368,9 +368,10 @@ function install()
         #Time to remove all the bloat there lmao
         rm -rf "$WINEPREFIX/dosdevices"
         mkdir -p "$WINEPREFIX/dosdevices"
-        ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:" 
-	    ln -s / "$WINEPREFIX/dosdevices/z:"
-	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
+        ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
+	ln -Tfs "$OSUPATH" "$WINEPREFIX/dosdevices/x:"
+	ln -s / "$WINEPREFIX/dosdevices/z:"
+	rm -rf "$WINEPREFIX/drive_c/users/diamond"
         rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
 
         Info "Installing fonts..."
@@ -385,7 +386,7 @@ function install()
         export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
         
         #Fixes crashes in timing panel etc..
-	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32
+	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32 gdiplus_winxp
         
         #Hides Wine version (only with staging - needed to fix cursor and numbers)
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
@@ -424,8 +425,9 @@ function install()
         rm -rf "$WINEPREFIX/dosdevices"
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:" 
-	    ln -s / "$WINEPREFIX/dosdevices/z:"
-	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
+	ln -Tfs "$OSUPATH" "$WINEPREFIX/dosdevices/x:" 
+	ln -s / "$WINEPREFIX/dosdevices/z:"
+	rm -rf "$WINEPREFIX/drive_c/users/diamond"
         rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
 
         Info "Installing fonts..."
@@ -443,7 +445,7 @@ function install()
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
 
 	    #Fixes crashes in timing panel
-	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32
+	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32 gdiplus_winxp
 	
         #Skips creating filetype associations and desktop entries
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
