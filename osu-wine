@@ -17,7 +17,6 @@ osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
 export OSUPATH="$osuinstall"
 export vblank_mode=0            #disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    #disables vsync for NVIDIA
-export WINE_BLOCK_GET_VERSION=1 #blocks wine's version on hwsmm's wine-osu (ty oglfreak)
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# #blocks wine from creating .desktop files
 
 function help()
