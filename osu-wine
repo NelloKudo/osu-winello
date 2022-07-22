@@ -6,7 +6,7 @@ Info()
 
 #Welcome to your osu! launch script!
 #Most stuff here is explained with comments, but if you just need to add
-#something to osu (example: adding gamemode) see line ~86, you'll find the osu! launcher there.
+#something to osu (example: adding gamemode) see line ~94, you'll find the osu! launcher there.
 
 export WINEESYNC=1 #enables esync
 export WINEFSYNC=1 #enables fsync (when possible)
@@ -32,7 +32,9 @@ function help()
     osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed to fix P characters etc.)
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
     osu-wine --info: Troubleshooting and more info
+    osu-wine --remove: Uninstalls osu! and the script
     osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)
+    osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu on with the specified devserver"
 }
 
@@ -48,43 +50,8 @@ function checkshort()
 
 function update()
 {   
-    if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
-    Info "1 - Ubuntu and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
-          2 - openSUSE Tumbleweed
-          3 - openSUSE Leap 15.3
-          4 - exit"
-    read -r -p "$(Info "Choose your distro: ")" distro
-    case "$distro" in 
-        '1')
-        sudo apt update
-        sudo apt install wine-osu
-        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
-        Info "Update is completed!"
-        ;;
-        '2')
-        zypper refresh
-        zypper install wine-osu
-        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu" 
-        Info "Update is completed!"
-        ;;
-        '3')
-        zypper refresh
-        zypper install wine-osu
-        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
-        Info "Update is completed!"
-        ;; 
-	'4')
-	exit 0
-	;;
-    esac
-
-    else
     git -C "$HOME/.local/share/osuconfig/update" pull --quiet
     bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" update
-    fi
 }
 
 case "$1" in
@@ -109,6 +76,79 @@ case "$1" in
 	'--winetricks')
 	WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks "${@:2}"
 	;;
+    
+    '--changedir')
+    Info "Please choose your new directory:"
+
+    newdir="$(zenity --file-selection --directory)"
+    lastdir=$(</"$HOME/.local/share/osuconfig/osupath")
+    rm -f "$HOME/.local/share/osuconfig/osupath"
+
+    if [ -d "$newdir/osu!" ] || [ -s "$newdir/osu!.exe" ]; then
+    Info "osu! folder/game already exists: skipping.."
+
+    if [ -d "$newdir/osu!" ]; then
+    OSUPATH="$newdir/osu!"
+    echo "$newdir" > "$HOME/.local/share/osuconfig/osupath"
+
+    Info "Change done from '\033$lastdir\033' to '\033$newdir\033'!"
+
+    Info "Do you want to delete the previous install?"
+    read -r -p "$(Info "Choose your option (y/n): ")" dirchoice
+    if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
+
+    read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" dirchoice2
+    if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
+    rm -rf "$lastdir/osu!" && Info "Cleaning done!" ; else Info "Skipping..." ; fi
+    else 
+    Info "Skipping.." ; fi ; fi
+
+    if [ -s "$newdir/osu!.exe" ]; then
+    OSUPATH="$newdir"
+    echo "$newdir" > "$HOME/.local/share/osuconfig/osupath" 
+    
+    Info "Change done from '\033$lastdir\033' to '\033$newdir\033'!"
+
+    Info "Do you want to delete the previous install?"
+    read -r -p "$(Info "Choose your option (y/n): ")" dirchoice
+    if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
+
+    read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" dirchoice2
+    if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
+    rm -rf "$lastdir/osu!" && Info "Cleaning done!" ; else Info "Skipping..." ; fi
+    else 
+    Info "Skipping.." ; fi ; fi
+    
+    else
+    mkdir "$newdir/osu!"
+    OSUPATH="$newdir/osu!"
+    echo "$newdir" > "$HOME/.local/share/osuconfig/osupath"
+
+    Info "Downloading osu! to your new install.."
+    wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && wgetcheck6="$?"
+    
+    if [ ! "$wgetcheck6" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+    wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" ; fi
+    
+    Info "Change done from '\033$lastdir\033' to '\033$newdir\033'!"
+
+    Info "Do you want to delete the previous install?"
+    read -r -p "$(Info "Choose your option (y/n): ")" dirchoice
+    if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
+
+    read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" dirchoice2
+    if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
+    rm -rf "$lastdir/osu!" && Info "Cleaning done!" ; else Info "Skipping..." ; fi
+
+    else 
+    Info "Skipping.." ; fi
+    fi
+    ;;
+
+    '--remove')
+    bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" uninstall
+    ;;
 
     '--kill')
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k
