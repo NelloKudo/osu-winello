@@ -95,13 +95,13 @@ __General recommendations__: use -40/35ms offset to make up for Wine (or -25 if 
 
 - installs every needed wine dependency by itself (for distros using apt, pacman and dnf)
 - comes with utilities like osu-handler, Discord RPC (winestreamproxy) and native support for Linux file managers!
-- uses patched wine-osu with the latest community patches (audio, fsync etc. by gonX/oglfreak)
-- works on most recent distros (script checks for glibc (2.31) itself)
+- uses patched [wine-osu](https://github.com/NelloKudo/buildbot-osu) binaries with the latest community patches, you can read more [here](https://github.com/NelloKudo/buildbot-osu) and support updates according to the repo!
 - installs osu! on either default or custom path (using GUI) 
 - integrates with both already existing osu! installations from Windows or with [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
 - skips the pain of downloading prefix stuff thanks to https://gitlab.com/osu-wine/osu-wineprefix
 - support for installing Windows fonts (fix for Japanese and special characters)
-- updates wine-osu's version according to the repo
+- support for old distros too! (binaries built on GLIBC 2.27)
+- lutris support
 
 This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1) I've written on the osu! website: more troubleshooting on the game itself can be found there e.e
 
@@ -125,7 +125,9 @@ osu-wine --update: Updates wine-osu to latest version
 osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed for JP characters etc.)
 osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
 osu-wine --info: Troubleshooting and more info
-osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)
+osu-wine --remove: Uninstalls osu! and the script
+osu-wine --lutris: Copies wine-osu to lutris and shows instructions to add osu! there
+osu-wine --changedir: Changes directory of the install according to the user
 osu-wine --devserver <server>: Runs osu on the specified devserver
 ```
 
@@ -139,7 +141,7 @@ Special thanks to:
 - [KatouMegumi's guide](https://wiki.archlinux.org/title/User:Katoumegumi#osu!_(stable)_on_Arch_Linux)
 - [hwsnemo's wine-osu](https://software.opensuse.org//download.html?project=home%3Ahwsnemo%3Apackaged-wine-osu&package=wine-osu)
 - [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
-- [ttf-win10 on AUR](https://aur.archlinux.org/packages/ttf-win10)
+- [openglfreak's packages](https://github.com/openglfreak)
 
 And that's all. Have fun playing osu!
 
