@@ -23,7 +23,7 @@ function help()
 {
     Info "Script features:
     osu-wine: Runs osu!
-    osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
+    osu-wine --winecfg : Runs winecf g on the osu! Wineprefix
     osu-wine --winetricks: Install packages on osu! Wineprefix
     osu-wine --regedit: Opens regedit on osu! Wineprefix
     osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
@@ -33,7 +33,7 @@ function help()
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
     osu-wine --info: Troubleshooting and more info
     osu-wine --remove: Uninstalls osu! and the script
-    osu-wine --lutris: Copies wine-osu to lutris (only the Wine version)
+    osu-wine --lutris: Copies wine-osu to lutris and shows instructions to add osu! there
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu on with the specified devserver"
 }
@@ -91,7 +91,7 @@ case "$1" in
     OSUPATH="$newdir/osu!"
     echo "$newdir" > "$HOME/.local/share/osuconfig/osupath"
 
-    Info "Change done from '\033$lastdir\033' to '\033$newdir\033'!"
+    Info "Change done from '$lastdir' to '$newdir'!"
 
     Info "Do you want to delete the previous install?"
     read -r -p "$(Info "Choose your option (y/n): ")" dirchoice
@@ -107,7 +107,7 @@ case "$1" in
     OSUPATH="$newdir"
     echo "$newdir" > "$HOME/.local/share/osuconfig/osupath" 
     
-    Info "Change done from '\033$lastdir\033' to '\033$newdir\033'!"
+    Info "Change done from '$lastdir' to '$newdir'!"
 
     Info "Do you want to delete the previous install?"
     read -r -p "$(Info "Choose your option (y/n): ")" dirchoice
@@ -131,7 +131,7 @@ case "$1" in
     Info "wget failed; trying with --no-check-certificate.."
     wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" ; fi
     
-    Info "Change done from '\033$lastdir\033' to '\033$newdir\033'!"
+    Info "Change done from '$lastdir' to '$newdir'!"
 
     Info "Do you want to delete the previous install?"
     read -r -p "$(Info "Choose your option (y/n): ")" dirchoice
@@ -166,14 +166,20 @@ case "$1" in
     if [ -d "$HOME/.local/share/lutris" ]; then
     	if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
                 if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-                Info "wine-osu is already installed in Lutris, skipping..."
+                Info "wine-osu is already installed in Lutris, do you want to replace it?"
+		read -r -p "$(Info "Choose your option (y/n):")" lutrreplacechoice
+			if [ "$lutrreplacechoice" = 'y' ] || [ "$lutrreplacechoice" = 'Y' ]; then
+			rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
+			cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
+			else
+			Info "Skipping.." ; fi
                 else
                 cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
         else
         mkdir "$HOME/.local/share/lutris/runners/wine"
         cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
     else
-    Info "Lutris not detected; if you installed it, launch it at least once."
+    Info "Lutris not detected; if you installed it, launch it at least once." && exit 1
     fi
 
     Info "Instructions to add osu! to Lutris..
