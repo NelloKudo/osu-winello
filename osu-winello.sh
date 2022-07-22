@@ -22,7 +22,6 @@ Revert()
     rm -rf "$HOME/.local/share/osuconfig"
     rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz"
     rm -f "/tmp/osu-mime.tar.xz"
-    rm -f "$HOME/.local/share/mime/packages"
     rm -rf "/tmp/osu-mime"
     rm -f "$HOME/.local/share/mime/packages/osuwinello-file-extensions.xml"
     rm -f "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
@@ -79,9 +78,9 @@ function install()
     sudo dpkg --add-architecture i386
     wget -nc https://dl.winehq.org/wine-builds/winehq.key
     sudo apt-key add winehq.key
-    sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
+    sudo apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
     sudo apt update
-    sudo apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
+    sudo apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && sudo apt purge -y wine && sudo apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
     sudo apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
     Info "Dependencies done, skipping.."
     fi
@@ -97,7 +96,11 @@ function install()
     fi
 
     Info "Installing packages and wine-staging dependencies.."
-    sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
+    if command -v wine >/dev/null 2>&1 ; then
+    Info "Wine stable already found, replacing it with staging.."
+    sudo pacman -Rdd --noconfirm wine
+    else
+    sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenit wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection" ; fi
     Info "Dependencies done, skipping.."
     fi
 
@@ -134,59 +137,18 @@ function install()
     chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
     
     Info "Installing wine-osu:"
+
     if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
-    Info "1 - Ubuntu 20.04 and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
-          2 - openSUSE Tumbleweed
-          3 - openSUSE Leap 15.3
-          4 - None of these, read more.."
-    read -r -p "$(Info "Choose your distro: ")" distro
-    case "$distro" in 
-        '1')
-        echo 'deb http://download.opensuse.org/repositories/home:/hwsnemo:/packaged-wine-osu/xUbuntu_20.04/ /' | sudo tee /etc/apt/sources.list.d/home:hwsnemo:packaged-wine-osu.list
-        curl -fsSL https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/xUbuntu_20.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_hwsnemo_packaged-wine-osu.gpg > /dev/null
-        sudo apt update
-        sudo apt install wine-osu
-        if [ -d "$HOME/.local/share/osuconfig" ]; then
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        else
-        mkdir "$HOME/.local/share/osuconfig"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        fi
-        ;;
-        '2')
-        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Tumbleweed/home:hwsnemo:packaged-wine-osu.repo
-        zypper refresh
-        zypper install wine-osu
-        if [ -d "$HOME/.local/share/osuconfig" ]; then
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        else
-        mkdir "$HOME/.local/share/osuconfig"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        fi
-        ;;
-        '3')
-        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Leap_15.3/home:hwsnemo:packaged-wine-osu.repo
-        zypper refresh
-        zypper install wine-osu
-        if [ -d "$HOME/.local/share/osuconfig" ]; then
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        else
-        mkdir "$HOME/.local/share/osuconfig"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        fi
-        ;; 
-	    '4')
-	    Info "Seems like your distro is too old and well, not supported by this wine build.."
-        Info "Do you want to use your system's Wine and continue the install? (assuming you have that)"
-        read -r -p "$(Info "Choose your option (Y/N):")" winechoice
-        if [ "$winechoice" = 'y' ] || [ "$winechoice" = 'Y' ]; then
-        mkdir -p "$HOME/.local/share/osuconfig/wine-osu"
-        ln -sf "/usr/bin" "$HOME/.local/share/osuconfig/wine-osu/bin" 
-        else
-        Error "Exiting.."
-        fi
-	    ;;
-    esac
+	Info "Seems like your distro is too old and well, not supported by this wine build.."
+    Info "Do you want to use your system's Wine and continue the install? (assuming you have that)"
+    read -r -p "$(Info "Choose your option (Y/N):")" winechoice
+    if [ "$winechoice" = 'y' ] || [ "$winechoice" = 'Y' ]; then
+    mkdir -p "$HOME/.local/share/osuconfig/wine-osu"
+    ln -sf "/usr/bin" "$HOME/.local/share/osuconfig/wine-osu/bin" 
+    else
+    Error "Exiting.."
+    fi
+	   
     else
     wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck1="$?"
     
@@ -538,72 +500,8 @@ function uninstall()
 
 function update()
 {   
-    if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
-    Info "1 - Ubuntu and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
-          2 - openSUSE Tumbleweed
-          3 - openSUSE Leap 15.3
-          4 - exit"
-    read -r -p "$(Info "Choose your distro: ")" distro
-    case "$distro" in 
-        '1')
-        sudo apt update
-        sudo apt install wine-osu
-        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
+    if [ ! "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
 
-        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
-        if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
-        rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
-        cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
-        else
-        Info "Skipping...." ;fi
-        fi
-
-        Info "Update is completed!"
-        ;;
-
-        '2')
-        zypper refresh
-        zypper install wine-osu 
-        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
-        
-        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
-        if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
-        rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
-        cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
-        else
-        Info "Skipping...." ;fi
-        fi
-
-        Info "Update is completed!"
-        ;;
-
-        '3')
-        zypper refresh
-        zypper install wine-osu
-        rm -rf "$HOME/.local/share/osuconfig/wine-osu"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig/wine-osu"
-        
-        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then   
-        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
-        if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
-        rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
-        cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
-        else
-        Info "Skipping...." ;fi
-        fi
-
-        Info "Update is completed!"
-        ;;
-
-	'4')
-	exit 0
-	;;
-    esac
-    else
     LASTWINEVERSION=$(</"$HOME/.local/share/osuconfig/wineverupdate")
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
     wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck7="$?"
@@ -633,6 +531,9 @@ function update()
     else
     Info "Your wine-osu is already up-to-date!"
     fi
+
+    else
+    Info "Try updating your system.."
     fi
 
 }
@@ -659,9 +560,9 @@ function basic()
     sudo dpkg --add-architecture i386
     wget -nc https://dl.winehq.org/wine-builds/winehq.key
     sudo apt-key add winehq.key
-    sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
+    sudo apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
     sudo apt update
-    sudo apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
+    sudo apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && sudo apt purge -y wine && sudo apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection"
     sudo apt install -y winetricks git curl build-essential zstd steam p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
     Info "Dependencies done, skipping.."
     fi
@@ -677,7 +578,11 @@ function basic()
     fi
 
     Info "Installing packages and wine-staging dependencies.."
-    sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
+    if command -v wine >/dev/null 2>&1 ; then
+    Info "Wine stable already found, replacing it with staging.."
+    sudo pacman -Rdd --noconfirm wine
+    else
+    sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenit wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection" ; fi
     Info "Dependencies done, skipping.."
     fi
 
@@ -733,65 +638,24 @@ function basic()
     chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
     
     Info "Installing wine-osu:"
+    
     if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
-    Info "1 - Ubuntu and derivatives (Linux Mint, Pop_OS, Zorin OS etc.)
-          2 - openSUSE Tumbleweed
-          3 - openSUSE Leap 15.3
-          4 - None of these, read more.."
-    read -r -p "$(Info "Choose your distro: ")" distro
-    case "$distro" in 
-        '1')
-        echo 'deb http://download.opensuse.org/repositories/home:/hwsnemo:/packaged-wine-osu/xUbuntu_20.04/ /' | sudo tee /etc/apt/sources.list.d/home:hwsnemo:packaged-wine-osu.list
-        curl -fsSL https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/xUbuntu_20.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_hwsnemo_packaged-wine-osu.gpg > /dev/null
-        sudo apt update
-        sudo apt install wine-osu
-        if [ -d "$HOME/.local/share/osuconfig" ]; then
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        else
-        mkdir "$HOME/.local/share/osuconfig"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        fi
-        ;;
-        '2')
-        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Tumbleweed/home:hwsnemo:packaged-wine-osu.repo
-        zypper refresh
-        zypper install wine-osu
-        if [ -d "$HOME/.local/share/osuconfig" ]; then
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        else
-        mkdir "$HOME/.local/share/osuconfig"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        fi
-        ;;
-        '3')
-        zypper addrepo https://download.opensuse.org/repositories/home:hwsnemo:packaged-wine-osu/openSUSE_Leap_15.3/home:hwsnemo:packaged-wine-osu.repo
-        zypper refresh
-        zypper install wine-osu
-        if [ -d "$HOME/.local/share/osuconfig" ]; then
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        else
-        mkdir "$HOME/.local/share/osuconfig"
-        cp -r /opt/wine-osu "$HOME/.local/share/osuconfig"
-        fi
-        ;; 
-	    '4')
-	    Info "Seems like your distro is too old and well, not supported by this wine build.."
-        Info "Do you want to use your system's Wine and continue the install? (assuming you have that)"
-        read -r -p "$(Info "Choose your option (Y/N):")" winechoice
-        if [ "$winechoice" = 'y' ] || [ "$winechoice" = 'Y' ]; then
-        mkdir -p "$HOME/.local/share/osuconfig/wine-osu"
-        ln -sf "/usr/bin" "$HOME/.local/share/osuconfig/wine-osu/bin" 
-        else
-        Error "Exiting.."
-        fi
-	    ;;
-    esac
+	Info "Seems like your distro is too old and well, not supported by this wine build.."
+    Info "Do you want to use your system's Wine and continue the install? (assuming you have that)"
+    read -r -p "$(Info "Choose your option (Y/N):")" winechoice
+    if [ "$winechoice" = 'y' ] || [ "$winechoice" = 'Y' ]; then
+    mkdir -p "$HOME/.local/share/osuconfig/wine-osu"
+    ln -sf "/usr/bin" "$HOME/.local/share/osuconfig/wine-osu/bin" 
+    else
+    Error "Exiting.."
+    fi
+	   
     else
     wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck1="$?"
     
     if [ ! "$wgetcheck1" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" || Error "Download failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+    wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" || Error "Download failed, check your connection" 
     fi
 
     tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/"
