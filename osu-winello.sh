@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.13
+WINEVERSION=7.13.1
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK=https://www.dropbox.com/s/44b1ef558gpw9ok/wine-osu-7.13-x86_64.pkg.tar.xz
+WINELINK=https://www.dropbox.com/s/km3mibkzu0cxnbt/wine-osu-7.13.1-x86_64.pkg.tar.xz
 
 #Useful functions
 Info()
