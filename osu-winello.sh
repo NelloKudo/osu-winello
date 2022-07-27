@@ -277,11 +277,12 @@ function install()
     rm -rf "/tmp/osu-mime"
     
     #Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
-    wget -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" && wgetcheck4="$?"
+    #Binary was compiled from source on Ubuntu 18.04
+    wget -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" && wgetcheck4="$?"
     
     if [ ! "$wgetcheck4" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/openglfreak/osu-handler-wine/releases/download/v0.3.0/osu-handler-wine" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+    wget --no-check-certificate -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
     
     chmod +x "$HOME/.local/share/osuconfig/osu-handler-wine"
 
