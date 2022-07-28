@@ -286,6 +286,16 @@ function install()
     
     chmod +x "$HOME/.local/share/osuconfig/osu-handler-wine"
 
+    #Installing Winetricks from upstream
+    wget -O "$HOME/.local/share/osuconfig/winetricks" "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" && wgetcheck41="$?"
+    if [ ! "$wgetcheck41" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+
+    wget --no-check-certificate -O "$HOME/.local/share/osuconfig/winetricks" "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+    
+    chmod +x "$HOME/.local/share/osuconfig/winetricks"
+    
+    #Creating entries..
     echo "[Desktop Entry]
     Type=Application
     Name=osu!
@@ -315,27 +325,8 @@ function install()
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
 	
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
-        wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" && wgetcheckprefix="$?" ; fi
-
-        if [ ! "$wgetcheckprefix" = 0 ] ; then
-        Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
-
-        7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
-        cp -r "/tmp/osu-wineprefix/WINE.win32/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
-        rm -rf "/tmp/osu-wineprefix/"
-        
-        export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
-        
-        #Time to remove all the bloat there lmao
-        rm -rf "$WINEPREFIX/dosdevices"
-        mkdir -p "$WINEPREFIX/dosdevices"
-        ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
-	ln -Tfs "$OSUPATH" "$WINEPREFIX/dosdevices/x:"
-	ln -s / "$WINEPREFIX/dosdevices/z:"
-	rm -rf "$WINEPREFIX/drive_c/users/diamond"
-        rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+        WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
 
         Info "Installing fonts..."
         #Using fonts from https://github.com/YourRandomGuy/ttf-ms-win10
@@ -346,11 +337,6 @@ function install()
         rm -rf "/tmp/tempfonts"
         fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
 
-        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
-        
-        #Fixes crashes in timing panel etc..
-	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32 gdiplus_winxp
-        
         #Hides Wine version (only with staging - needed to fix cursor and numbers)
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
         
@@ -371,27 +357,8 @@ function install()
         Info "Skipping..." ; fi
     else
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
-        wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" && wgetcheckprefix="$?" ; fi
-
-        if [ ! "$wgetcheckprefix" = 0 ] ; then
-        Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
-        
-        7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
-        cp -r "/tmp/osu-wineprefix/WINE.win32/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
-        rm -rf "/tmp/osu-wineprefix/"
-        
-        export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
-        
-        #Time to remove all the bloat there lmao
-        rm -rf "$WINEPREFIX/dosdevices"
-        mkdir -p "$WINEPREFIX/dosdevices"
-        ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:" 
-	ln -Tfs "$OSUPATH" "$WINEPREFIX/dosdevices/x:" 
-	ln -s / "$WINEPREFIX/dosdevices/z:"
-	rm -rf "$WINEPREFIX/drive_c/users/diamond"
-        rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+        WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
 
         Info "Installing fonts..."
         #Using fonts from https://github.com/YourRandomGuy/ttf-ms-win10
@@ -402,14 +369,9 @@ function install()
         rm -rf "/tmp/tempfonts"
         fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
 
-        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
-
         #Hides Wine version (only with staging - needed to fix cursor and numbers)
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
-
-	    #Fixes crashes in timing panel
-	    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f comctl32 gdiplus_winxp
-	
+        
         #Skips creating filetype associations and desktop entries
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
 
@@ -418,7 +380,7 @@ function install()
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
-        
+
     fi
 
 #Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
@@ -744,6 +706,15 @@ function basic()
         echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
         fi
     fi
+    
+    #Installing Winetricks from upstream
+    wget -O "$HOME/.local/share/osuconfig/winetricks" "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" && wgetcheck41="$?"
+    if [ ! "$wgetcheck41" = 0 ] ; then
+    Info "wget failed; trying with --no-check-certificate.."
+
+    wget --no-check-certificate -O "$HOME/.local/share/osuconfig/winetricks" "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+    
+    chmod +x "$HOME/.local/share/osuconfig/winetricks"
 
     Info "Configuring Wineprefix:"
     mkdir -p "$HOME/.local/share/wineprefixes"
@@ -753,22 +724,17 @@ function basic()
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
 	
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-        if command -v winetricks >/dev/null 2>&1 ; then
-	    WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet40 
-        else
-        Error "Please download Winetricks first.."
-        fi
-
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+	    WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet40 
+       
         else
         Info "Skipping..." ; fi
 
     else
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-        if command -v winetricks >/dev/null 2>&1 ; then
-        WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet40
-        else
-        Error "Please download Winetricks first.."
-        fi
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+        WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet40
+        
     fi
 
     Info "Downloading osu!"
