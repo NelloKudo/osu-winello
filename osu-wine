@@ -213,11 +213,7 @@ case "$1" in
     rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
     
     Info "Configuring new Wineprefix..."
-    WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f dotnet48 gdiplus_winxp comctl32 cjkfonts 
-    if [ -d "/etc/linuxmint" ] ; then
-    Info "Mint detected; installing gdiplus to fix..."
-    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q -f gdiplus ; fi
-    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" winetricks -q win2k3
+    WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
