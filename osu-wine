@@ -10,6 +10,7 @@ Info()
 
 export WINEESYNC=1 #enables esync (when possible)
 export WINEFSYNC=1 #enables fsync (when possible)
+export WINE_BLOCK_GET_VERSION=1 #hides wine ver. thanks to oglfreak's patch
 export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" #Path to wine-osu
 export WINEARCH=win32
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
@@ -214,8 +215,6 @@ case "$1" in
     
     Info "Configuring new Wineprefix..."
     WINEARCH=win32 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 
-    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
-    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations" /v Enable /d N
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
