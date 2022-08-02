@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.13.2
+WINEVERSION=7.0.3
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
-MINGLIBC=2.31
-WINELINK=https://www.dropbox.com/s/qer7nodczeypbir/wine-osu-7.13.2-x86_64.pkg.tar.xz
+MINGLIBC=2.29
+WINELINK=https://www.dropbox.com/s/ahh1av5xxqjo43n/wine-osu-7.0.3-x86_64.pkg.tar.xz
 
 #Useful functions
 Info()
@@ -359,12 +359,6 @@ function install()
         rm -rf "/tmp/tempfonts"
         fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
 
-        #Hides Wine version (only with staging - needed to fix cursor and numbers)
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
-        
-        #Skips creating filetype associations and desktop entries
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
-
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu" || Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
@@ -412,12 +406,6 @@ function install()
         cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/fonts/W10Fonts"
         rm -rf "/tmp/tempfonts"
         fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
-
-        #Hides Wine version (only with staging - needed to fix cursor and numbers)
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\\Software\\Wine" /v HideWineExports /t REG_SZ /d Y
-        
-        #Skips creating filetype associations and desktop entries
-        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu" || Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
