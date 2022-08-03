@@ -193,7 +193,7 @@ case "$1" in
 
     - Executable: $OSUPATH/osu!.exe
     - Working directory: $OSUPATH
-    - Wine prefix: ~/.local/share/wineprefixes/osu-wineprefix
+    - Wine prefix: $WINEPREFIX
 
     In runner options, select 'wine-osu' as Wine version 
     and disable DXVK/VKD3D
@@ -211,7 +211,7 @@ case "$1" in
 
     '--fixprefix')
     Info "Deleting old Wineprefix..."
-    rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
+    rm -rf $WINEPREFIX
     
     Info "Configuring new Wineprefix..."
     "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 
@@ -220,7 +220,7 @@ case "$1" in
     wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
     
-    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
+    if [ ! -d "$WINEPREFIX/drive_c/winestreamproxy" ] ; then
     Info "Configuring Winestreamproxy (Discord RPC)"
     wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-i386.tar.gz"
     mkdir -p "/tmp/winestreamproxy"
@@ -234,7 +234,7 @@ case "$1" in
 
     '--info')
     Info "Need info?:
-    Wineprefix location: ~/.local/share/wineprefixes/osu-wineprefix
+    Wineprefix location: $WINEPREFIX
     osu! folder: '$OSUPATH'
     
     If you need to add more options to osu!, see around line 86 of the script (ex. nano ~/.local/bin/osu-wine)
