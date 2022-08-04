@@ -10,7 +10,7 @@ Info()
 
 export WINEESYNC=1 #enables esync (when possible)
 export WINEFSYNC=1 #enables fsync (when possible)
-export WINE_BLOCK_GET_VERSION=1 #hides wine ver. thanks to oglfreak's patch
+#export WINE_BLOCK_GET_VERSION=1 #hides wine ver. thanks to oglfreak's patch
 export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" #Path to wine-osu
 export WINEARCH=win32
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
