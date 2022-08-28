@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.12.5
+WINEVERSION=7.15.0
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK=https://www.dropbox.com/s/blnirvcapbnkmn7/wine-osu-7.12-x86_64.pkg.tar.xz?dl=0
+WINELINK=https://www.dropbox.com/s/meayriqolkr61sb/wine-osu-7.15-x86_64.tar.xz?dl=0
 
 #Useful functions
 Info()
@@ -324,9 +324,10 @@ function install()
         Info "Wineprefix already exists; do you want to reinstall it?"
         read -r -p "$(Info "Choose: (Y/N)")" prefchoice
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
-	
+
+        rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-	if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+	    if [ ! -e "/tmp/WINE.win32.7z" ] ; then
         wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" && wgetcheckprefix="$?" ; fi
 
         if [ ! "$wgetcheckprefix" = 0 ] ; then
@@ -343,9 +344,8 @@ function install()
         rm -rf "$WINEPREFIX/dosdevices"
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
-	ln -Tfs "$OSUPATH" "$WINEPREFIX/dosdevices/x:"
-	ln -s / "$WINEPREFIX/dosdevices/z:"
-	rm -rf "$WINEPREFIX/drive_c/users/diamond"
+	    ln -s / "$WINEPREFIX/dosdevices/z:"
+	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
         rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
 	
         export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
@@ -391,9 +391,8 @@ function install()
         rm -rf "$WINEPREFIX/dosdevices"
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
-	ln -Tfs "$OSUPATH" "$WINEPREFIX/dosdevices/x:"
-	ln -s / "$WINEPREFIX/dosdevices/z:"
-	rm -rf "$WINEPREFIX/drive_c/users/diamond"
+	    ln -s / "$WINEPREFIX/dosdevices/z:"
+	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
         rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
 	
         export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
