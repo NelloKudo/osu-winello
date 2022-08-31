@@ -27,7 +27,7 @@ Revert()
     rm -f "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
     rm -f "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
     rm -rf "/tmp/tempfonts"
-    rm -f "/tmp/winestreamproxy-2.0.3-i386.tar.xz"
+    rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.xz"
     rm -rf "/tmp/winestreamproxy"
     echo -e '\033[1;31m'"Reverting done, try again with ./osu-winello.sh\033[0m"
 }
@@ -97,7 +97,7 @@ function install()
 
     Info "Installing packages and wine-staging dependencies.."
     if command -v wine >/dev/null 2>&1 ; then
-    Info "Wine already found, removing it to replace with staging.."
+    Info "Wine (possibly) already found, removing it to replace with staging.."
     sudo pacman -Rdd --noconfirm wine || Info "Looks like staging is already installed"
     fi
     sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
@@ -328,14 +328,14 @@ function install()
         rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
 	    if [ ! -e "/tmp/WINE.win32.7z" ] ; then
-        wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" && wgetcheckprefix="$?" ; fi
+        wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" && wgetcheckprefix="$?" ; fi
 
         if [ ! "$wgetcheckprefix" = 0 ] ; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+        wget --no-check-certificate -O "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
 
         7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
-        cp -r "/tmp/osu-wineprefix/WINE.win32/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+        cp -r "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
         rm -rf "/tmp/osu-wineprefix/"
 
         export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
@@ -344,9 +344,7 @@ function install()
         rm -rf "$WINEPREFIX/dosdevices"
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
-	    ln -s / "$WINEPREFIX/dosdevices/z:"
-	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
-        rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
+	ln -s / "$WINEPREFIX/dosdevices/z:"
 	
         export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f gdiplus_winxp comctl32 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
@@ -374,15 +372,15 @@ function install()
         Info "Skipping..." ; fi
     else
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
-        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
-        wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" && wgetcheckprefix="$?" ; fi
+	    if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+        wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" && wgetcheckprefix="$?" ; fi
 
         if [ ! "$wgetcheckprefix" = 0 ] ; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/osu-wine/osu-wineprefix/raw/master/WINE.win32.7z" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
 
         7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
-        cp -r "/tmp/osu-wineprefix/WINE.win32/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+        cp -r "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
         rm -rf "/tmp/osu-wineprefix/"
 
         export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
@@ -391,9 +389,7 @@ function install()
         rm -rf "$WINEPREFIX/dosdevices"
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
-	    ln -s / "$WINEPREFIX/dosdevices/z:"
-	    rm -rf "$WINEPREFIX/drive_c/users/diamond"
-        rm -rf "$WINEPREFIX/drive_c/windows/Fonts"
+	ln -s / "$WINEPREFIX/dosdevices/z:"
 	
         export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f gdiplus_winxp comctl32 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
@@ -412,21 +408,20 @@ function install()
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
-
     fi
 
 #Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
     Info "Configuring Winestreamproxy (Discord RPC)"
-    wget -O "/tmp/winestreamproxy-2.0.3-i386.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" && wgetcheck5="$?"
+    wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" && wgetcheck5="$?"
     
     if [ ! "$wgetcheck5" = 0 ] ; then
     Info "wget failed; trying with --no-check-certificate.."
-    wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-i386.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi  
+    wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi  
     mkdir -p "/tmp/winestreamproxy"
-    tar -xf "/tmp/winestreamproxy-2.0.3-i386.tar.gz" -C "/tmp/winestreamproxy"
+    tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
     WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k && WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh" || Info "Installing Winestreamproxy failed, try to install it yourself later"
-    rm -f "/tmp/winestreamproxy-2.0.3-i386.tar.gz"
+    rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
     rm -rf "/tmp/winestreamproxy"
     fi
 
