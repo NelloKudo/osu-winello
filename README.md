@@ -98,7 +98,7 @@ __General recommendations__: use -40/35ms offset to make up for Wine (or -25 if 
 - uses patched [wine-osu](https://gist.github.com/NelloKudo/b6f6d48807548bd3cacd3018a1cadef5) binaries with the latest community patches, you can read more [here](https://gist.github.com/NelloKudo/b6f6d48807548bd3cacd3018a1cadef5) and support updates according to the repo!
 - installs osu! on either default or custom path (using GUI) 
 - integrates with both already existing osu! installations from Windows or with [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
-- skips the pain of downloading prefix stuff thanks to https://gitlab.com/osu-wine/osu-wineprefix
+- skips the pain of downloading prefix stuff thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
 - support for installing Windows fonts (fix for Japanese and special characters)
 - support for old distros too! (binaries built on GLIBC 2.27)
 - lutris support
