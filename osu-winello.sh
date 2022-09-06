@@ -5,7 +5,7 @@ WINEVERSION=7.15.0
 LASTWINEVERSION=0 #example: changes when installing/updating
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK=https://www.dropbox.com/s/meayriqolkr61sb/wine-osu-7.15-x86_64.tar.xz?dl=0
+WINELINK="https://www.dropbox.com/s/meayriqolkr61sb/wine-osu-7.15-x86_64.tar.xz?dl=0"
 
 #Useful functions
 Info()
@@ -69,6 +69,7 @@ function install()
     Info "Dependencies time.."
     #Checking for Ubuntu/Debian
     if command -v apt >/dev/null 2>&1 ; then
+    if ! ( command -v apt >/dev/null 2>&1 && command -v dnf >/dev/null 2>&1 ) ; then
     Info "Debian/Ubuntu detected, installing dependencies..."
     Info "Please enter your password when asked"
     Info "------------------------------------"
@@ -83,6 +84,7 @@ function install()
     sudo apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && sudo apt purge -y wine && sudo apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
     sudo apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
     Info "Dependencies done, skipping.."
+    fi
     fi
 
     if command -v pacman >/dev/null 2>&1 ; then
@@ -334,7 +336,10 @@ function install()
 
         if [ ! "$wgetcheckprefix" = 0 ] ; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || (Info "Download failed, maybe GitLab is down?" && manualprefix="true")
+        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || (Info "Download failed, maybe GitLab is down?")
+        
+        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+        manualprefix="true" ; fi
         fi
 
         if [ "$manualprefix" = "false" ] ; then
@@ -365,14 +370,14 @@ function install()
         fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
-        cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu" || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
+        (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
         else
 	if [ ! -e "$HOME/.local/share/osuconfig/folderfixosu" ] ; then
-	cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu" || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
+	(cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
 	fi
 		
         Info "Skipping..." ; fi
@@ -385,7 +390,10 @@ function install()
 
         if [ ! "$wgetcheckprefix" = 0 ] ; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || (Info "Download failed, maybe GitLab is down?" && manualprefix="true")
+        wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || (Info "Download failed, maybe GitLab is down?")
+        
+        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+        manualprefix="true" ; fi
         fi
 
         if [ "$manualprefix" = "false" ] ; then
@@ -416,7 +424,7 @@ function install()
         fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
-        cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu" || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
+        (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
@@ -432,7 +440,7 @@ function install()
     wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi  
     mkdir -p "/tmp/winestreamproxy"
     tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k && WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh" || Info "Installing Winestreamproxy failed, try to install it yourself later"
+    (WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k && WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh") || Info "Installing Winestreamproxy failed, try to install it yourself later"
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
     rm -rf "/tmp/winestreamproxy"
     fi
@@ -553,6 +561,7 @@ function basic()
     Info "Dependencies time.."
     #Checking for Ubuntu/Debian
     if command -v apt >/dev/null 2>&1 ; then
+    if ! ( command -v apt >/dev/null 2>&1 && command -v dnf >/dev/null 2>&1 ) ; then
     Info "Debian/Ubuntu detected, installing dependencies..."
     Info "Please enter your password when asked"
     Info "------------------------------------"
@@ -567,6 +576,7 @@ function basic()
     sudo apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && sudo apt purge -y wine && sudo apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection"
     sudo apt install -y winetricks git curl build-essential zstd steam p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
     Info "Dependencies done, skipping.."
+    fi
     fi
 
     if command -v pacman >/dev/null 2>&1 ; then
