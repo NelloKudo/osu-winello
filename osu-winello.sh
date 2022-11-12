@@ -5,7 +5,8 @@ WINEVERSION=7.20.0
 LASTWINEVERSION=0 
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK="https://www.dropbox.com/s/4joe736eq2jz6sg/wine-osu-7.20-x86_64.tar.xz?dl=0"
+WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-7.20/wine-osu-7.20-x86_64.tar.xz"
+WINEBACKUPLINK="https://www.dropbox.com/s/4joe736eq2jz6sg/wine-osu-7.20-x86_64.tar.xz?dl=0"
 
 Info()
 { 
@@ -179,7 +180,15 @@ Install()
       fi
 	   
     else
-      
+
+      # Checking which link to use to download wine-osu
+      if wget --spider "$WINELINK" 2>/dev/null; then
+        Info "Wine link is working, skipping.."
+      else
+        Info "Wine download link seems to be down; using backup.."
+        WINELINK="$WINEBACKUPLINK"
+      fi
+
       wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck1="$?"
     
       if [ ! "$wgetcheck1" = 0 ] ; then
@@ -752,6 +761,14 @@ Basic()
       fi
 	   
     else
+
+      # Checking which link to use to download wine-osu
+      if wget --spider "$WINELINK" 2>/dev/null; then
+        Info "Wine link is working, skipping.."
+      else
+        Info "Wine download link seems to be down; using backup.."
+        WINELINK="$WINEBACKUPLINK"
+      fi
       
       wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck1="$?"
     
