@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.18.1
+WINEVERSION=7.20.0
 LASTWINEVERSION=0 
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK="https://www.dropbox.com/s/1ptcbfjsljr4u03/wine-osu-7.18.1-x86_64.tar.xz?dl=0"
+WINELINK="https://www.dropbox.com/s/4joe736eq2jz6sg/wine-osu-7.20-x86_64.tar.xz?dl=0"
 
 Info()
 { 
