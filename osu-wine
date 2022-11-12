@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 Info()
-{ 
+{
     echo -e '\033[1;34m'"Winello:\033[0m $*";
 }
 
@@ -36,7 +36,8 @@ Help()
     osu-wine --remove: Uninstalls osu! and the script
     osu-wine --lutris: Copies wine-osu to lutris and shows instructions to add osu! there
     osu-wine --changedir: Changes directory of the install according to the user
-    osu-wine --devserver <address>: Runs osu on with the specified devserver"
+    osu-wine --devserver <address>: Runs osu on with the specified devserver
+    osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break"
 }
 
 Checkshort()
@@ -50,9 +51,9 @@ Checkshort()
 }
 
 Update()
-{   
+{
     git -C "$HOME/.local/share/osuconfig/update" pull --quiet
-    bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" Update
+    bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" update
 }
 
 case "$1" in
@@ -77,7 +78,7 @@ case "$1" in
 	'--winetricks')
 	winetricks "${@:2}"
 	;;
-    
+
     '--changedir')
     Info "Please choose your new directory:"
 
@@ -100,13 +101,13 @@ case "$1" in
         read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" dirchoice2
         if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
         rm -rf "$lastdir/osu!" && Info "Cleaning done!" ; else Info "Skipping..." ; fi
-    else 
+    else
         Info "Skipping.." ; fi ; fi
 
     if [ -s "$newdir/osu!.exe" ]; then
         OSUPATH="$newdir"
-        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" 
-    
+        echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+
     Info "Change done from '$lastdir' to '$newdir'!"
 
     Info "Do you want to delete the previous install?"
@@ -115,7 +116,7 @@ case "$1" in
         read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" dirchoice2
         if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
             rm -rf "$lastdir/osu!" && Info "Cleaning done!" ; else Info "Skipping..." ; fi
-        else 
+        else
             Info "Skipping.." ; fi ; fi
     else
         mkdir "$newdir/osu!"
@@ -124,11 +125,11 @@ case "$1" in
 
         Info "Downloading osu! to your new install.."
         wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && wgetcheck6="$?"
-    
+
         if [ ! "$wgetcheck6" = 0 ] ; then
             Info "wget failed; trying with --no-check-certificate.."
             wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" ; fi
-    
+
         Info "Change done from '$lastdir' to '$newdir'!"
 
         Info "Do you want to delete the previous install?"
@@ -137,13 +138,13 @@ case "$1" in
             read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" dirchoice2
             if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
                 rm -rf "$lastdir/osu!" && Info "Cleaning done!" ; else Info "Skipping..." ; fi
-            else 
+            else
                 Info "Skipping.." ; fi
         fi
     ;;
 
     '--remove')
-    bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" Uninstall
+    bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" uninstall
     ;;
 
     '--kill')
@@ -178,10 +179,10 @@ case "$1" in
         Info "Lutris not detected; if you installed it, launch it at least once." && exit 1
     fi
 
-    
+
     Info "Instructions to add osu! to Lutris..
 
-    Add a new game by pressing '+' on the top left > add locally 
+    Add a new game by pressing '+' on the top left > add locally
     installed game
 
     Choose osu! as name and set Wine as runner in Game info
@@ -191,7 +192,7 @@ case "$1" in
     - Working directory: $OSUPATH
     - Wine prefix: $WINEPREFIX
 
-    In runner options, select 'wine-osu' as Wine version 
+    In runner options, select 'wine-osu' as Wine version
     and disable DXVK/VKD3D
 
     Last but not least, select 'disable desktop effects' in
@@ -215,15 +216,15 @@ case "$1" in
     '--fixprefix')
     Info "Deleting old Wineprefix..."
     rm -rf $WINEPREFIX
-    
+
     Info "Configuring new Wineprefix..."
-    "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 
+    "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32
     "$HOME/.local/share/osuconfig/winetricks" -q win2k3
     wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
     wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
     wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
-    
+
     if [ ! -d "$WINEPREFIX/drive_c/winestreamproxy" ] ; then
         Info "Configuring Winestreamproxy (Discord RPC)"
         wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
@@ -240,7 +241,7 @@ case "$1" in
     Info "Need info?:
     Wineprefix location: $WINEPREFIX
     osu! folder: '$OSUPATH'
-    
+
     If you need to add more options to osu!, see around line 86 of the script (ex. nano ~/.local/bin/osu-wine)
 
     You can run 'osu-wine help' to see all the script's functions (fix prefix, w10 fonts etc.)
