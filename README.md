@@ -3,8 +3,8 @@ osu! stable installer for steam deck with patched wine-osu and other features.
 
 ## Installing osu!:
 ```
-git clone https://github.com/NelloKudo/osu-winello.git
-cd osu-winello
+git clone https://github.com/chicco-carone/osu-winello-steamdeck.git
+cd osu-winello-steamdeck
 chmod +x ./osu-winello.sh
 ./osu-winello.sh
 ```
