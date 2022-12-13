@@ -952,7 +952,447 @@ Basic()
     fi
 
 }
+steamdeck() 
+{   
+if [ "$USER" = "root" ] ; then Error "Please run the script without root" ; fi
+    
+    Info "Welcome to the script! Follow it to install osu! 8)"
+   
+    if [ -e /usr/bin/osu-wine ] ; then Error "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!" ; fi #Checking DiamondBurned's osu-wine
+    if [ -e "$HOME/.local/bin/osu-wine" ] ; then Error "Please uninstall osu-wine before installing!" ; fi
 
+    #/.local/bin check
+    if [ ! -d "$HOME/.local/bin" ] ; then
+        
+        mkdir -p "$HOME/.local/bin"
+        
+        if (grep -q "bash" "$SHELL" || [[ -f "$HOME/.bashrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.bashrc"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.bashrc"
+            source "$HOME/.bashrc"
+        fi
+
+        if (grep -q "zsh" "$SHELL" || [[ -f "$HOME/.zshrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.zshrc"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.zshrc"
+            source "$HOME/.zshrc"
+        fi
+
+        if [[ -f "$HOME/.config/fish/config.fish" ]] && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.config/fish/config.fish"; then
+            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.config/fish/config.fish" 
+            source "$HOME/.config/fish/config.fish"
+        fi
+    fi
+
+    Info "Checking for internet connection.."
+    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
+
+    Info "Dependencies time.."
+    if command -v pacman >/dev/null 2>&1 ; then
+
+      Info "Arch Linux (steam deck version) detected, installing dependencies..."
+      Info "Please enter your password when asked"
+      Info "------------------------------------"
+          sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
+        
+          Info "Dependencies done, skipping.."
+    
+    fi
+    Info "Installing game script:"
+    cp ./osu-wine "$HOME/.local/bin/osu-wine" && chmod 755 "$HOME/.local/bin/osu-wine"
+
+    Info "Installing icons:"
+    
+    mkdir -p "$HOME/.local/share/icons"    
+    cp "./stuff/osu-wine.png" "$HOME/.local/share/icons/osu-wine.png" && chmod 644 "$HOME/.local/share/icons/osu-wine.png"
+    
+    Info "Installing .desktop:"
+    mkdir -p "$HOME/.local/share/applications"
+    echo "[Desktop Entry]
+    Name=osu!
+    Comment=osu! - Rhythm is just a *click* away!
+    Type=Application
+    Exec=/home/$USER/.local/bin/osu-wine %U
+    Icon=/home/$USER/.local/share/icons/osu-wine.png
+    Terminal=false
+    Categories=Wine;Game;" >> "$HOME/.local/share/applications/osu-wine.desktop"
+    chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
+    
+    Info "Installing wine-osu:"
+
+    if [ "$CURRENTGLIBC" \< "$MINGLIBC" ]; then
+	    
+      Info "Seems like your distro is too old and well, not supported by this wine build.."
+      Info "Do you want to use your system's Wine and continue the install? (assuming you have that)"
+      read -r -p "$(Info "Choose your option (Y/N):")" winechoice
+        
+      if [ "$winechoice" = 'y' ] || [ "$winechoice" = 'Y' ]; then
+        
+        mkdir -p "$HOME/.local/share/osuconfig/wine-osu"
+        ln -sf "/usr/bin" "$HOME/.local/share/osuconfig/wine-osu/bin" 
+    
+      else
+    
+        Error "Exiting.."
+      
+      fi
+	   
+    else
+
+      # Checking which link to use to download wine-osu
+      if wget --spider "$WINELINK" 2>/dev/null; then
+        Info "Wine link is working, skipping.."
+      else
+        Info "Wine download link seems to be down; using backup.."
+        WINELINK="$WINEBACKUPLINK"
+      fi
+
+      wget -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" && wgetcheck1="$?"
+    
+      if [ ! "$wgetcheck1" = 0 ] ; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" "$WINELINK" || Error "Download failed, check your connection" 
+      fi
+
+      tar -xf "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/"
+      LASTWINEVERSION="$WINEVERSION"
+    
+      if [ -d "$HOME/.local/share/osuconfig" ]; then
+        Info "Skipping osuconfig.."
+      else
+        mkdir "$HOME/.local/share/osuconfig"
+      fi
+    
+      mv "$HOME/.local/share/wine-osu" "$HOME/.local/share/osuconfig"
+      rm -f "/tmp/wine-osu-${WINEVERSION}-x86_64.pkg.tar.xz"
+    
+      Info "Installing script copy for updates.."
+    
+      mkdir -p "$HOME/.local/share/osuconfig/update"
+      git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update" || Error "Git failed, check your connection.."
+      echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
+    
+    fi 
+     # Lutris check
+    
+    if [ -d "$HOME/.var/app/net.lutris.Lutris/" ]; then
+      Info "Lutris was found, do you want to copy wine-osu there? (I don't raccomend it because it can give bad performance and links don't work)(y/n)"
+      read -r -p "$(Info "Choose your option: ")" lutrischoice
+        if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
+            if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/" ]; then
+                if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+                  Info "wine-osu is already installed in Lutris, skipping..."
+                else
+                  cp -r "$HOME/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/" ; fi
+            else
+              mkdir "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/"
+              cp -r "$HOME/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/" ; fi
+        else
+          Info "Skipping.."; fi
+    fi
+
+    Info "Configuring osu! folder:"
+    Info "Where do you want to install the game?: 
+          1 - Default path (~/.local/share/osu-wine)
+          2 - Custom path"
+    read -r -p "$(Info "Choose your option: ")" installpath
+    if [ "$installpath" = 1 ] || [ "$installpath" = 2 ] ; then  
+    
+      case "$installpath" in
+        '1')
+          
+          if [ -d "$HOME/.local/share/osu-wine" ]; then
+            Info "osu-wine folder already exists: skipping.."
+          else
+            mkdir "$HOME/.local/share/osu-wine"
+            fi
+          GAMEDIR="$HOME/.local/share/osu-wine"
+        
+            if [ -d "$GAMEDIR/OSU" ] || [ -d "$GAMEDIR/osu!" ]; then
+              Info "osu! folder already exists: skipping.."
+        
+              if [ -d "$GAMEDIR/OSU" ]; then
+                OSUPATH="$GAMEDIR/OSU"
+                echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        
+              if [ -d "$GAMEDIR/osu!" ]; then
+                OSUPATH="$GAMEDIR/osu!"
+                echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+         
+            else
+              mkdir "$GAMEDIR/osu!"
+              export OSUPATH="$GAMEDIR/osu!"
+              echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+          fi
+        ;;
+        
+        '2')
+        
+          Info "Choose your directory: "
+          GAMEDIR="$(zenity --file-selection --directory)"
+        
+          if [ -d "$GAMEDIR/osu!" ] || [ -e "$GAMEDIR/osu!.exe" ]; then
+            Info "osu! folder/game already exists: skipping.."
+        
+            if [ -d "$GAMEDIR/osu!" ]; then
+              OSUPATH="$GAMEDIR/osu!"
+              echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        
+            if [ -e "$GAMEDIR/osu!.exe" ]; then
+              OSUPATH="$GAMEDIR"
+              echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+          
+          else
+        
+            mkdir "$GAMEDIR/osu!"
+            OSUPATH="$GAMEDIR/osu!"
+            echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+        
+          fi
+        ;;
+     
+      esac
+
+    else
+    
+      Info "No option chosen, installing to default.. (~/.local/share/osu-wine)"
+      
+      if [ -d "$HOME/.local/share/osu-wine" ]; then
+        Info "osu-wine folder already exists: skipping.."
+      else
+        mkdir "$HOME/.local/share/osu-wine"
+      fi
+      GAMEDIR="$HOME/.local/share/osu-wine"
+        
+        if [ -d "$GAMEDIR/OSU" ] || [ -d "$GAMEDIR/osu!" ]; then
+          Info "osu! folder already exists: skipping.."
+        
+          if [ -d "$GAMEDIR/OSU" ]; then
+            OSUPATH="$GAMEDIR/OSU"
+            echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+        
+          if [ -d "$GAMEDIR/osu!" ]; then
+            OSUPATH="$GAMEDIR/osu!"
+            echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" ; fi
+          
+        else
+          mkdir "$GAMEDIR/osu!"
+          export OSUPATH="$GAMEDIR/osu!"
+          echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+        fi
+    fi
+
+    Info "Configuring osu-mime and osu-handler:"
+    
+    # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
+    wget -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" && wgetcheck3="$?"
+    
+    if [ ! "$wgetcheck3" = 0 ] ; then
+      Info "wget failed; trying with --no-check-certificate.."
+      wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"; fi
+    
+    tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
+    mkdir -p "$HOME/.local/share/mime"
+    mkdir -p "$HOME/.local/share/mime/packages"
+    cp "/tmp/osu-mime/osu-file-extensions.xml" "$HOME/.local/share/mime/packages/osuwinello-file-extensions.xml"
+    update-mime-database "$HOME/.local/share/mime"
+    rm -f "/tmp/osu-mime.tar.gz"
+    rm -rf "/tmp/osu-mime"
+    
+    # Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
+    # Binary was compiled from source on Ubuntu 18.04
+    wget -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" && wgetcheck4="$?"
+    
+    if [ ! "$wgetcheck4" = 0 ] ; then
+      Info "wget failed; trying with --no-check-certificate.."
+      wget --no-check-certificate -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+    
+    chmod +x "$HOME/.local/share/osuconfig/osu-handler-wine"
+
+    # Installing Winetricks from upstream
+    wget -O "$HOME/.local/share/osuconfig/winetricks" "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" && wgetcheck41="$?"
+    if [ ! "$wgetcheck41" = 0 ] ; then
+      Info "wget failed; trying with --no-check-certificate.."
+      wget --no-check-certificate -O "$HOME/.local/share/osuconfig/winetricks" "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+    
+    chmod +x "$HOME/.local/share/osuconfig/winetricks"
+    
+    # Creating entries..
+    echo "[Desktop Entry]
+    Type=Application
+    Name=osu!
+    MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
+    Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %f
+    NoDisplay=true
+    StartupNotify=true
+    Icon=/home/$USER/.local/share/icons/osu-wine.png" >> "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
+    chmod +x "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
+
+    echo "[Desktop Entry]
+    Type=Application
+    Name=osu!
+    MimeType=x-scheme-handler/osu;
+    Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %u
+    NoDisplay=true
+    StartupNotify=true
+    Icon=/home/$USER/.local/share/icons/osu-wine.png" >> "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
+    chmod +x "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
+    update-desktop-database "$HOME/.local/share/applications"
+
+    Info "Configuring Wineprefix:"
+    mkdir -p "$HOME/.local/share/wineprefixes"
+    if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
+        Info "Wineprefix already exists; do you want to reinstall it?"
+        read -r -p "$(Info "Choose: (Y/N)")" prefchoice
+        if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
+          rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
+        
+          Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
+          manualprefix="false"
+
+	        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+            wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" && wgetcheckprefix="$?" ; fi
+
+            if [ ! "$wgetcheckprefix" = 0 ] ; then
+              Info "wget failed; trying with --no-check-certificate.."
+              wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || (Info "Download failed, maybe GitLab is down?")
+        
+          if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+            manualprefix="true" ; fi
+          fi
+
+          if [ "$manualprefix" = "false" ] ; then
+            7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
+            cp -r "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+            rm -rf "/tmp/osu-wineprefix/" 
+          else
+            export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 win2k3 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+
+          export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
+
+          # Time to remove all the bloat there lmao
+          rm -rf "$WINEPREFIX/dosdevices"
+          rm -rf "$WINEPREFIX/drive_c/users/nellokudo"
+          mkdir -p "$WINEPREFIX/dosdevices"
+          ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
+	        ln -s / "$WINEPREFIX/dosdevices/z:"
+	
+          export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+
+          Info "Installing fonts..."
+          # Using fonts from https://github.com/YourRandomGuy/ttf-ms-win10
+          mkdir -p "/tmp/tempfonts"
+          git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+          mkdir -p "$HOME/.local/share/fonts/W10Fonts"
+          cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/fonts/W10Fonts"
+          rm -rf "/tmp/tempfonts"
+          fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
+
+        #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
+        (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+
+        else
+	        if [ ! -e "$HOME/.local/share/osuconfig/folderfixosu" ] ; then
+	          (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
+	        fi
+		
+          Info "Skipping..." ; fi
+    
+    else
+        
+        Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
+        manualprefix="false"
+
+	      if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+          wget -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" && wgetcheckprefix="$?" ; fi
+
+          if [ ! "$wgetcheckprefix" = 0 ] ; then
+            Info "wget failed; trying with --no-check-certificate.."
+            wget --no-check-certificate -O "/tmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" || (Info "Download failed, maybe GitLab is down?")
+        
+        if [ ! -e "/tmp/WINE.win32.7z" ] ; then
+          manualprefix="true" ; fi
+        fi
+
+        if [ "$manualprefix" = "false" ] ; then
+          7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z"
+          cp -r "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+          rm -rf "/tmp/osu-wineprefix/" 
+        else
+          export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+          WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 win2k3 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi
+
+        export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
+
+        # Time to remove all the bloat there lmao
+        rm -rf "$WINEPREFIX/dosdevices"
+        rm -rf "$WINEPREFIX/drive_c/users/nellokudo"
+        mkdir -p "$WINEPREFIX/dosdevices"
+        ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
+	      ln -s / "$WINEPREFIX/dosdevices/z:"
+	
+        export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
+
+        Info "Installing fonts..."
+        # Using fonts from https://github.com/YourRandomGuy/ttf-ms-win10
+        mkdir -p "/tmp/tempfonts"
+        git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+        mkdir -p "$HOME/.local/share/fonts/W10Fonts"
+        cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/fonts/W10Fonts"
+        rm -rf "/tmp/tempfonts"
+        fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
+
+        #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
+        (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+    fi
+
+# Installing Winestreamproxy from https://github.com/openglfreak/winestreamproxy
+    
+    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
+      Info "Configuring Winestreamproxy (Discord RPC)"
+      wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" && wgetcheck5="$?"
+    
+      if [ ! "$wgetcheck5" = 0 ] ; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi  
+    
+      mkdir -p "/tmp/winestreamproxy"
+      tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
+      (WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wineserver -k && WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" bash "/tmp/winestreamproxy/install.sh") || Info "Installing Winestreamproxy failed, try to install it yourself later"
+      rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+      rm -rf "/tmp/winestreamproxy"
+    
+    fi
+
+    Info "Downloading osu!"
+    if [ -s "$OSUPATH/osu!.exe" ]; then
+      Info "Installation is completed! Run 'osu-wine' to play osu!"
+      Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
+      exit 0
+    else
+      wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && wgetcheck6="$?"
+    
+      if [ ! "$wgetcheck6" = 0 ] ; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" ; fi  
+    
+      Info "Installation is completed! Run 'osu-wine' to play osu!"
+      Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    fi    
+}
+fix_steamdeck() 
+{  
+
+  Info "To install the game, run ./osu-winello.sh
+        To uninstall the game, run ./osu-winello.sh uninstall
+        To update the wine-osu version, run ./osu-winello.sh update"
+    
+}
 Help() 
 {   
 
@@ -961,7 +1401,6 @@ Help()
         To update the wine-osu version, run ./osu-winello.sh update"
     
 }
-
 case "$1" in
 
   'uninstall')	
