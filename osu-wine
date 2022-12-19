@@ -37,7 +37,8 @@ Help()
     osu-wine --lutris: Copies wine-osu to lutris and shows instructions to add osu! there
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu on with the specified devserver
-    osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break"
+    osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+    osu-wine --fixsteamdeck: Fix the game dependencies after the steam os update" 
 }
 
 Checkshort()
@@ -160,22 +161,35 @@ case "$1" in
 	;;
 
     '--lutris')
-    if [ -d "$HOME/.local/share/lutris" ]; then
-    	if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
+if [ -d "$HOME/.local/share/lutris" ]; then
+      Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
+      read -r -p "$(Info "Choose your option: ")" lutrischoice
+        if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
+            if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
                 if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-                    Info "wine-osu is already installed in Lutris, do you want to replace it?"
-		            read -r -p "$(Info "Choose your option (y/n):")" lutrreplacechoice
-			        if [ "$lutrreplacechoice" = 'y' ] || [ "$lutrreplacechoice" = 'Y' ]; then
-			            rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
-			            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
-			        else
-		    	        Info "Skipping.." ; fi
+                  Info "wine-osu is already installed in Lutris, skipping..."
                 else
-                    cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
-        else
-            mkdir "$HOME/.local/share/lutris/runners/wine"
-            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
-    else
+                  cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+            else
+              mkdir "$HOME/.local/share/lutris/runners/wine"
+              cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+    fi
+     
+    if [ -d "$HOME/.var/app/net.lutris.Lutris/" ]; then
+     Info "Flatpak lutris was found, do you want to copy wine-osu there? (y/n)"
+     read -r -p "$(Info "Choose your option: ")" lutrischoice
+       if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
+           if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/" ]; then
+               if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+                 Info "wine-osu is already installed in Lutris, skipping..."
+               else
+                 cp -r "$HOME/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/" ; fi
+           else
+             mkdir "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/"
+             cp -r "$HOME/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/" ; fi
+    fi
+    
+    if [ -d "$HOME/.var/app/net.lutris.Lutris/" ] && [ -d "$HOME/.var/app/net.lutris.Lutris/" ]; then 
         Info "Lutris not detected; if you installed it, launch it at least once." && exit 1
     fi
 
@@ -246,6 +260,10 @@ case "$1" in
 
     You can run 'osu-wine help' to see all the script's functions (fix prefix, w10 fonts etc.)
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1"
+    ;;
+
+    '--fixsteamdeck')
+    sudo pacman -Syu libxcomposite lib32-libxcomposite wine    
     ;;
 
 	'help')
