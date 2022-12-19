@@ -263,7 +263,11 @@ if [ -d "$HOME/.local/share/lutris" ]; then
     ;;
 
     '--fixsteamdeck')
-    sudo pacman -Syu libxcomposite lib32-libxcomposite wine    
+    
+    Info "Checking for internet connection.."
+    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
+
+    sudo pacman -Syu libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine    
     ;;
 
 	'help')
