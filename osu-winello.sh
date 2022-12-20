@@ -94,12 +94,13 @@ Install()
       fi
     fi
 
-    if command -v pacman >/dev/null 2>&1 && uname -r | grep -q '5.13.0-valve21.3-1-neptune'; then      
+    if command -v pacman >/dev/null 2>&1; then 
+    osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+      if [ "$osid" != "steamos" ] ; then  
       Info "Steam Deck detected, installing dependencies..."
       Info "Please enter your password when asked(If you didn't set it before running the script set it and run it again)(passwd)"
       Info "------------------------------------"
-      
-      sudo pacman -Syu libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks|| Error "Make sure that you disabled the read only file system Just type  'sudo steamos-readonly disable'  and reboot After rebooting run the script again" exit 1
+          sudo pacman -Syu libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks|| Error "Make sure that you disabled the read only file system Just type  'sudo steamos-readonly disable'  and reboot After rebooting run the script again" exit 1
       else
       Info "Arch Linux detected, installing dependencies..."
       Info "Please enter your password when asked"
