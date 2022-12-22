@@ -37,7 +37,8 @@ Help()
     osu-wine --lutris: Copies wine-osu to lutris and shows instructions to add osu! there
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu on with the specified devserver
-    osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break"
+    osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+    osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates"
 }
 
 Checkshort()
@@ -158,27 +159,57 @@ case "$1" in
 	'--update')
 	Update
 	;;
+    
+    '--fixsteamdeck')
+    
+    osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+
+    if [ "$osid" != "steamos" ] ; then
+        Info "Your PC isn't really a Steam Deck, no need to use this c.c" && exit 1
+    else
+        Info "Installing needed packages for Steam Deck.."
+        sudo pacman -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection or make sure you disabled read-only file system (read more at GitHub)"
+    fi    
+    ;;
 
     '--lutris')
     if [ -d "$HOME/.local/share/lutris" ]; then
-    	if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
-                if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-                    Info "wine-osu is already installed in Lutris, do you want to replace it?"
-		            read -r -p "$(Info "Choose your option (y/n):")" lutrreplacechoice
-			        if [ "$lutrreplacechoice" = 'y' ] || [ "$lutrreplacechoice" = 'Y' ]; then
-			            rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
-			            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
-			        else
-		    	        Info "Skipping.." ; fi
+      Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
+      read -r -p "$(Info "Choose your option: ")" lutrischoice
+        if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
+
+            mkdir -p "$HOME/.local/share/lutris/runners/wine"
+            if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+                Info "wine-osu is already installed in Lutris, skipping..."
+            else
+                cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+
+            if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ]; then
+                mkdir -p "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine"
+                if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+                  Info "wine-osu is already installed in Flatpak Lutris, skipping..."
                 else
-                    cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+                  cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" ; fi
+            fi
+
         else
-            mkdir "$HOME/.local/share/lutris/runners/wine"
-            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+          Info "Lutris not detected; if you installed it, launch it at least once." && exit 1; fi
+    fi
+
+    if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ] && [ ! -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+      Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
+      read -r -p "$(Info "Choose your option: ")" lutrischoice2
+        if [ "$lutrischoice2" = 'y' ] || [ "$lutrischoice2" = 'Y' ]; then
+        
+          mkdir -p "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine"
+          if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+              Info "wine-osu is already installed in Flatpak Lutris, skipping..."
+          else
+              cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" ; fi
+        fi
     else
         Info "Lutris not detected; if you installed it, launch it at least once." && exit 1
     fi
-
 
     Info "Instructions to add osu! to Lutris..
 

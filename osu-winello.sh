@@ -96,16 +96,20 @@ Install()
 
     if command -v pacman >/dev/null 2>&1 ; then
 
-      Info "Arch Linux detected, installing dependencies..."
+      Info "Arch Linux/SteamOS detected, installing dependencies..."
       Info "Please enter your password when asked"
       Info "------------------------------------"
+
+      osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+
+      if [ "$osid" != "steamos" ] ; then
 
         if ! grep -q -E '^\[multilib\]' '/etc/pacman.conf'; then
           Info "Enabling multilib.."
           printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | sudo tee -a /etc/pacman.conf
         fi
 
-      Info "Installing packages and wine-staging dependencies.."
+        Info "Installing packages and wine-staging dependencies.."
         if command -v wine >/dev/null 2>&1 ; then
           Info "Wine (possibly) already found, removing it to replace with staging.."
           sudo pacman -Rdd --noconfirm wine || Info "Looks like staging is already installed"
@@ -113,8 +117,14 @@ Install()
         fi
     
           sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
-        
-          Info "Dependencies done, skipping.."
+          Info "Dependencies done, skipping.." 
+      
+      else
+
+        Info "Installing packages and wine-staging dependencies.."        
+        sudo pacman -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection or make sure you disabled read-only file system (read more at GitHub)"
+
+      fi
     
     fi
 
@@ -216,23 +226,43 @@ Install()
     
     fi
     
-    # Lutris check
-    
     if [ -d "$HOME/.local/share/lutris" ]; then
       Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
       read -r -p "$(Info "Choose your option: ")" lutrischoice
         if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
-            if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
-                if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-                  Info "wine-osu is already installed in Lutris, skipping..."
-                else
-                  cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+
+            mkdir -p "$HOME/.local/share/lutris/runners/wine"
+            if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+                Info "wine-osu is already installed in Lutris, skipping..."
             else
-              mkdir "$HOME/.local/share/lutris/runners/wine"
-              cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+                cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+
+            if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ]; then
+                mkdir -p "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine"
+                if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+                  Info "wine-osu is already installed in Flatpak Lutris, skipping..."
+                else
+                  cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" ; fi
+            fi
+
         else
           Info "Skipping.."; fi
     fi
+
+    if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ] && [ ! -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+      Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
+      read -r -p "$(Info "Choose your option: ")" lutrischoice2
+        if [ "$lutrischoice2" = 'y' ] || [ "$lutrischoice2" = 'Y' ]; then
+        
+          mkdir -p "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine"
+          if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+              Info "wine-osu is already installed in Flatpak Lutris, skipping..."
+          else
+              cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" ; fi
+        fi
+
+    else
+      Info "Skipping.."; fi
 
     Info "Configuring osu! folder:"
     Info "Where do you want to install the game?: 
@@ -604,6 +634,21 @@ Update()
           if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
             rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
             cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
+
+          if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+            rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
+            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
+
+          else
+            Info "Skipping...." ;fi
+      fi
+
+      if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ] && [ ! -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate2
+          if [ "$lutrupdate2" = 'y' ] || [ "$lutrupdate2" = 'Y' ]; then
+            rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu"
+            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu"
+          
           else
             Info "Skipping...." ;fi
       fi
@@ -795,24 +840,6 @@ Basic()
       git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update" || Error "Git failed, check your connection.."
       echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
     
-    fi
-    
-    # Lutris check
-    
-    if [ -d "$HOME/.local/share/lutris" ]; then
-      Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
-      read -r -p "$(Info "Choose your option: ")" lutrischoice
-        if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
-            if [ -d "$HOME/.local/share/lutris/runners/wine" ]; then
-                if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-                  Info "wine-osu is already installed in Lutris, skipping..."
-                else
-                  cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
-            else
-              mkdir "$HOME/.local/share/lutris/runners/wine"
-              cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
-        else
-          Info "Skipping.."; fi
     fi
 
     Info "Configuring osu! folder:"

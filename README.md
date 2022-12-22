@@ -11,6 +11,7 @@ osu! stable installer for Linux with patched wine-osu and other features.
 	- [Installing osu!](#installing-osu)
 - [Features](#features)
 - [Flags](#flags)
+- [Steam Deck Support](#steam-deck-support)
 - [Credits](#credits)
 
 # Installation
@@ -129,7 +130,24 @@ osu-wine --remove: Uninstalls osu! and the script
 osu-wine --lutris: Copies wine-osu to lutris and shows instructions to add osu! there
 osu-wine --changedir: Changes directory of the install according to the user
 osu-wine --devserver <server>: Runs osu on the specified devserver
+osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
 ```
+
+# Steam Deck Support
+
+Since osu! runs on Wine, you can play that on Steam Deck as well!
+
+Before using the script, make sure to:
+- Set a password using the `passwd` command
+- Disable read-only filesystem with `sudo steamos-readonly disable`
+
+If you need help with pacman or just want reliable info, check these two links: [Link 1](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C) -- [Link 2](https://www.reddit.com/r/SteamDeck/comments/t8al0i/install_arch_packages_on_your_steam_deck/)
+
+The script will handle the rest itself, but you might need to reinstall dependencies after every Deck update (read more [here](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C)); you can simply do that with:
+
+```osu-wine --fixsteamdeck``` 
+
 
 # Credits
 
