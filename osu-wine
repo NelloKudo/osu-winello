@@ -197,7 +197,7 @@ case "$1" in
     fi
 
     if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ] && [ ! -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
-      Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
+      Info "Flatpak Lutris was found, do you want to copy wine-osu there? (y/n)"
       read -r -p "$(Info "Choose your option: ")" lutrischoice2
         if [ "$lutrischoice2" = 'y' ] || [ "$lutrischoice2" = 'Y' ]; then
         
@@ -207,29 +207,29 @@ case "$1" in
           else
               cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" ; fi
         fi
-    else
-        Info "Lutris not detected; if you installed it, launch it at least once." && exit 1
     fi
+ 
+    if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ] || [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+        Info "Instructions to add osu! to Lutris..
 
-    Info "Instructions to add osu! to Lutris..
+        Add a new game by pressing '+' on the top left > add locally
+        installed game
 
-    Add a new game by pressing '+' on the top left > add locally
-    installed game
+        Choose osu! as name and set Wine as runner in Game info
+        Then just paste the following in Game options:
 
-    Choose osu! as name and set Wine as runner in Game info
-    Then just paste the following in Game options:
+        - Executable: $OSUPATH/osu!.exe
+        - Working directory: $OSUPATH
+        - Wine prefix: $WINEPREFIX
 
-    - Executable: $OSUPATH/osu!.exe
-    - Working directory: $OSUPATH
-    - Wine prefix: $WINEPREFIX
+        In runner options, select 'wine-osu' as Wine version
+        and disable DXVK/VKD3D
 
-    In runner options, select 'wine-osu' as Wine version
-    and disable DXVK/VKD3D
+        Last but not least, select 'disable desktop effects' in
+        system options.
 
-    Last but not least, select 'disable desktop effects' in
-    system options.
-
-    You're done! Just save and play e.e"
+        You're done! Just save and play e.e"
+    fi
     ;;
 
     '--fixfolders')

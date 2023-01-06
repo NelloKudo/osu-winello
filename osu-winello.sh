@@ -250,7 +250,7 @@ Install()
     fi
 
     if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ] && [ ! -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
-      Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
+      Info "Flatpak Lutris was found, do you want to copy wine-osu there? (y/n)"
       read -r -p "$(Info "Choose your option: ")" lutrischoice2
         if [ "$lutrischoice2" = 'y' ] || [ "$lutrischoice2" = 'Y' ]; then
         
@@ -634,21 +634,15 @@ Update()
           if [ "$lutrupdate" = 'y' ] || [ "$lutrupdate" = 'Y' ]; then
             rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
             cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine"
-
-          if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
-            rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu"
-            cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" ; fi
-
           else
             Info "Skipping...." ;fi
       fi
 
-      if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ] && [ ! -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-        read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate2
+      if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ] ; then
+        read -r -p "$(Info "Do you want to update wine-osu in Flatpak Lutris too? (y/n)")" lutrupdate2
           if [ "$lutrupdate2" = 'y' ] || [ "$lutrupdate2" = 'Y' ]; then
             rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu"
             cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu"
-          
           else
             Info "Skipping...." ;fi
       fi
