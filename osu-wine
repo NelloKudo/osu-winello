@@ -193,7 +193,7 @@ case "$1" in
             fi
 
         else
-          Info "Lutris not detected; if you installed it, launch it at least once." && exit 1; fi
+          Info "Lutris not detected; if you installed it, launch it at least once." ; fi
     fi
 
     if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ] && [ ! -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
