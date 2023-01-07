@@ -35,7 +35,7 @@ You can install it like this:
 
 ### Debian (Ubuntu, Linux Mint etc..):
 
-**If you're using latest Pop!_os, Pop!_os already ship pipewire in latest version. so you can skip this step**
+**If you're using latest Pop!_os, see: [Pop!_OS](#pop-os)**
 
 ```
 sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
@@ -49,6 +49,21 @@ systemctl --user --now disable pulseaudio.service pulseaudio.socket
 systemctl --user mask pulseaudio
 systemctl --user --now enable pipewire pipewire-pulse
 ```
+
+### Pop os
+
+**Pop!_OS ship pipewire in latest release, so pipewire install is not needed.**
+
+but you may want to check pipewire installed & used, you can check with this command:
+
+```
+pactl info | grep PipeWire
+```
+If pipewire used correctly, you will see message like:
+```
+Server name: PulseAudio(on Pipewire 0.3.62)
+```
+(version number can be changed sometimes)
 
 ### Arch Linux (Manjaro, Endeavour OS, etc.):
   
