@@ -33,7 +33,9 @@ You can easily get it like this:
 
 You can install it like this:
 
-### Debian (Ubuntu, Linux Mint, Pop!_OS etc..):
+### Debian (Ubuntu, Linux Mint etc..):
+
+**If you're using latest Pop!_os, Pop!_os already ship pipewire in latest version. so you can skip this step**
 
 ```
 sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
