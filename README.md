@@ -50,7 +50,7 @@ systemctl --user mask pulseaudio
 systemctl --user --now enable pipewire pipewire-pulse
 ```
 
-### Pop os
+### Pop OS
 
 **Pop!_OS ship pipewire in latest release, so pipewire install is not needed.**
 
