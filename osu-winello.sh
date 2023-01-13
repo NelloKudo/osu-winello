@@ -150,6 +150,21 @@ Install()
     
     fi
 
+    if command -v zypper >/dev/null 2>&1 ; then
+
+      Info "openSUSE detected, installing dependencies..."
+      Info "Please enter your password when asked"
+      Info "------------------------------------"
+      Info "Installing packages and wine-staging dependencies.."
+
+      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
+    
+      Info "Dependencies done, skipping.."
+    
+    fi
+
     Info "Installing game script:"
     cp ./osu-wine "$HOME/.local/bin/osu-wine" && chmod 755 "$HOME/.local/bin/osu-wine"
 
@@ -755,6 +770,21 @@ Basic()
 	      sudo dnf install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
     
       fi
+    
+      Info "Dependencies done, skipping.."
+    
+    fi
+
+    if command -v zypper >/dev/null 2>&1 ; then
+
+      Info "openSUSE detected, installing dependencies..."
+      Info "Please enter your password when asked"
+      Info "------------------------------------"
+      Info "Installing packages and wine-staging dependencies.."
+
+      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
     
       Info "Dependencies done, skipping.."
     

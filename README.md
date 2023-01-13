@@ -27,6 +27,8 @@ You can easily get it like this:
 
 **Fedora:** `sudo dnf install -y git`
 
+**openSUSE:** `sudo zypper install -y git`
+
 ## PipeWire:
 
 `PipeWire` **isn't really a dependency but is highly recommended, especially with this script.**
@@ -72,6 +74,26 @@ pactl info
 
 Rebooting your system is recommended e.e
 
+### openSUSE (Tumbleweed, Leap):
+
+```
+sudo zypper install pipewire-pulseaudio
+systemctl --user daemon-reload
+systemctl --user --now enable pipewire wireplumber
+```
+These commands will install the `pipewire-pulseaudio` and `wireplumber-audio` packages.
+
+If pulseaudio is installed, zypper will warn you with a message. You should choose "Solution 1" to deinstall pulseaudio.
+
+**Since the 20220708 openSUSE Tumbleweed release, new installations use PipeWire as the default audio engine instead of PulseAudio**
+
+**Note that a system upgrade from a previous openSUSE Tumbleweed release won't automatically replace PulseAudio, so you might enable and use PipeWire by yourself**
+
+Rebooting your system is highly recommended. After rebooting you might want to check if PipeWire is working:
+
+```
+pactl info | grep "Server Name"
+```
 
 ## Installing osu!:
 ```
