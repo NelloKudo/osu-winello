@@ -157,9 +157,9 @@ Install()
       Info "------------------------------------"
       Info "Installing packages and wine-staging dependencies.."
 
-      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
-      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
-      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check zypper or your connection"
     
       Info "Dependencies done, skipping.."
     
@@ -782,9 +782,9 @@ Basic()
       Info "------------------------------------"
       Info "Installing packages and wine-staging dependencies.."
 
-      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
-      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
-      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check zypper or your connection"
     
       Info "Dependencies done, skipping.."
     
