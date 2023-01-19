@@ -4,21 +4,26 @@ Info()
     echo -e '\033[1;34m'"Winello:\033[0m $*";
 }
 
-#Welcome to your osu! launch script!
-#Most stuff here is explained with comments, but if you just need to add
-#something to osu (example: adding gamemode) see line ~94, you'll find the osu! launcher there.
+Error()
+{  
+    echo -e '\033[1;31m'"Script failed:\033[0m $*"; exit 1;
+}
 
-export WINEESYNC=1 #enables esync (when possible)
-export WINEFSYNC=1 #enables fsync (when possible)
-export WINE_BLOCK_GET_VERSION=1 #hides wine ver. thanks to oglfreak's patch
+## Welcome to your osu! launch script!
+## Most stuff here is explained with comments, but if you just need to add
+## something to osu (example: adding gamemode) see line ~94, you'll find the osu! launcher there.
+
+export WINEESYNC=1 # Enables esync (when possible)
+export WINEFSYNC=1 # Enables fsync (when possible)
+export WINE_BLOCK_GET_VERSION=1 # Hides wine ver. thanks to oglfreak's patch
 export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" #Path to wine-osu
 export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
 export OSUPATH="$osuinstall"
-export vblank_mode=0            #disables vsync for mesa
-export __GL_SYNC_TO_VBLANK=0    #disables vsync for NVIDIA >=510
-export WINEDLLOVERRIDES=winemenubuilder.exe=d# #blocks wine from creating .desktop files
+export vblank_mode=0            # Disables vsync for mesa
+export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
+export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
 
 Help()
 {
@@ -245,10 +250,16 @@ case "$1" in
     ;;
 
     '--fixprefix')
+    Info "Checking for internet connection.."
+    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
+    
     Info "Deleting old Wineprefix..."
     rm -rf $WINEPREFIX
 
-    Info "Configuring new Wineprefix..."
+    Info "Downloading latest Winetricks.. (to prevent issues)"
+    rm "$HOME/.local/share/osuconfig/winetricks"
+    (wget -O "$HOME/.local/share/osuconfig/winetricks" https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && chmod +x "$HOME/.local/share/osuconfig/winetricks") || Error "Downloading Winetricks failed, try again later.."
+
     "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32
     "$HOME/.local/share/osuconfig/winetricks" -q win2k3
     wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
@@ -258,7 +269,7 @@ case "$1" in
 
     if [ ! -d "$WINEPREFIX/drive_c/winestreamproxy" ] ; then
         Info "Configuring Winestreamproxy (Discord RPC)"
-        wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-i386.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
+        wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
         mkdir -p "/tmp/winestreamproxy"
         tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
         WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" bash "/tmp/winestreamproxy/install.sh"
