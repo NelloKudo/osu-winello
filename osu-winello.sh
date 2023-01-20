@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.20.0
+WINEVERSION=8.0.0
 LASTWINEVERSION=0 
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-7.20/wine-osu-7.20-x86_64.tar.xz"
-WINEBACKUPLINK="https://www.dropbox.com/s/4joe736eq2jz6sg/wine-osu-7.20-x86_64.tar.xz?dl=0"
+WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu8.0/wine-osu-8.0-rc4-x86_64.tar.xz"
+WINEBACKUPLINK="https://www.dropbox.com/s/djl0y4kk46szts1/wine-osu-8.0-rc4-x86_64.tar.xz?dl=0"
 
 Info()
 { 
@@ -39,6 +39,7 @@ Error()
 
 Install()
 {
+
     if [ "$USER" = "root" ] ; then Error "Please run the script without root" ; fi
     
     Info "Welcome to the script! Follow it to install osu! 8)"
@@ -47,24 +48,32 @@ Install()
     if [ -e "$HOME/.local/bin/osu-wine" ] ; then Error "Please uninstall osu-wine before installing!" ; fi
 
     #/.local/bin check
-    if [ ! -d "$HOME/.local/bin" ] ; then
-        
-        mkdir -p "$HOME/.local/bin"
-        
-        if (grep -q "bash" "$SHELL" || [[ -f "$HOME/.bashrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.bashrc"; then
-            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.bashrc"
-            source "$HOME/.bashrc"
-        fi
+    mkdir -p "$HOME/.local/bin"
+    
+    if (grep -q "bash" "$SHELL" || [[ -f "$HOME/.bashrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.bashrc"; then
+        echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.bashrc"
+        source "$HOME/.bashrc"
+    fi
 
-        if (grep -q "zsh" "$SHELL" || [[ -f "$HOME/.zshrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.zshrc"; then
-            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.zshrc"
-            source "$HOME/.zshrc"
-        fi
+    if (grep -q "zsh" "$SHELL" || [[ -f "$HOME/.zshrc" ]]) && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.zshrc"; then
+        echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.zshrc"
+        source "$HOME/.zshrc"
+    fi
 
-        if [[ -f "$HOME/.config/fish/config.fish" ]] && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.config/fish/config.fish"; then
-            echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.config/fish/config.fish" 
-            source "$HOME/.config/fish/config.fish"
-        fi
+    if [[ -f "$HOME/.config/fish/config.fish" ]] && ! grep -q "PATH="$HOME/.local/bin/:$PATH"" "$HOME/.config/fish/config.fish"; then
+        echo 'export PATH="$HOME/.local/bin/:$PATH"' >> "$HOME/.config/fish/config.fish" 
+        source "$HOME/.config/fish/config.fish"
+    fi
+ 
+    # Checking for 'sudo' or 'doas'        
+    if command -v doas >/dev/null 2>&1 ; then
+      doascheck=$(doas id -u)
+      if [ "$doascheck" = "0" ] ; then 
+        root_var="doas"
+      else
+        root_var="sudo" ; fi
+    else
+      root_var="sudo"
     fi
 
     Info "Checking for internet connection.."
@@ -80,14 +89,14 @@ Install()
         Info "------------------------------------"
         Info "Installing packages and wine-staging dependencies.."
 
-        sudo apt update && sudo apt upgrade -y
-        sudo dpkg --add-architecture i386
+        "$root_var" apt update && "$root_var" apt upgrade -y
+        "$root_var" dpkg --add-architecture i386
         wget -nc https://dl.winehq.org/wine-builds/winehq.key
-        sudo apt-key add winehq.key
-        sudo apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
-        sudo apt update
-        sudo apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && sudo apt purge -y wine && sudo apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
-        sudo apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+        "$root_var" apt-key add winehq.key
+        "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
+        "$root_var" apt update
+        "$root_var" apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && "$root_var" apt purge -y wine && "$root_var" apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
+        "$root_var" apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         Info "Dependencies done, skipping.."
       
@@ -106,23 +115,23 @@ Install()
 
         if ! grep -q -E '^\[multilib\]' '/etc/pacman.conf'; then
           Info "Enabling multilib.."
-          printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | sudo tee -a /etc/pacman.conf
+          printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | "$root_var" tee -a /etc/pacman.conf
         fi
 
         Info "Installing packages and wine-staging dependencies.."
         if command -v wine >/dev/null 2>&1 ; then
           Info "Wine (possibly) already found, removing it to replace with staging.."
-          sudo pacman -Rdd --noconfirm wine || Info "Looks like staging is already installed"
+          "$root_var" pacman -Rdd --noconfirm wine || Info "Looks like staging is already installed"
         
         fi
     
-          sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
+          "$root_var" pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
           Info "Dependencies done, skipping.." 
       
       else
 
         Info "Installing packages and wine-staging dependencies.."        
-        sudo pacman -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection or make sure you disabled read-only file system (read more at GitHub)"
+        "$root_var" pacman -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection or make sure you disabled read-only file system (read more at GitHub)"
 
       fi
     
@@ -135,14 +144,14 @@ Install()
       Info "------------------------------------"
       Info "Installing packages and wine-staging dependencies.."
     
-      sudo dnf install -y git zstd p7zip p7zip-plugins wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      "$root_var" dnf install -y git zstd p7zip p7zip-plugins wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
     
       osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
       
       if [ "$osid" != "nobara" ] ; then
     
-	      sudo dnf install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
-	      sudo dnf install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
+	      "$root_var" dnf install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
+	      "$root_var" dnf install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
     
       fi
     
@@ -157,9 +166,9 @@ Install()
       Info "------------------------------------"
       Info "Installing packages and wine-staging dependencies.."
 
-      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check zypper or your connection"
-      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check zypper or your connection"
-      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      "$root_var" zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      "$root_var" zypper install -y winetricks || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      "$root_var" zypper install -y wine || Error "Some libraries didn't install for some reason, check zypper or your connection"
     
       Info "Dependencies done, skipping.."
     
@@ -715,14 +724,14 @@ Basic()
         Info "------------------------------------"
         Info "Installing packages and wine-staging dependencies.."
 
-        sudo apt update && sudo apt upgrade -y
-        sudo dpkg --add-architecture i386
+        "$root_var" apt update && "$root_var" apt upgrade -y
+        "$root_var" dpkg --add-architecture i386
         wget -nc https://dl.winehq.org/wine-builds/winehq.key
-        sudo apt-key add winehq.key
-        sudo apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
-        sudo apt update
-        sudo apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && sudo apt purge -y wine && sudo apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
-        sudo apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+        "$root_var" apt-key add winehq.key
+        "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
+        "$root_var" apt update
+        "$root_var" apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && "$root_var" apt purge -y wine && "$root_var" apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
+        "$root_var" apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         Info "Dependencies done, skipping.."
       
@@ -737,17 +746,17 @@ Basic()
 
         if ! grep -q -E '^\[multilib\]' '/etc/pacman.conf'; then
           Info "Enabling multilib.."
-          printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | sudo tee -a /etc/pacman.conf
+          printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | "$root_var" tee -a /etc/pacman.conf
         fi
 
       Info "Installing packages and wine-staging dependencies.."
         if command -v wine >/dev/null 2>&1 ; then
           Info "Wine (possibly) already found, removing it to replace with staging.."
-          sudo pacman -Rdd --noconfirm wine || Info "Looks like staging is already installed"
+          "$root_var" pacman -Rdd --noconfirm wine || Info "Looks like staging is already installed"
         
         fi
     
-          sudo pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
+          "$root_var" pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
         
           Info "Dependencies done, skipping.."
     
@@ -760,14 +769,14 @@ Basic()
       Info "------------------------------------"
       Info "Installing packages and wine-staging dependencies.."
     
-      sudo dnf install -y git zstd p7zip p7zip-plugins wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
+      "$root_var" dnf install -y git zstd p7zip p7zip-plugins wget zenity || Error "Some libraries didn't install for some reason, check dnf or your connection"
     
       osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
       
       if [ "$osid" != "nobara" ] ; then
     
-	      sudo dnf install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
-	      sudo dnf install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
+	      "$root_var" dnf install -y winetricks || Error "Some libraries didn't install for some reason, check dnf or your connection"
+	      "$root_var" dnf install -y wine || Error "Some libraries didn't install for some reason, check dnf or your connection"
     
       fi
     
@@ -782,9 +791,9 @@ Basic()
       Info "------------------------------------"
       Info "Installing packages and wine-staging dependencies.."
 
-      sudo zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check zypper or your connection"
-      sudo zypper install -y winetricks || Error "Some libraries didn't install for some reason, check zypper or your connection"
-      sudo zypper install -y wine || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      "$root_var" zypper install -y git zstd 7zip wget zenity || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      "$root_var" zypper install -y winetricks || Error "Some libraries didn't install for some reason, check zypper or your connection"
+      "$root_var" zypper install -y wine || Error "Some libraries didn't install for some reason, check zypper or your connection"
     
       Info "Dependencies done, skipping.."
     
