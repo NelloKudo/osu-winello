@@ -160,6 +160,8 @@ osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
 
 Since osu! runs on Wine, you can play that on Steam Deck as well!
 
+It is recommended to not manually install pipewire on the Steam Deck as it is already installed by default and attempting to do so may cause audio issues in gaming mode.
+
 Before using the script, make sure to:
 - Set a password using the `passwd` command
 - Disable read-only filesystem with `sudo steamos-readonly disable`
