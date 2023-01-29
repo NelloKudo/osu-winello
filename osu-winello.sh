@@ -121,8 +121,10 @@ Install()
           Info "Dependencies done, skipping.." 
       
       else
-      sudo [ -w /usr ] && Info "The steam deck's file system is in read-write mode." || echo -e '\033[1;31m'"The Steam Deck's file system is in read-only mode, preventing further action. To continue, you must disable read-only mode. More information can be found on GitHub.\033[0m" && exit 1
-
+      if echo "$check" | grep -q "touch: setting times of '/usr/': Read-only file system"; then
+      Error -e '\033[1;31m'"The Steam Deck's file system is in read-only mode, preventing further action. To continue, you must disable read-only mode. More information can be found on GitHub.\033[0m"
+      exit 1
+      fi
         Info "Installing packages and wine-staging dependencies.."        
         "$root_var" pacman --needed -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection"
       fi
