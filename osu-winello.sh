@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #Variables
-WINEVERSION=7.20.1
+WINEVERSION=7.16.0
 LASTWINEVERSION=0 
 CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
-WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-7.20/wine-osu-7.20-x86_64.tar.xz"
-WINEBACKUPLINK="https://www.dropbox.com/s/4joe736eq2jz6sg/wine-osu-7.20-x86_64.tar.xz?dl=0"
+WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-stable-7.16/wine-osu-7.16-x86_64.tar.xz"
+WINEBACKUPLINK="https://www.dropbox.com/s/p7stmsx0zd2rn7o/wine-osu-7.16-x86_64.tar.xz?dl=0"
 
 Info()
 { 
