@@ -172,8 +172,16 @@ case "$1" in
     if [ "$osid" != "steamos" ] ; then
         Info "Your PC isn't really a Steam Deck, no need to use this c.c" && exit 1
     else
-        Info "Installing needed packages for Steam Deck.."
-        sudo pacman -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection or make sure you disabled read-only file system (read more at GitHub)"
+    
+     check=$(sudo touch -c /usr/ 2>&1)
+    if echo "$check" | grep -q "touch: setting times of '/usr/': Read-only file system"; then
+      Error  '\033[1;31m'"The Steam Deck's file system is in read-only mode, preventing further action. To continue, you must disable read-only mode. More information can be found on GitHub.\033[0m"
+    exit 1
+    else
+    Info "Installing needed packages for Steam Deck.."
+       sudo pacman --needed -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection or make sure you disabled read-only file system (read more at GitHub)"
+  fi
+        
     fi    
     ;;
 
