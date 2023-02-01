@@ -487,10 +487,12 @@ Install()
           # Using fonts from https://github.com/YourRandomGuy/ttf-ms-win10
           mkdir -p "/tmp/tempfonts"
           git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
-          mkdir -p "$HOME/.local/share/fonts/W10Fonts"
-          cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/fonts/W10Fonts"
+          mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
+          cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
+          # Linking fonts to Wine
+          rm -rf "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
+          ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
           rm -rf "/tmp/tempfonts"
-          fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
@@ -544,10 +546,12 @@ Install()
         # Using fonts from https://github.com/YourRandomGuy/ttf-ms-win10
         mkdir -p "/tmp/tempfonts"
         git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
-        mkdir -p "$HOME/.local/share/fonts/W10Fonts"
-        cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/fonts/W10Fonts"
+        mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
+        cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
+        # Linking fonts to Wine
+        rm -rf "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
+        ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
         rm -rf "/tmp/tempfonts"
-        fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
 
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
