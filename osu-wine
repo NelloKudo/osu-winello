@@ -16,7 +16,7 @@ Error()
 export WINEESYNC=1 # Enables esync (when possible)
 export WINEFSYNC=1 # Enables fsync (when possible)
 export WINE_BLOCK_GET_VERSION=1 # Hides wine ver. thanks to oglfreak's patch
-export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" #Path to wine-osu
+export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH" # Path to wine-osu
 export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
@@ -168,20 +168,29 @@ case "$1" in
     '--fixsteamdeck')
     
     osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+    
+    # Checking for 'sudo' or 'doas'        
+    if command -v doas >/dev/null 2>&1 ; then
+      doascheck=$(doas id -u)
+      if [ "$doascheck" = "0" ] ; then 
+        root_var="doas"
+      else
+        root_var="sudo" ; fi
+    else
+      root_var="sudo"
+    fi
 
     if [ "$osid" != "steamos" ] ; then
-        Info "Your PC isn't really a Steam Deck, no need to use this c.c" && exit 1
-    else
+        Error "Your PC isn't really a Steam Deck, no need to use this c.c"
     
-     check=$(sudo touch -c /usr/ 2>&1)
-    if echo "$check" | grep -q "touch: setting times of '/usr/': Read-only file system"; then
-      Error  '\033[1;31m'"The Steam Deck's file system is in read-only mode, preventing further action. To continue, you must disable read-only mode. More information can be found on GitHub.\033[0m"
-    exit 1
     else
-    Info "Installing needed packages for Steam Deck.."
-       sudo pacman --needed -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection or make sure you disabled read-only file system (read more at GitHub)"
-  fi
+        deck_fs_check=$("$root_var" [ -w /usr ] && echo "rw" || echo "ro") 
         
+        if [ "$deck_fs_check" = "ro" ]; then
+            Error "The Steam Deck's file system is in read-only mode, preventing further action. To continue, you must disable read-only mode. More information can be found on GitHub: https://github.com/NelloKudo/osu-winello#steam-deck-support"
+        else
+            "$root_var" pacman --needed -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection"
+        fi
     fi    
     ;;
 

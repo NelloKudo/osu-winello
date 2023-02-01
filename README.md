@@ -62,7 +62,9 @@ systemctl --user enable --now pipewire.service pipewire.socket pipewire-media-se
 ``` 
 
 Manjaro users can instead use their distro's package: `sudo pacman -S --needed --noconfirm manjaro-pipewire`
- 
+
+Steam Deck users don't need to install PipeWire as it's already shipped by default.
+
 ### Fedora:
  
 **Fedora's latest versions already ship with Pipewire ; you might want to check with this:**
@@ -83,7 +85,7 @@ systemctl --user --now enable pipewire wireplumber
 ```
 These commands will install the `pipewire-pulseaudio` and `wireplumber-audio` packages.
 
-If pulseaudio is installed, zypper will warn you with a message. You should choose "Solution 1" to deinstall pulseaudio.
+If pulseaudio is installed, zypper will warn you with a message. You should choose "Solution 1" to uninstall pulseaudio.
 
 **Since the 20220708 openSUSE Tumbleweed release, new installations use PipeWire as the default audio engine instead of PulseAudio**
 
@@ -160,7 +162,7 @@ osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
 
 Since osu! runs on Wine, you can play that on Steam Deck as well!
 
-It is recommended to not manually install pipewire on the Steam Deck as it is already installed by default and attempting to do so may cause audio issues in gaming mode.
+It is recommended to not manually install PipeWire on the Steam Deck as it is already installed by default and attempting to do so may cause audio issues.
 
 Before using the script, make sure to:
 - Set a password using the `passwd` command
