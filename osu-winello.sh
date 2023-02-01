@@ -493,7 +493,15 @@ Install()
           rm -rf "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
           ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
           rm -rf "/tmp/tempfonts"
-
+          # Checking for Lutris Wine
+          if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+            rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
+            ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts" ; fi
+          # Checking for Flatpak Lutris Wine
+          if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+            rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
+            ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts" ; fi
+          
         #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
@@ -552,8 +560,16 @@ Install()
         rm -rf "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
         ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
         rm -rf "/tmp/tempfonts"
+        # Checking for Lutris Wine
+        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
+          rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
+          ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts" ; fi
+        # Checking for Flatpak Lutris Wine
+        if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
+          rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
+          ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts" ; fi
 
-        #Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
+        # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         (cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu") || (Info "Seems like the file wasn't found for some reason lol. Copying it from backup.." && cp "$HOME/.local/share/osuconfig/update/fixfolderosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu")
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
