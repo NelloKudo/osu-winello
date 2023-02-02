@@ -496,7 +496,7 @@ Install()
           # Checking for Lutris Wine
           if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
             rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
-            ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts" ; fi
+            ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts" ; fi
           # Checking for Flatpak Lutris Wine
           if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
             rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
@@ -563,7 +563,7 @@ Install()
         # Checking for Lutris Wine
         if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
           rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
-          ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts" ; fi
+          ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts" ; fi
         # Checking for Flatpak Lutris Wine
         if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
           rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
