@@ -30,7 +30,11 @@ Revert()
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.xz"
     rm -rf "/tmp/winestreamproxy"
     echo -e '\033[1;31m'"Reverting done, try again with ./osu-winello.sh\033[0m"
+
+    if [ "$osid" == "debian" ]; then
+      "$root_var" mv /etc/apt/sources.list.bak /etc/apt/sources.list ; fi
 }
+
 
 Error()
 {  
@@ -87,19 +91,78 @@ Install()
         Info "Debian/Ubuntu detected, installing dependencies..."
         Info "Please enter your password when asked"
         Info "------------------------------------"
-        Info "Installing packages and wine-staging dependencies.."
+        
+        osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"') 
+        
+        if [ "$osid" == "debian" ] ; then
+        
+          Info "Installing needed packages for dependencies.."
+          "$root_var" apt update && "$root_var" apt install -y software-properties-common
 
-        "$root_var" apt update && "$root_var" apt upgrade -y
-        "$root_var" dpkg --add-architecture i386
-        wget -nc https://dl.winehq.org/wine-builds/winehq.key
-        "$root_var" apt-key add winehq.key
-        "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
-        "$root_var" apt update
-        "$root_var" apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && "$root_var" apt purge -y wine && "$root_var" apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
-        "$root_var" apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+          nonfreestatus="true"
+          "$root_var" dpkg --add-architecture i386
+          "$root_var" apt install -y steam || nonfreestatus="false"
+
+          if [ "$nonfreestatus" == "false" ]; then
+
+            Info "Looks like non-free repositories are not enabled on your system"
+            Info "Those are needed in order to install libraries to play osu! properly."
+            read -r -p "$(Info "Do you want to enable non-free repositories? (Y/N): ")" nonfreechoice
+            
+            if [ "$nonfreechoice" == 'Y' ] || [ "$nonfreechoice" == 'y' ]; then
+              
+              # Now checking for all lines supposed to be there, according to https://wiki.debian.org/Steam:
+              # Remember that Steam is necessary for apt to pull libGL and other libraries. 
+              if grep "deb http://deb.debian.org/debian/ bullseye main contrib" /etc/apt/sources.list || grep "deb http://deb.debian.org/debian bullseye main contrib" /etc/apt/sources.list || grep "deb http://deb.debian.org/debian/ bullseye main" /etc/apt/sources.list; then 
+                
+                grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian bullseye main contrib" /etc/apt/sources.list)" | cut -c1-3)
+                
+                if [ "$grepline" == "" ]; then grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian/ bullseye main contrib" /etc/apt/sources.list)" | cut -c1-3) ; fi
+		if [ "$grepline" == "" ]; then grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian/ bullseye main" /etc/apt/sources.list)" | cut -c1-3) ; fi		
+			                
+                linenumber=$(echo $grepline | grep -o '[0-9]*')
+                
+                # Additional check to make sure sed doesn't really replace everything if non-free is already found for some reason
+                if ! grep "deb http://deb.debian.org/debian/ bullseye main contrib non-free" /etc/apt/sources.list || ! grep "deb http://deb.debian.org/debian bullseye main contrib non-free" /etc/apt/sources.list || ! grep "deb http://deb.debian.org/debian/ bullseye main non-free" /etc/apt/sources.list ; then
+                  "$root_var" sh -c "sed -i.bak '${linenumber}s/$/ non-free/' /etc/apt/sources.list" && Info "non-free added successfully." ; fi
+              
+              else
+
+                "$root_var" sh -c 'echo "deb http://deb.debian.org/debian bullseye main non-free" >> /etc/apt/sources.list'
+
+              fi
+  
+            else
+
+              Error "non-free repositories are needed for the script to work properly. Closing the script.." ; fi
+
+          fi
+
+          Info "Installing packages and wine-staging dependencies.."
+          
+          "$root_var" mkdir -pm755 /etc/apt/keyrings
+	  "$root_var" wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+	  "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
+          "$root_var" apt update
+          "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+        
+        else
+          
+          Info "Installing packages and wine-staging dependencies.."
+
+          "$root_var" apt update && "$root_var" apt upgrade -y
+          "$root_var" dpkg --add-architecture i386
+          wget -nc https://dl.winehq.org/wine-builds/winehq.key
+          "$root_var" apt-key add winehq.key
+          "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
+          "$root_var" apt update
+          "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection" 
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         Info "Dependencies done, skipping.."
       
+        fi
       fi
     fi
 
@@ -748,19 +811,78 @@ Basic()
         Info "Debian/Ubuntu detected, installing dependencies..."
         Info "Please enter your password when asked"
         Info "------------------------------------"
-        Info "Installing packages and wine-staging dependencies.."
+        
+        osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"') 
+        
+        if [ "$osid" == "debian" ] ; then
+        
+          Info "Installing needed packages for dependencies.."
+          "$root_var" apt update && "$root_var" apt install -y software-properties-common
 
-        "$root_var" apt update && "$root_var" apt upgrade -y
-        "$root_var" dpkg --add-architecture i386
-        wget -nc https://dl.winehq.org/wine-builds/winehq.key
-        "$root_var" apt-key add winehq.key
-        "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
-        "$root_var" apt update
-        "$root_var" apt install -y --install-recommends winehq-staging || if command -v wine >/dev/null 2>&1 ; then Info "Wine stable seems to be found, removing it.." && "$root_var" apt purge -y wine && "$root_var" apt install -y --install-recommends winehq-staging ; fi || Error "Some libraries didn't install for some reason, check apt or your connection" 
-        "$root_var" apt install -y winetricks git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+          nonfreestatus="true"
+          "$root_var" dpkg --add-architecture i386
+          "$root_var" apt install -y steam || nonfreestatus="false"
+
+          if [ "$nonfreestatus" == "false" ]; then
+
+            Info "Looks like non-free repositories are not enabled on your system"
+            Info "Those are needed in order to install libraries to play osu! properly."
+            read -r -p "$(Info "Do you want to enable non-free repositories? (Y/N): ")" nonfreechoice
+            
+            if [ "$nonfreechoice" == 'Y' ] || [ "$nonfreechoice" == 'y' ]; then
+              
+              # Now checking for all lines supposed to be there, according to https://wiki.debian.org/Steam:
+              # Remember that Steam is necessary for apt to pull libGL and other libraries. 
+              if grep "deb http://deb.debian.org/debian/ bullseye main contrib" /etc/apt/sources.list || grep "deb http://deb.debian.org/debian bullseye main contrib" /etc/apt/sources.list || grep "deb http://deb.debian.org/debian/ bullseye main" /etc/apt/sources.list; then 
+                
+                grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian bullseye main contrib" /etc/apt/sources.list)" | cut -c1-3)
+                
+                if [ "$grepline" == "" ]; then grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian/ bullseye main contrib" /etc/apt/sources.list)" | cut -c1-3) ; fi
+		if [ "$grepline" == "" ]; then grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian/ bullseye main" /etc/apt/sources.list)" | cut -c1-3) ; fi		
+			                
+                linenumber=$(echo $grepline | grep -o '[0-9]*')
+                
+                # Additional check to make sure sed doesn't really replace everything if non-free is already found for some reason
+                if ! grep "deb http://deb.debian.org/debian/ bullseye main contrib non-free" /etc/apt/sources.list || ! grep "deb http://deb.debian.org/debian bullseye main contrib non-free" /etc/apt/sources.list || ! grep "deb http://deb.debian.org/debian/ bullseye main non-free" /etc/apt/sources.list ; then
+                  "$root_var" sh -c "sed -i.bak '${linenumber}s/$/ non-free/' /etc/apt/sources.list" && Info "non-free added successfully." ; fi
+              
+              else
+
+                "$root_var" sh -c 'echo "deb http://deb.debian.org/debian bullseye main non-free" >> /etc/apt/sources.list'
+
+              fi
+  
+            else
+
+              Error "non-free repositories are needed for the script to work properly. Closing the script.." ; fi
+
+          fi
+
+          Info "Installing packages and wine-staging dependencies.."
+          
+          "$root_var" mkdir -pm755 /etc/apt/keyrings
+	  "$root_var" wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+	  "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
+          "$root_var" apt update
+          "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+        
+        else
+          
+          Info "Installing packages and wine-staging dependencies.."
+
+          "$root_var" apt update && "$root_var" apt upgrade -y
+          "$root_var" dpkg --add-architecture i386
+          wget -nc https://dl.winehq.org/wine-builds/winehq.key
+          "$root_var" apt-key add winehq.key
+          "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
+          "$root_var" apt update
+          "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection" 
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         Info "Dependencies done, skipping.."
       
+        fi
       fi
     fi
 
