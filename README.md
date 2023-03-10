@@ -1,7 +1,7 @@
 # osu-winello
 osu! stable installer for Linux with patched wine-osu and other features.
 
-![2022-04-14_18-56](https://user-images.githubusercontent.com/98063377/163437506-cfb2dec3-653d-4819-8fd8-fd17d2c7f20c.jpg)
+![ezgif com-video-to-gif(1)](https://user-images.githubusercontent.com/98063377/224407211-70fa648c-b96f-442b-b5f5-eaf28a84670a.gif)
 
 # Index
 
