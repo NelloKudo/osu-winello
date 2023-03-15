@@ -86,7 +86,7 @@ Install()
     Info "Dependencies time.."
 
     if command -v apt >/dev/null 2>&1 ; then
-      if ! ( command -v apt >/dev/null 2>&1 && command -v dnf >/dev/null 2>&1 ) ; then
+      if ! ( command -v dnf >/dev/null 2>&1 || command -v emerge >/dev/null 2>&1 ) ; then
         
         Info "Debian/Ubuntu detected, installing dependencies..."
         Info "Please enter your password when asked"
@@ -166,6 +166,31 @@ Install()
       fi
     fi
 
+    if command -v emerge >/dev/null 2>&1 ; then
+
+      Info "Gentoo detected, installing dependencies..."
+      Info "Please enter your password when asked"
+      Info "------------------------------------"
+
+      "$root_var" mkdir -p /etc/portage/sets
+      Info "Creating @osu-winello package set.."
+      printf "dev-vcs/git\napp-arch/zstd\napp-arch/p7zip\nnet-misc/wget\ngnome-extra/zenity\nvirtual/wine\napp-emulation/winetricks\n" | "$root_var" tee /etc/portage/sets/osu-winello
+      Info "Adding required USE flags.."
+      printf "media-libs/libsdl2 haptic\n" | "$root_var" tee /etc/portage/package.use/osu-winello
+
+      if ! grep -q '@osu-winello' /var/lib/portage/world_sets; then
+        if ! emerge --info | grep -q 'ABI_X86="64 32"' && ! emerge --info | grep -q 'ABI_X86="32 64"'; then
+          Info "Error: Unsupported configuration."
+          Info "Enable abi_x86_32 globally *or* manually emerge the @osu-winello set."
+          Info
+          Info 'To enable it globally, set ABI_X86="64 32" in /etc/portage/make.conf and run "emerge --newuse @world".'
+          Error "Cannot continue, there *will* be circular dependencies to resolve!"
+        fi
+      fi
+
+      "$root_var" emerge --noreplace @osu-winello || Error "Some libraries didn't install for some reason, check portage or your connection"
+      Info "Dependencies done, skipping.."
+    fi
 
     if command -v pacman >/dev/null 2>&1 ; then
 
@@ -806,7 +831,7 @@ Basic()
     Info "Dependencies time.."
 
     if command -v apt >/dev/null 2>&1 ; then
-      if ! ( command -v apt >/dev/null 2>&1 && command -v dnf >/dev/null 2>&1 ) ; then
+      if ! ( command -v dnf >/dev/null 2>&1 || command -v emerge >/dev/null 2>&1 ) ; then
         
         Info "Debian/Ubuntu detected, installing dependencies..."
         Info "Please enter your password when asked"
@@ -886,6 +911,31 @@ Basic()
       fi
     fi
 
+    if command -v emerge >/dev/null 2>&1 ; then
+
+      Info "Gentoo detected, installing dependencies..."
+      Info "Please enter your password when asked"
+      Info "------------------------------------"
+
+      "$root_var" mkdir -p /etc/portage/sets
+      Info "Creating @osu-winello package set.."
+      printf "dev-vcs/git\napp-arch/zstd\napp-arch/p7zip\nnet-misc/wget\ngnome-extra/zenity\nvirtual/wine\napp-emulation/winetricks\n" | "$root_var" tee /etc/portage/sets/osu-winello
+      Info "Adding required USE flags.."
+      printf "media-libs/libsdl2 haptic\n" | "$root_var" tee /etc/portage/package.use/osu-winello
+
+      if ! grep -q '@osu-winello' /var/lib/portage/world_sets; then
+        if ! emerge --info | grep -q 'ABI_X86="64 32"' && ! emerge --info | grep -q 'ABI_X86="32 64"'; then
+          Info "Error: Unsupported configuration."
+          Info "Enable abi_x86_32 globally *or* manually emerge the @osu-winello set."
+          Info
+          Info 'To enable it globally, set ABI_X86="64 32" in /etc/portage/make.conf and run "emerge --newuse @world".'
+          Error "Cannot continue, there *will* be circular dependencies to resolve!"
+        fi
+      fi
+
+      "$root_var" emerge --noreplace @osu-winello || Error "Some libraries didn't install for some reason, check portage or your connection"
+      Info "Dependencies done, skipping.."
+    fi
 
     if command -v pacman >/dev/null 2>&1 ; then
 
