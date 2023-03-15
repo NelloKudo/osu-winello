@@ -29,13 +29,21 @@ You can easily get it like this:
 
 **openSUSE:** `sudo zypper install -y git`
 
+**Gentoo:** `sudo emerge --noreplace dev-vcs/git`
+
 ## PipeWire:
 
 `PipeWire` **isn't really a dependency but is highly recommended, especially with this script.**
 
-You can install it like this:
+Check if it's already on your system with:
 
-### Debian (Ubuntu, Linux Mint, Pop!_OS etc..):
+```
+pactl info | grep "Server Name"
+```
+
+If it shows `Server Name: PulseAudio (on Pipewire)` , then you're good to go. Otherwise, install it like this:
+
+### Debian (Ubuntu, Linux Mint, etc..):
 
 ```
 sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
@@ -49,6 +57,8 @@ systemctl --user --now disable pulseaudio.service pulseaudio.socket
 systemctl --user mask pulseaudio
 systemctl --user --now enable pipewire pipewire-pulse
 ```
+
+Pop!_OS users don't need to install PipeWire as it's already shipped by default.
 
 ### Arch Linux (Manjaro, Endeavour OS, etc.):
   
@@ -67,7 +77,7 @@ Steam Deck users don't need to install PipeWire as it's already shipped by defau
 
 ### Fedora:
  
-**Fedora's latest versions already ship with Pipewire ; you might want to check with this:**
+Fedora's latest versions already ship with Pipewire, you might want to check with this:
   
 ```   
 sudo dnf install pulseaudio-utils
@@ -87,14 +97,12 @@ These commands will install the `pipewire-pulseaudio` and `wireplumber-audio` pa
 
 If pulseaudio is installed, zypper will warn you with a message. You should choose "Solution 1" to uninstall pulseaudio.
 
-**Since the 20220708 openSUSE Tumbleweed release, new installations use PipeWire as the default audio engine instead of PulseAudio**
+### Gentoo:
 
-**Note that a system upgrade from a previous openSUSE Tumbleweed release won't automatically replace PulseAudio, so you might enable and use PipeWire by yourself**
-
-Rebooting your system is highly recommended. After rebooting you might want to check if PipeWire is working:
+Add `media-video/pipewire sound-server pipewire-alsa` and `media-sound/pulseaudio -daemon` to USE flags, then run:
 
 ```
-pactl info | grep "Server Name"
+sudo emerge media-sound/pulseaudio media-video/pipewire
 ```
 
 ## Installing osu!:
