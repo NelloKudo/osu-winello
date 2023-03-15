@@ -145,7 +145,7 @@ Install()
 	  "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
           "$root_var" apt update
           "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
-          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         else
           
@@ -158,7 +158,7 @@ Install()
           "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
           "$root_var" apt update
           "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection" 
-          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         Info "Dependencies done, skipping.."
       
@@ -865,7 +865,7 @@ Basic()
 	  "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
           "$root_var" apt update
           "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
-          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         else
           
@@ -878,7 +878,7 @@ Basic()
           "$root_var" apt-add-repository -y 'https://dl.winehq.org/wine-builds/ubuntu/'
           "$root_var" apt update
           "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection" 
-          "$root_var" apt install -y git curl steam build-essential zstd p7zip zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+          "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
         
         Info "Dependencies done, skipping.."
       
