@@ -73,6 +73,8 @@ function InitialSetup(){
     if [ -e /usr/bin/osu-wine ] ; then Error "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!" ; fi 
     if [ -e "$HOME/.local/bin/osu-wine" ] ; then Error "Please uninstall osu-wine before installing!" ; fi
 
+    Info "Welcome to the script! Follow it to install osu! 8)"
+
     # Setting root perms. to either 'sudo' or 'doas'
     root_var="sudo"
     if command -v doas >/dev/null 2>&1 ; then
