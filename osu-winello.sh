@@ -85,6 +85,7 @@ function InitialSetup(){
     fi
 
     # Checking if ~/.local/bin is in PATH:
+    mkdir -p "/home/$USER/.local/bin"
     pathcheck=$(echo "$PATH" | grep -q "/home/$USER/.local/bin" && echo "y")
 
     # If ~/.local/bin is not in PATH:
