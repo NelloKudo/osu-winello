@@ -170,14 +170,12 @@ case "$1" in
     osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
     
     # Checking for 'sudo' or 'doas'        
+    root_var="sudo"
     if command -v doas >/dev/null 2>&1 ; then
-      doascheck=$(doas id -u)
-      if [ "$doascheck" = "0" ] ; then 
-        root_var="doas"
-      else
-        root_var="sudo" ; fi
-    else
-      root_var="sudo"
+        doascheck=$(doas id -u)
+        if [ "$doascheck" = "0" ] ; then 
+            root_var="doas"
+        fi
     fi
 
     if [ "$osid" != "steamos" ] ; then
@@ -251,10 +249,12 @@ case "$1" in
         - Wine prefix: $WINEPREFIX
 
         In runner options, select 'wine-osu' as Wine version
-        and disable DXVK/VKD3D
+        and disable DXVK/VKD3D.
 
-        Last but not least, select 'disable desktop effects' in
-        system options.
+        Last but not least:
+        
+        - Select 'disable desktop effects' in system options.
+        - Set WINE_BLOCK_GET_VERSION to 1 in environment variables.
 
         You're done! Just save and play e.e"
     fi
