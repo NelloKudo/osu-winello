@@ -1044,6 +1044,10 @@ case "$1" in
     BasicInstall
     ;;
 
+    'uninstall')
+    Uninstall
+    ;;
+
     'w10fonts')
     W10Fonts
     ;;
