@@ -584,7 +584,7 @@ function LutrisCheck(){
 function FullInstall(){
 
     Info "Configuring osu-mime and osu-handler:"
-    
+
 
     # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
     wget -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" && chk="$?"
@@ -678,13 +678,50 @@ function FullInstall(){
             fi
         fi
 
-        # Finally creating prefix
+        # Variable to check if extraction finished properly
+        fail7z="false"
+
+        # Checking whether to create prefix manually or install it from repos
         if [ "$manualprefix" = "true" ]; then
             WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 win2k3 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
+        
         else
-            7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z" || Error "Extraction failed for some reason, try reinstalling or open an issue at: https://github.com/NelloKudo/osu-winello/issues"
-            cp -r "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
-            rm -rf "/tmp/osu-wineprefix/"
+            7z x -y -o/tmp/osu-wineprefix "/tmp/WINE.win32.7z" || fail7z="true"
+            
+            # Checking whether 7z extraction failed
+            if [ "$fail7z" == "false" ]; then
+                cp -r "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+                rm -rf "/tmp/osu-wineprefix/"
+
+            else
+                Info "7z extraction failed; trying with tar.gz package.."
+                
+                # Cleaning old downloads
+                rm "/tmp/WINE.win32.7z"
+                rm -rf "/tmp/osu-wineprefix"
+
+                wget -O "/tmp/WINE.win32.tar.gz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.gz" && chk="$?"
+                if [ ! "$chk" = 0 ] ; then
+                    Info "wget failed; trying with --no-check-certificate.."
+                    wget --no-check-certificate -O "/tmp/WINE.win32.tar.gz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.gz" && chk="$?"
+            
+                    # If it failed again (lol):
+                    if [ ! "$chk" = 0 ] || [ ! -s "/tmp/WINE.win32.tar.gz" ] ; then
+                        Info "The downloaded hasn't finished properly, creating the prefix manually.."
+                        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 win2k3 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
+                    fi
+                fi
+
+                # If prefix hasn't been created yet, then it didn't install manually.
+                # We can finally extract the new one, then..?
+                if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
+                    tar -xf "/tmp/WINE.win32.tar.gz" -C "/tmp" || Error "Extraction failed, try again or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+                    cp "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+
+                    # Cleaning..
+                    rm -rf "/tmp/osu-wineprefix/"
+                fi
+            fi
         fi 
 
         # We're now gonna refer to this as Wineprefix
