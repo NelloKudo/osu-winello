@@ -716,7 +716,7 @@ function FullInstall(){
                 # We can finally extract the new one, then..?
                 if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
                     tar -xf "/tmp/WINE.win32.tar.gz" -C "/tmp" || Error "Extraction failed, try again or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-                    cp "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
+                    cp -r "/tmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
 
                     # Cleaning..
                     rm -rf "/tmp/osu-wineprefix/"
