@@ -33,6 +33,10 @@ function Info(){
     echo -e '\033[1;34m'"Winello:\033[0m $*";
 }
 
+# Function to quit the install but not revert it in some cases
+function Quit(){
+    echo -e '\033[1;31m'"Winello:\033[0m $*"; exit 1;
+}
 
 # Function to revert the install in case of any type of fail
 function Revert(){
@@ -70,8 +74,8 @@ function InitialSetup(){
     if [ "$USER" = "root" ] ; then Error "Please run the script without root" ; fi
 
     # Checking for previous versions of osu-wine (mine or DiamondBurned's)
-    if [ -e /usr/bin/osu-wine ] ; then Error "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!" ; fi 
-    if [ -e "$HOME/.local/bin/osu-wine" ] ; then Error "Please uninstall osu-wine before installing!" ; fi
+    if [ -e /usr/bin/osu-wine ] ; then Quit "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!"; fi
+    if [ -e "$HOME/.local/bin/osu-wine" ] ; then Quit "Please uninstall Winello (osu-wine --remove) before installing!" ; fi
 
     Info "Welcome to the script! Follow it to install osu! 8)"
 
