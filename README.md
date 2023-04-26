@@ -38,6 +38,7 @@ You can easily get it like this:
 Check if it's already on your system with:
 
 ```
+export LANG=C
 pactl info | grep "Server Name"
 ```
 
@@ -114,7 +115,11 @@ chmod +x ./osu-winello.sh
 
 ## OR
 
-./osu-winello.sh --basic #if you want a clean install without tweaks (advanced)
+## If you wanna install without dependencies
+./osu-winello.sh --no-deps
+
+## If you want a clean install without tweaks (advanced)  (--no-deps also works here)
+./osu-winello.sh --basic
 ```
 
 You can now launch osu! with:
@@ -141,9 +146,10 @@ This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1
 # Flags:
 **Installation script:** 
 ```
-./osu-winello.sh # Installs the game
-./osu-winello.sh --basic # Installs the game with only dotnet40 and w/o tweaks
-./osu-winello.sh uninstall # Uninstalls the game
+./osu-winello.sh: Installs the game
+./osu-winello.sh --no-deps: Installs the game but skips installing dependencies
+./osu-winello.sh --basic: Installs the game with only dotnet40 and w/o tweaks
+./osu-winello.sh uninstall: Uninstalls the game
 ```
 
 **Game script:**

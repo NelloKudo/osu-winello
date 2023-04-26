@@ -20,6 +20,13 @@ MINGLIBC=2.27
 WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-stable-7.16/wine-osu-7.16-x86_64.tar.xz"
 WINEBACKUPLINK="https://www.dropbox.com/s/p7stmsx0zd2rn7o/wine-osu-7.16-x86_64.tar.xz?dl=0"
 
+# Checking for --no-deps flag:
+USEDEPS="true"
+for arg in "$@" ; do
+    if [ "$arg" == "--no-deps" ]; then
+        USEDEPS="false"
+    fi
+done
 
 #   =====================================
 #   =====================================
@@ -114,6 +121,7 @@ function InitialSetup(){
     # Well, we do need internet ig...
     Info "Checking for internet connection.."
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && (! ping -c google.com && Error "Please connect to internet before continuing xd. Run the script again")
+
 }
 
 
@@ -121,6 +129,12 @@ function InitialSetup(){
 # Supported ones, for the time being, are: Ubuntu (and der.), Debian, Arch Linux (and der.),
 # SteamOS, Fedora, Nobara, Gentoo and openSUSE.
 function Dependencies(){
+
+    # Checking for --no-deps flag
+    if [ "$USEDEPS" == "false" ]; then
+        Info "--no-deps found, skipping dependencies.."
+        return
+    fi
 
     # Reading the OS ID from /etc/os-release
     osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"') 
@@ -1106,6 +1120,10 @@ case "$1" in
 
     '-h')
     Help
+    ;;
+
+    '--no-deps')
+    ./osu-winello.sh "$2" --no-deps
     ;;
 
     *)
