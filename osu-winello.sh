@@ -114,7 +114,7 @@ function InitialSetup(){
 
         if grep -q "fish" "$SHELL" ; then
             mkdir -p "/home/$USER/.config/fish" && touch -a "/home/$USER/.config/fish/config.fish"
-            echo "export PATH=/home/$USER/.local/bin:$PATH" >> "/home/$USER/.config/fish/config.fish"
+            fish_add_path ~/.local/bin/
         fi
     fi
 
