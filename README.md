@@ -7,6 +7,7 @@ osu! stable installer for Linux with patched wine-osu and other features.
 
 - [Installation](#installation)
 	- [Prerequisites](#prerequisites)
+ 		- [Drivers](#drivers)		 
 		- [PipeWire](#pipewire)
 	- [Installing osu!](#installing-osu)
 - [Features](#features)
@@ -30,6 +31,16 @@ You can easily get it like this:
 **openSUSE:** `sudo zypper install -y git`
 
 **Gentoo:** `sudo emerge --noreplace dev-vcs/git`
+
+## Drivers:
+
+As obvious as this might sound, installing drivers the **right** way is needed to have a great experience overall
+and avoid poor performance or other problems. 
+
+Keep in mind that osu! needs **lib32 drivers** in order to run as it should, so
+if you're having performance problems, it's probably related to this.
+
+Please make sure to follow the instructions at [here](https://github.com/lutris/docs/blob/master/InstallingDrivers.md)!
 
 ## PipeWire:
 
