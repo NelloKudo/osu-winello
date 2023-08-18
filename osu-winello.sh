@@ -337,13 +337,13 @@ function InstallWine(){
     Info "Installing .desktop:"
     mkdir -p "$HOME/.local/share/applications"
     echo "[Desktop Entry]
-    Name=osu!
-    Comment=osu! - Rhythm is just a *click* away!
-    Type=Application
-    Exec=/home/$USER/.local/bin/osu-wine %U
-    Icon=/home/$USER/.local/share/icons/osu-wine.png
-    Terminal=false
-    Categories=Wine;Game;" | tee "$HOME/.local/share/applications/osu-wine.desktop"
+Name=osu!
+Comment=osu! - Rhythm is just a *click* away!
+Type=Application
+Exec=/home/$USER/.local/bin/osu-wine %U
+Icon=/home/$USER/.local/share/icons/osu-wine.png
+Terminal=false
+Categories=Wine;Game;" | tee "$HOME/.local/share/applications/osu-wine.desktop"
     chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
 
     Info "Installing wine-osu:"
@@ -632,23 +632,23 @@ function FullInstall(){
 
     # Creating entries for those two
     echo "[Desktop Entry]
-    Type=Application
-    Name=osu!
-    MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
-    Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %f
-    NoDisplay=true
-    StartupNotify=true
-    Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
+Type=Application
+Name=osu!
+MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
+Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %f
+NoDisplay=true
+StartupNotify=true
+Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
     chmod +x "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
 
     echo "[Desktop Entry]
-    Type=Application
-    Name=osu!
-    MimeType=x-scheme-handler/osu;
-    Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %u
-    NoDisplay=true
-    StartupNotify=true
-    Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
+Type=Application
+Name=osu!
+MimeType=x-scheme-handler/osu;
+Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %u
+NoDisplay=true
+StartupNotify=true
+Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
     chmod +x "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
     update-desktop-database "$HOME/.local/share/applications"
 
