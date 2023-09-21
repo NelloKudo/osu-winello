@@ -11,6 +11,7 @@ osu! stable installer for Linux with patched wine-osu and other features.
 		- [PipeWire](#pipewire)
 	- [Installing osu!](#installing-osu)
 - [Features](#features)
+- [Troubleshooting](#troubleshooting)
 - [Flags](#flags)
 - [Steam Deck Support](#steam-deck-support)
 - [Credits](#credits)
@@ -40,7 +41,8 @@ and avoid poor performance or other problems.
 Keep in mind that osu! needs **lib32 drivers** in order to run as it should, so
 if you're having performance problems, it's probably related to this.
 
-Please make sure to follow the instructions at [here](https://github.com/lutris/docs/blob/master/InstallingDrivers.md)!
+Please make sure to follow the instructions below:
+- [Installing Drivers](https://github.com/lutris/docs/blob/master/InstallingDrivers.md)
 
 ## PipeWire:
 
@@ -53,69 +55,10 @@ export LANG=C
 pactl info | grep "Server Name"
 ```
 
-If it shows `Server Name: PulseAudio (on Pipewire)` , then you're good to go. Otherwise, install it like this:
+If it shows `Server Name: PulseAudio (on Pipewire)` , then you're good to go. 
 
-### Debian (Ubuntu, Linux Mint, etc..):
-
-```
-sudo add-apt-repository ppa:pipewire-debian/pipewire-upstream
-sudo apt update
-sudo apt install -y pipewire libspa-0.2-bluetooth pipewire-audio-client-libraries
-sudo add-apt-repository ppa:pipewire-debian/wireplumber-upstream
-sudo apt update 
-sudo apt install -y wireplumber
-systemctl --user daemon-reload
-systemctl --user --now disable pulseaudio.service pulseaudio.socket
-systemctl --user mask pulseaudio
-systemctl --user --now enable pipewire pipewire-pulse
-```
-
-Pop!_OS users don't need to install PipeWire as it's already shipped by default.
-
-### Arch Linux (Manjaro, Endeavour OS, etc.):
-  
-**Remove PulseAudio:** `sudo pacman -Rdd pulseaudio`
- 
-And then:
-  
-```  
-sudo pacman -Sy --needed --noconfirm pipewire pipewire-pulse pipewire-alsa wireplumber
-systemctl --user enable --now pipewire.service pipewire.socket pipewire-media-session.service pipewire-pulse.service pipewire-pulse.socket
-``` 
-
-Manjaro users can instead use their distro's package: `sudo pacman -S --needed --noconfirm manjaro-pipewire`
-
-Steam Deck users don't need to install PipeWire as it's already shipped by default.
-
-### Fedora:
- 
-Fedora's latest versions already ship with Pipewire, you might want to check with this:
-  
-```   
-sudo dnf install pulseaudio-utils
-pactl info
-``` 
-
-Rebooting your system is recommended e.e
-
-### openSUSE (Tumbleweed, Leap):
-
-```
-sudo zypper install pipewire-pulseaudio
-systemctl --user daemon-reload
-systemctl --user --now enable pipewire wireplumber
-```
-These commands will install the `pipewire-pulseaudio` and `wireplumber-audio` packages.
-
-If pulseaudio is installed, zypper will warn you with a message. You should choose "Solution 1" to uninstall pulseaudio.
-
-### Gentoo:
-
-Add `media-video/pipewire sound-server pipewire-alsa` and `media-sound/pulseaudio -daemon` to USE flags, then run:
-
-```
-sudo emerge media-sound/pulseaudio media-video/pipewire
-```
+Otherwise, make sure to install it following the instructions at here: 
+- [Installing PipeWire](https://github.com/NelloKudo/osu-winello/wiki/Installing-PipeWire)
 
 ## Installing osu!:
 ```
@@ -134,25 +77,30 @@ chmod +x ./osu-winello.sh
 ```
 
 You can now launch osu! with:
-```osu-wine```
-
-**WARNING: you might need to close and relaunch your terminal to use the command.**
-
-__General recommendations__: use -40/35ms offset to make up for Wine (or -25 if you're using audio compatibility mode)
+```
+osu-wine
+```
+### ⚠ **!! \o/ !!** ⚠ :
+- You might need to relaunch your terminal to launch the game.
+- Use **-40/35ms** offset to make up for Wine quirks (or -25 if you're using audio compatibility mode)
 
 # Features:
+- Comes with **updatable patched** [wine-osu](https://gist.github.com/NelloKudo/b6f6d48807548bd3cacd3018a1cadef5) binaries with the latest community patches for low-latency and crashes.
+- Automatic install of dependencies on most distros (apt, pacman, dnf, zypper..)
+- Provides [osu-handler](https://aur.archlinux.org/packages/osu-handler) for importing maps and skins, Discord RPC with [winestreamproxy](https://github.com/openglfreak/winestreamproxy) and support for native file managers!
+- Installs osu! on either default or custom path (using GUI), also working for already existing osu! installations from Windows!
+- Skips the pain of downloading prefix stuff thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
+- Support for installing Windows fonts (fix for Japanese and special characters)
+- Support for old distros (binaries built on GLIBC 2.27)
+- Support for Lutris
 
-- installs every needed wine dependency by itself (for distros using apt, pacman and dnf)
-- comes with utilities like osu-handler, Discord RPC (winestreamproxy) and native support for Linux file managers!
-- uses patched [wine-osu](https://gist.github.com/NelloKudo/b6f6d48807548bd3cacd3018a1cadef5) binaries with the latest community patches, you can read more [here](https://gist.github.com/NelloKudo/b6f6d48807548bd3cacd3018a1cadef5) and support updates according to the repo!
-- installs osu! on either default or custom path (using GUI) 
-- integrates with both already existing osu! installations from Windows or with [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
-- skips the pain of downloading prefix stuff thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
-- support for installing Windows fonts (fix for Japanese and special characters)
-- support for old distros too! (binaries built on GLIBC 2.27)
-- lutris support
+# Troubleshooting
 
-This script is based on the [guide](https://osu.ppy.sh/community/forums/topics/1248084?n=1) I've written on the osu! website: more troubleshooting on the game itself can be found there e.e
+Please refer to [osu-winello's wiki](https://github.com/NelloKudo/osu-winello/wiki) for troubleshooting of any type. 
+
+If that doesn't help, either:
+- Write me on Discord (marshnello)
+- Join [ThePooN's Discord](https://discord.gg/bc4qaYjqyT), you might learn even more there hehe
 
 # Flags:
 **Installation script:** 
