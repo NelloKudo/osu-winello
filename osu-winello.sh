@@ -9,7 +9,7 @@
 #   
 
 # Wine-osu current versions for update
-WINEVERSION=8.16.0
+WINEVERSION=8.16.1
 LASTWINEVERSION=0 
 
 # Current version of GLIBC on the user's system (needed to check if wine-osu builds are compatible or not)
