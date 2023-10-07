@@ -764,24 +764,16 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
         mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
         cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
 
-        # Linking fonts to Wine
-        rm -rf "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
-        ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/osuconfig/wine-osu/share/wine/fonts"
-        rm -rf "/tmp/tempfonts"
-
-        # Lutris Wine fonts
-        if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-            rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
-            ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
-        fi
-
-        # Flatpak Lutris Wine fonts
-        if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
-            rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
-            ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts" 
-        fi
+        # Adding Windows fonts to Wineprefix thanks to were491's instructions!
+        FONT_DIR="/home/$USER/.local/share/osuconfig/W10Fonts"
         
-
+        Info "Adding fonts to Wineprefix! (Please wait a bit! The script is not blocked or anything!!)"
+        find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0 |
+        while IFS= read -r -d '' FONTFILE; do
+            FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
+            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
+            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
+        done
 
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
@@ -873,6 +865,9 @@ function Update(){
             LASTWINEVERSION="$WINEVERSION"
             rm -f "$HOME/.local/share/osuconfig/wineverupdate"
             echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
+
+            # Linking fonts to Wine again
+
 
             # Checking updates for Lutris too..
             if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then

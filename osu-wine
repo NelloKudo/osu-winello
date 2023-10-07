@@ -288,6 +288,21 @@ case "$1" in
     "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32
     "$HOME/.local/share/osuconfig/winetricks" -q win2k3
     wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
+
+    # Adding Windows fonts to Wineprefix
+    FONT_DIR="/home/$USER/.local/share/osuconfig/W10Fonts"
+    
+    if [ -d "$FONT_DIR" ] ; then 
+        Info "Adding fonts to Wineprefix! (Please wait a bit! The script is not blocked or anything!!)"
+        find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0 |
+        while IFS= read -r -d '' FONTFILE; do
+            FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
+            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
+            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
+        done
+    fi
+
+    # Adding fixfolderosu again
     wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
     wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
