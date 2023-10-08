@@ -291,15 +291,33 @@ case "$1" in
 
     # Adding Windows fonts to Wineprefix
     FONT_DIR="/home/$USER/.local/share/osuconfig/W10Fonts"
+    REG_FILE="/home/$USER/.local/share/osuconfig/win10-fonts-fix.reg"
     
-    if [ -d "$FONT_DIR" ] ; then 
-        Info "Adding fonts to Wineprefix! (Please wait a bit! The script is not blocked or anything!!)"
-        find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0 |
+    if [ -s "$REG_FILE" ] ; then 
+        Info "Adding fonts to Wineprefix.."
+        wine regedit /S "$REG_FILE"
+    else
+        # Generating the .reg file used to add fonts to prefix
         while IFS= read -r -d '' FONTFILE; do
+            
             FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
-            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
-            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
-        done
+            FONTFILE='Z:'$(sed 's/\//\\\\/g' <<< "$FONTFILE")
+            REG_KEYS="${REG_KEYS}\"$FONTNAME (TrueType)\"=\"$FONTFILE\"
+"
+        done < <(find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0)
+        REG_KEYS=$(uniq <<< "$REG_KEYS")
+
+# Forgive me for the indentation here xd
+cat > "$REG_FILE" <<-EOF
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts]$REG_KEYS
+
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts]$REG_KEYS
+EOF
+
+        # Importing the .reg file to prefix
+        wine regedit /S "$REG_FILE"
     fi
 
     # Adding fixfolderosu again

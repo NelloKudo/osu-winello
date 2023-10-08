@@ -759,21 +759,42 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
         # You could also install them from AUR or whatever, the script only installs them in-game.
 
         Info "Installing fonts..."
+        rm -rf "/tmp/tempfonts"
         mkdir -p "/tmp/tempfonts"
         git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
         mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
         cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
 
+
         # Adding Windows fonts to Wineprefix thanks to were491's instructions!
         FONT_DIR="/home/$USER/.local/share/osuconfig/W10Fonts"
+        REG_FILE="/home/$USER/.local/share/osuconfig/win10-fonts-fix.reg"
+
+        Info "Adding fonts to Wineprefix (please wait a bit!)"
+        Info "(Answer whatever to the Wine prompt, it is NOT an error!)"
         
-        Info "Adding fonts to Wineprefix! (Please wait a bit! The script is not blocked or anything!!)"
-        find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0 |
+        # Generating the .reg file used to add fonts to prefix
         while IFS= read -r -d '' FONTFILE; do
+            
             FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
-            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
-            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts" /v "$FONTNAME (TrueType)" /t REG_SZ /d "$(winepath -w "$FONTFILE")" /f > /dev/null 2>&1
-        done
+            FONTFILE='Z:'$(sed 's/\//\\\\/g' <<< "$FONTFILE")
+            REG_KEYS="${REG_KEYS}\"$FONTNAME (TrueType)\"=\"$FONTFILE\"
+"
+        done < <(find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0)
+        REG_KEYS=$(uniq <<< "$REG_KEYS")
+
+# Forgive me for the indentation here xd
+cat > "$REG_FILE" <<-EOF
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts]$REG_KEYS
+
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts]$REG_KEYS
+EOF
+
+        # Importing the .reg file to prefix
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine regedit /S "$REG_FILE"
+
 
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
