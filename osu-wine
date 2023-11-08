@@ -65,12 +65,12 @@ function Update(){
 case "$1" in
 
     '')
-    $LAUNCH_ARGS wine "$OSUPATH/osu!.exe" #osu! launcher
+    $LAUNCH_ARGS wine "$OSUPATH/osu!.exe" # osu! launcher
     Checkshort
     ;;
 
     '--devserver')
-    $LAUNCH_ARGS wine "$OSUPATH/osu!.exe" -devserver "$2" #osu! launcher with specified devserver
+    $LAUNCH_ARGS wine "$OSUPATH/osu!.exe" -devserver "$2" # osu! launcher with specified devserver
     ;;
 
     '--regedit')
@@ -201,8 +201,6 @@ case "$1" in
                 Info "wine-osu is already installed in Lutris, skipping..."
             else
                 cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" 
-                rm -rf "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
-                ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.local/share/lutris/runners/wine/wine-osu/share/wine/fonts"
             fi
 
             if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ]; then
@@ -212,8 +210,6 @@ case "$1" in
                     Info "wine-osu is already installed in Flatpak Lutris, skipping..."
                 else
                     cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" 
-                    rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
-                    ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
                 fi
             fi
         fi
@@ -232,8 +228,6 @@ case "$1" in
                 
                 else
                     cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" 
-                    rm -rf "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts"
-                    ln -s "$HOME/.local/share/osuconfig/W10Fonts" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu/share/wine/fonts" 
                 fi
             fi
     fi
@@ -279,7 +273,7 @@ case "$1" in
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
     
     Info "Deleting old Wineprefix..."
-    rm -rf $WINEPREFIX
+    rm -rf "$WINEPREFIX"
 
     Info "Downloading latest Winetricks.. (to prevent issues)"
     rm "$HOME/.local/share/osuconfig/winetricks"
@@ -332,9 +326,25 @@ EOF
         tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
         WINE="$HOME/.local/share/osuconfig/wine-osu/bin/wine" bash "/tmp/winestreamproxy/install.sh"
         rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
-        rm -rf "/tmp/winestreamproxy" ; fi
+        rm -rf "/tmp/winestreamproxy"
+    fi
 
     Info "Wineprefix is now working; launch osu! with osu-wine"
+    ;;
+
+    '--gosumemory')
+    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.8/gosumemory_windows_amd64.zip"
+
+    if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
+        Info "Installing gosumemory.."
+        mkdir -p "$HOME/.local/share/osuconfig/gosumemory"
+        wget -O "/tmp/gosumemory.zip" "$GOSUMEMORY_LINK" || Error "Download failed, check your connection.."
+        unzip -d "$HOME/.local/share/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
+        rm "/tmp/gosumemory.zip"
+    fi
+
+    Info "Launching gosumemory..."
+    wine "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe"
     ;;
 
     '--info')
@@ -354,4 +364,5 @@ EOF
     'help')
     Help
     ;;
+    
 esac

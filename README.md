@@ -88,6 +88,7 @@ osu-wine
 - Comes with **updatable patched** [wine-osu](https://gist.github.com/NelloKudo/b6f6d48807548bd3cacd3018a1cadef5) binaries with the latest community patches for low-latency and crashes.
 - Automatic install of dependencies on most distros (apt, pacman, dnf, zypper..)
 - Provides [osu-handler](https://aur.archlinux.org/packages/osu-handler) for importing maps and skins, Discord RPC with [winestreamproxy](https://github.com/openglfreak/winestreamproxy) and support for native file managers!
+- Supports [gosumemory](https://github.com/l3lackShark/gosumemory) for streaming etc. with automatic install! (Check [flags](#flags)!)
 - Installs osu! on either default or custom path (using GUI), also working for already existing osu! installations from Windows!
 - Skips the pain of downloading prefix stuff thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
 - Support for installing Windows fonts (fix for Japanese and special characters)
@@ -120,7 +121,7 @@ osu-wine --regedit: Opens regedit on osu! Wineprefix
 osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
 osu-wine --kill9: Kills osu! but with wineserver -k9
 osu-wine --update: Updates wine-osu to latest version
-osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed for JP characters etc.)
+osu-wine --w10fonts: Installs Windows 10 fonts from GitHub for osu! (Needed for JP characters etc.)
 osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
 osu-wine --info: Troubleshooting and more info
 osu-wine --remove: Uninstalls osu! and the script
@@ -129,6 +130,7 @@ osu-wine --changedir: Changes directory of the install according to the user
 osu-wine --devserver <server>: Runs osu on the specified devserver
 osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
 osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
+osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
 ```
 
 # Steam Deck Support

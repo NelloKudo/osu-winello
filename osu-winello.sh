@@ -6,7 +6,6 @@
 #   functions; this first part is related to
 #   variables I can easily update (ex. Wine ver)
 #   =======================================
-#   
 
 # Wine-osu current versions for update
 WINEVERSION=8.16.1
@@ -64,7 +63,8 @@ function Revert(){
     echo -e '\033[1;31m'"Reverting done, try again with ./osu-winello.sh\033[0m"
 
     if [ "$osid" == "debian" ]; then
-      "$root_var" mv /etc/apt/sources.list.bak /etc/apt/sources.list ; fi
+        "$root_var" mv /etc/apt/sources.list.bak /etc/apt/sources.list
+    fi
 }
 
 
@@ -654,7 +654,6 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
 
 
 
-
     # Time to install my prepackaged Wineprefix, which works in most cases
     # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
 
@@ -887,9 +886,6 @@ function Update(){
             rm -f "$HOME/.local/share/osuconfig/wineverupdate"
             echo "$LASTWINEVERSION" >> "$HOME/.local/share/osuconfig/wineverupdate"
 
-            # Linking fonts to Wine again
-
-
             # Checking updates for Lutris too..
             if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
                 read -r -p "$(Info "Do you want to update wine-osu in Lutris too? (y/n)")" lutrupdate
@@ -913,16 +909,13 @@ function Update(){
                 fi
             fi
     
-        Info "Update is completed!"
-    
-      else
-        Info "Your wine-osu is already up-to-date!"
-      
-      fi
+            Info "Update is completed!"
+        else
+            Info "Your wine-osu is already up-to-date!"
+        fi
 
     else
-      Info "Try updating your system.."
-    
+        Info "Try updating your system.."
     fi
 
 }
@@ -962,126 +955,72 @@ function Uninstall(){
         if [ "$choice2" = 'y' ] || [ "$choice2" = 'Y' ]; then
 		    
             Info "Uninstalling game:"
-           
             if [ -e "$HOME/.local/share/osuconfig/osupath" ]; then
                 OSUUNINSTALLPATH=$(<"$HOME/.local/share/osuconfig/osupath")
 		        rm -rf "$OSUUNINSTALLPATH"
                 rm -rf "$HOME/.local/share/osuconfig"
             else
-                 rm -rf "$HOME/.local/share/osuconfig"
+                rm -rf "$HOME/.local/share/osuconfig"
             fi
 
         else
-          rm -rf "$HOME/.local/share/osuconfig"
-          Info "Exiting.."
-        
+            rm -rf "$HOME/.local/share/osuconfig"
+            Info "Exiting.."
         fi
     
     else
-      rm -rf "$HOME/.local/share/osuconfig"
-    
+        rm -rf "$HOME/.local/share/osuconfig"
     fi
     
     Info "Uninstallation completed!"
 }
 
 
-# Just a function to download W10 fonts again in case someone needs to
+# Just a function to install W10Fonts again for osu!
+# -------------------------------------------------
+# If you actually need them system-wise, either install them
+# from AUR/Repos or copy ~/.local/share/osuconfig/W10Fonts to ~/.fonts!
+
 function W10Fonts(){
 
-    Info "Which way do you want to install fonts?
-    1: GitHub (Faster, Small Download, Classic JP and KR fonts)
-    2: Iso (5GBs, includes ALL fonts from W10 isos)"
-
-    read -r -p "$(Info "Choose your option: ")" fontsch
-    
-    if [ "$fontsch" = 1 ] || [ "$fontsch" = 2 ] ; then  
-    case "$installpath" in
-
-    '1')
-        if [ -d "$HOME/.local/share/fonts/W10Fonts" ] ; then
-            Info "Fonts already found, skipping.."
-    
-        else
-            # W10fonts by https://github.com/YourRandomGuy/ttf-mswin10
-            Info "Installing Windows fonts... (read below)"
-            mkdir -p "/tmp/tempfonts"
-            git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
-            mkdir -p "$HOME/.local/share/fonts/W10Fonts"
-            cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/fonts/W10Fonts"
-            rm -rf "/tmp/tempfonts"
-            fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
-
-        Info "Finished installing fonts.."
-        fi
-    ;;
-
-    '2')
-
-    # W10fonts by ttf-win10 on AUR (https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=ttf-win10)
-    # If the package will be updated (and I won't have modified it yet) you can just edit the next 4 variables according to the link above
-   
-   pkgver=19043.928.210409
-    _minor=1212.21h1
-    _type="release_svc_refresh"
-    sha256sumiso="026607e7aa7ff80441045d8830556bf8899062ca9b3c543702f112dd6ffe6078"
-    _file="${pkgver}-${_minor}_${_type}_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso"
-
-    if [ -e "$HOME/${_file}" ]; then
-        Info "Iso already exists; skipping download..."
-    else
-        wget -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" && chk="$?" 
-    
-        if [ ! "$chk" = 0 ] ; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/${_file}" "https://software-download.microsoft.com/download/pr/${_file}" || Error "Download keeps failing, check the code at line ~1000 or your connection"
-        fi
-    fi
-    
-    Info "Running checksum.."
-    if [ "$sha256sumiso" = "$(sha256sum "$HOME/${_file}" | cut -d' ' -f1)" ] && echo OK ; then
-    
-        Info "Checksum passes; extracting fonts.."
-        mkdir -p "$HOME/.local/share/fonts"
-        mkdir -p "$HOME/.local/share/fonts/Microsoft"
-        mkdir -p "$HOME/.local/share/licenses"
-        7z e "$HOME/${_file}" sources/install.wim
-        7z e install.wim Windows/Fonts/* -o"$HOME/.local/share/fonts/Microsoft"
-        7z x install.wim Windows/System32/Licenses/neutral/"*"/"*"/license.rtf -o"$HOME/.local/share/licenses" -y
-        fc-cache -f "$HOME/.local/share/fonts/Microsoft/"
-        rm -f "$HOME/${_file}"
-        rm -f ./install.wim
-    
-    else
-
-        Info "Checksum doesn't pass, your download may be corrupted: cleaning"
-        Info "Try again later with osu-wine --w10fonts"
-        rm -f "$HOME/${_file}" ; fi
-    ;;
-
-    esac
-
-    else
-    Info "Unknown argument, using github.."
-    
-    if [ -d "$HOME/.local/share/fonts/W10Fonts" ] ; then
-        Info "Fonts already found, skipping.." ;  
-    
-    else
-
-        # W10fonts by https://github.com/YourRandomGuy/ttf-mswin10
-        Info "Installing Windows fonts... (read below)"
+    if [ ! -d "$HOME/.local/share/osuconfig/W10Fonts" ]; then
+        Info "Installing fonts..."
+        rm -rf "/tmp/tempfonts"
         mkdir -p "/tmp/tempfonts"
         git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
-        mkdir -p "$HOME/.local/share/fonts/W10Fonts"
-        cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/fonts/W10Fonts"
-        rm -rf "/tmp/tempfonts"
-        fc-cache -f "$HOME/.local/share/fonts/W10Fonts"
+        mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
+        cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
+    else 
+        Info "Fonts are already downloaded, checking for osu!..."
+    fi
 
-        Info "Finished installing fonts.."
+    if [ ! -e "$HOME/.local/share/osuconfig/win10-fonts-fix.reg" ]; then
+        # Generating the .reg file used to add fonts to prefix
+        while IFS= read -r -d '' FONTFILE; do
+            
+            FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
+            FONTFILE='Z:'$(sed 's/\//\\\\/g' <<< "$FONTFILE")
+            REG_KEYS="${REG_KEYS}\"$FONTNAME (TrueType)\"=\"$FONTFILE\"
+"
+        done < <(find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0)
+        REG_KEYS=$(uniq <<< "$REG_KEYS")
+
+# Forgive me for the indentation here xd
+cat > "$REG_FILE" <<-EOF
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts]$REG_KEYS
+
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts]$REG_KEYS
+EOF
+
+    else
+        Info "Reg. file is already created, importing again.."
     fi
-    
-    fi
+
+    # Importing the .reg file to prefix
+    wine regedit /S "$REG_FILE"
+    Info "All done! Fonts are fixed now!"
 }
 
 
