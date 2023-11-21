@@ -44,7 +44,8 @@ function Help(){
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu on with the specified devserver
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
-    osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates"
+    osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
+    osu-wine --gosumemory: Installs and runs gosumemory without any needed config!"
 }
 
 function Checkshort(){      # Deletes useless shortcuts created when installing
