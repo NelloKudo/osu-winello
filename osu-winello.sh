@@ -141,7 +141,7 @@ function Dependencies(){
 
     # Checking for Debian/Ubuntu:
     if command -v apt >/dev/null 2>&1 ; then
-        if ! ( command -v dnf >/dev/null 2>&1 || command -v emerge >/dev/null 2>&1 ) ; then
+        if ! ( command -v dnf >/dev/null 2>&1 || command -v emerge >/dev/null 2>&1 || command -v pacman >/dev/null 2>&1 ) ; then
         
             Info "Debian/Ubuntu detected, installing dependencies..."
             Info "Please enter your password when asked"
@@ -166,41 +166,31 @@ function Dependencies(){
                 
                         # Now checking for all lines supposed to be there, according to https://wiki.debian.org/Steam:
                         # Remember that Steam is necessary for apt to pull libGL and other libraries. 
-                        if grep "deb http://deb.debian.org/debian/ bullseye main contrib" /etc/apt/sources.list || grep "deb http://deb.debian.org/debian bullseye main contrib" /etc/apt/sources.list || grep "deb http://deb.debian.org/debian/ bullseye main" /etc/apt/sources.list; then 
-                    
-                            grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian bullseye main contrib" /etc/apt/sources.list)" | cut -c1-3)
-                    
-                            if [ "$grepline" == "" ]; then grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian/ bullseye main contrib" /etc/apt/sources.list)" | cut -c1-3) ; fi
-                            if [ "$grepline" == "" ]; then grepline=$(echo "$(grep -n -o '[0-9]*'"deb http://deb.debian.org/debian/ bullseye main" /etc/apt/sources.list)" | cut -c1-3) ; fi		
-                                
-                            linenumber=$(echo "$grepline" | grep -o '[0-9]*')
-                    
-                            # Additional check to make sure sed doesn't really replace everything if non-free is already found for some reason
-                            if ! grep "deb http://deb.debian.org/debian/ bullseye main contrib non-free" /etc/apt/sources.list || ! grep "deb http://deb.debian.org/debian bullseye main contrib non-free" /etc/apt/sources.list || ! grep "deb http://deb.debian.org/debian/ bullseye main non-free" /etc/apt/sources.list ; then
-                                "$root_var" sh -c "sed -i.bak '${linenumber}s/$/ non-free/' /etc/apt/sources.list" && Info "non-free added successfully."
-                            fi
-                
-                        else
+                        debcodename=$(lsb_release -c | awk '{print $2}')
+                        debbaseline="deb http://deb.debian.org/debian/ $debcodename main contrib non-free"
 
-                            "$root_var" sh -c 'echo "deb http://deb.debian.org/debian bullseye main non-free" >> /etc/apt/sources.list'
+                        # Creating current sources.list backup just in case..
+                        "$root_var" cp /etc/apt/sources.list /etc/apt/sources.list.bak
 
+                        if ! grep -q "$debbaseline" /etc/apt/sources.list; then
+                            echo "$debbaseline" | "$root_var" tee -a /etc/apt/sources.list >/dev/null
                         fi
-    
+                        
+                        Info "Added non-free repos successfully!!"
+                    
                     else
-
                         Error "non-free repositories are needed for the script to work properly. Closing the script.."  
                     fi
-
                 fi
 
-            Info "Installing packages and wine-staging dependencies.."
-            
-            "$root_var" mkdir -pm755 /etc/apt/keyrings
-            "$root_var" wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-            "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
-            "$root_var" apt update
-            "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
-            "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+                Info "Installing packages and wine-staging dependencies.."
+                
+                "$root_var" mkdir -pm755 /etc/apt/keyrings
+                "$root_var" wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+                "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
+                "$root_var" apt update
+                "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
+                "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
             
             else
             
