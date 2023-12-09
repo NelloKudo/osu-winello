@@ -153,8 +153,10 @@ function Dependencies(){
                 "$root_var" apt update && "$root_var" apt install -y software-properties-common
 
                 nonfreestatus="true"
+                debcodename=$(lsb_release -c | awk '{print $2}')
+
                 "$root_var" dpkg --add-architecture i386
-                "$root_var" apt install -y steam || nonfreestatus="false"
+                "$root_var" apt install -y steam-installer || nonfreestatus="false"
 
                 if [ "$nonfreestatus" == "false" ]; then
 
@@ -166,7 +168,6 @@ function Dependencies(){
                 
                         # Now checking for all lines supposed to be there, according to https://wiki.debian.org/Steam:
                         # Remember that Steam is necessary for apt to pull libGL and other libraries. 
-                        debcodename=$(lsb_release -c | awk '{print $2}')
                         debbaseline="deb http://deb.debian.org/debian/ $debcodename main contrib non-free"
 
                         # Creating current sources.list backup just in case..
@@ -187,10 +188,10 @@ function Dependencies(){
                 
                 "$root_var" mkdir -pm755 /etc/apt/keyrings
                 "$root_var" wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-                "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
+                "$root_var" wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/$debcodename/winehq-$debcodename.sources
                 "$root_var" apt update
                 "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection"
-                "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
+                "$root_var" apt install -y git curl steam-installer build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
             
             else
             
