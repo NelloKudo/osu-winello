@@ -223,7 +223,12 @@ function Dependencies(){
         Info "Creating @osu-winello package set.."
         printf "dev-vcs/git\napp-arch/zstd\napp-arch/p7zip\nnet-misc/wget\ngnome-extra/zenity\nvirtual/wine\napp-emulation/winetricks\n" | "$root_var" tee /etc/portage/sets/osu-winello
         Info "Adding required USE flags.."
-        printf "media-libs/libsdl2 haptic\n" | "$root_var" tee /etc/portage/package.use/osu-winello
+
+        if [ -f "/etc/portage/package.use" ]; then
+          printf "### --- OSU --- ###\n\nmedia-libs/libsdl2 haptic\n" | "$root_var" tee -a /etc/portage/package.use
+        else
+          printf "media-libs/libsdl2 haptic\n" | "$root_var" tee /etc/portage/package.use/osu-winello
+        fi
 
         if ! grep -q '@osu-winello' /var/lib/portage/world_sets; then
             if ! emerge --info | grep -q 'ABI_X86="64 32"' && ! emerge --info | grep -q 'ABI_X86="32 64"'; then
@@ -231,6 +236,7 @@ function Dependencies(){
                 Info "Enable abi_x86_32 globally *or* manually emerge the @osu-winello set."
                 Info
                 Info 'To enable it globally, set ABI_X86="64 32" in /etc/portage/make.conf and run "emerge --newuse @world".'
+                Info "Alternative is to emerge the wine/wine-staging package and it will set abi_x86_32 for required packages."
                 Error "Cannot continue, there *will* be circular dependencies to resolve!"
             fi
         fi
