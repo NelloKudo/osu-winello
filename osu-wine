@@ -334,7 +334,7 @@ EOF
     ;;
 
     '--gosumemory')
-    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.8/gosumemory_windows_amd64.zip"
+    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_windows_amd64.zip"
 
     if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
         Info "Installing gosumemory.."
