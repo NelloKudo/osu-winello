@@ -973,34 +973,36 @@ function Uninstall(){
 }
 
 
-# Just a function to install W10Fonts again for osu!
+# Just a function to reinstall W10Fonts again for osu!
 # -------------------------------------------------
 # If you actually need them system-wise, either install them
 # from AUR/Repos or copy ~/.local/share/osuconfig/W10Fonts to ~/.fonts!
 
 function W10Fonts(){
 
-    if [ ! -d "$HOME/.local/share/osuconfig/W10Fonts" ]; then
-        Info "Installing fonts..."
-        rm -rf "/tmp/tempfonts"
-        mkdir -p "/tmp/tempfonts"
-        git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
-        mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
-        cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
-    else 
-        Info "Fonts are already downloaded, checking for osu!..."
-    fi
+    rm -rf "$HOME/.local/share/osuconfig/W10Fonts"
+    rm "$HOME/.local/share/osuconfig/win10-fonts-fix.reg"
+    
+    FONT_DIR="/home/$USER/.local/share/osuconfig/W10Fonts"
+    REG_FILE="/home/$USER/.local/share/osuconfig/win10-fonts-fix.reg"
 
-    if [ ! -e "$HOME/.local/share/osuconfig/win10-fonts-fix.reg" ]; then
-        # Generating the .reg file used to add fonts to prefix
-        while IFS= read -r -d '' FONTFILE; do
-            
-            FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
-            FONTFILE='Z:'$(sed 's/\//\\\\/g' <<< "$FONTFILE")
-            REG_KEYS="${REG_KEYS}\"$FONTNAME (TrueType)\"=\"$FONTFILE\"
+    # Downloading fonts...
+    Info "Reinstalling fonts..."
+    rm -rf "/tmp/tempfonts"
+    mkdir -p "/tmp/tempfonts"
+    git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+    mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
+    cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
+
+    # Generating the .reg file used to add fonts to prefix
+    while IFS= read -r -d '' FONTFILE; do
+        
+        FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
+        FONTFILE='Z:'$(sed 's/\//\\\\/g' <<< "$FONTFILE")
+        REG_KEYS="${REG_KEYS}\"$FONTNAME (TrueType)\"=\"$FONTFILE\"
 "
-        done < <(find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0)
-        REG_KEYS=$(uniq <<< "$REG_KEYS")
+    done < <(find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0)
+    REG_KEYS=$(uniq <<< "$REG_KEYS")
 
 # Forgive me for the indentation here xd
 cat > "$REG_FILE" <<-EOF
@@ -1010,10 +1012,6 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts]$REG_KEYS
 EOF
-
-    else
-        Info "Reg. file is already created, importing again.."
-    fi
 
     # Importing the .reg file to prefix
     wine regedit /S "$REG_FILE"
