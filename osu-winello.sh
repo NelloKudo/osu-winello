@@ -8,7 +8,7 @@
 #   =======================================
 
 # Wine-osu current versions for update
-WINEVERSION=9.0.2
+WINEVERSION=9.2.0
 LASTWINEVERSION=0 
 
 # Current version of GLIBC on the user's system (needed to check if wine-osu builds are compatible or not)
@@ -16,8 +16,8 @@ CURRENTGLIBC="$(ldd --version | tac | tail -n1 | awk '{print $(NF)}')"
 MINGLIBC=2.27
 
 # Wine-osu mirrors
-WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-tkg-9.0-rc1-v3/wine-osu-tkg-9.0-rc1-v3-x86_64.tar.xz"
-WINEBACKUPLINK="https://www.dropbox.com/scl/fi/halz0xfjj5n4swntmy0uc/wine-osu-tkg-9.0-rc1-v3-x86_64.tar.xz?rlkey=5p3du43tdc0f9m0iz8i3ghgqq&dl=0"
+WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-protonGE-9-2/wine-osu-protonGE-9-2-x86_64.tar.xz"
+WINEBACKUPLINK="https://www.dropbox.com/scl/fi/sk0zwm8jcdao9b9qhc6az/wine-osu-protonGE-9-2-x86_64.tar.xz?rlkey=61p9v50zz93s3otcjlgd8effp&dl=0"
 
 # Checking for --no-deps flag:
 USEDEPS="true"
