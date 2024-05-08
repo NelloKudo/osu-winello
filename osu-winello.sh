@@ -488,7 +488,7 @@ function BasicInstall(){
             rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
             Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
             export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
-	        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet40 
+	        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet45
        
         else
 
@@ -499,7 +499,7 @@ function BasicInstall(){
         
         Info "Downloading and configuring Wineprefix: (take a coffee and wait e.e)"
         export PATH="$HOME/.local/share/osuconfig/wine-osu/bin:$PATH"
-        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet40
+        WINEARCH=win64 WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet45
         
     fi
 
@@ -753,14 +753,15 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
 
         # Now installing W10 fonts from https://github.com/YourRandomGuy/ttf-ms-win10
         # You could also install them from AUR or whatever, the script only installs them in-game.
-
         Info "Installing fonts..."
         rm -rf "/tmp/tempfonts"
+        rm "/tmp/fonts.zip" > /dev/null 2>&1
         mkdir -p "/tmp/tempfonts"
-        git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+        wget -O "/tmp/fonts.zip" "https://github.com/YourRandomGuy/ttf-ms-win10/archive/refs/heads/build.zip" || Error "Downloading fonts failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+        7z x -y -o/tmp/tempfonts "/tmp/fonts.zip" || Error "Extracting fonts failed, check if 7z is working or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
         mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
-        cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
-
+        cp /tmp/tempfonts/ttf-ms-win10-build/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
+        rm -rf "/tmp/tempfonts"
 
         # Adding Windows fonts to Wineprefix thanks to were491's instructions!
         FONT_DIR="/home/$USER/.local/share/osuconfig/W10Fonts"
@@ -973,6 +974,20 @@ function Uninstall(){
 }
 
 
+# Simple function that downloads Gosumemory!
+function Gosumemory(){
+    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_windows_amd64.zip"
+
+    if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
+        Info "Installing gosumemory.."
+        mkdir -p "$HOME/.local/share/osuconfig/gosumemory"
+        wget -O "/tmp/gosumemory.zip" "$GOSUMEMORY_LINK" || Error "Download failed, check your connection.."
+        unzip -d "$HOME/.local/share/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
+        rm "/tmp/gosumemory.zip"
+    fi
+}
+
+
 # Just a function to reinstall W10Fonts again for osu!
 # -------------------------------------------------
 # If you actually need them system-wise, either install them
@@ -987,12 +1002,15 @@ function W10Fonts(){
     REG_FILE="/home/$USER/.local/share/osuconfig/win10-fonts-fix.reg"
 
     # Downloading fonts...
-    Info "Reinstalling fonts..."
+    Info "Installing fonts..."
     rm -rf "/tmp/tempfonts"
+    rm "/tmp/fonts.zip" > /dev/null 2>&1
     mkdir -p "/tmp/tempfonts"
-    git clone "https://github.com/YourRandomGuy/ttf-ms-win10.git" "/tmp/tempfonts" || Error "Git failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+    wget -O "/tmp/fonts.zip" "https://github.com/YourRandomGuy/ttf-ms-win10/archive/refs/heads/build.zip" || Error "Downloading fonts failed, check your connection or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
+    7z x -y -o/tmp/tempfonts "/tmp/fonts.zip" || Error "Extracting fonts failed, check if 7z is working or open an issue at here: https://github.com/NelloKudo/osu-winello/issues"
     mkdir -p "$HOME/.local/share/osuconfig/W10Fonts"
-    cp /tmp/tempfonts/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
+    cp /tmp/tempfonts/ttf-ms-win10-build/*{.ttf,.ttc} "$HOME/.local/share/osuconfig/W10Fonts"
+    rm -rf "/tmp/tempfonts"
 
     # Generating the .reg file used to add fonts to prefix
     while IFS= read -r -d '' FONTFILE; do
@@ -1059,6 +1077,10 @@ case "$1" in
 
     'w10fonts')
     W10Fonts
+    ;;
+
+    'gosumemory')
+    Gosumemory
     ;;
 
     'update')

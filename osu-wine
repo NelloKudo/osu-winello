@@ -334,14 +334,9 @@ EOF
     ;;
 
     '--gosumemory')
-    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_windows_amd64.zip"
-
     if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
-        Info "Installing gosumemory.."
-        mkdir -p "$HOME/.local/share/osuconfig/gosumemory"
-        wget -O "/tmp/gosumemory.zip" "$GOSUMEMORY_LINK" || Error "Download failed, check your connection.."
-        unzip -d "$HOME/.local/share/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
-        rm "/tmp/gosumemory.zip"
+        git -C "$HOME/.local/share/osuconfig/update" pull --quiet
+        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" gosumemory
     fi
 
     Info "Launching gosumemory..."
