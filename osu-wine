@@ -316,9 +316,9 @@ EOF
     fi
 
     # Adding fixfolderosu again
-    wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
-    wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/bin/folderfixosu xdg-open \"%1\""
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
     if [ ! -d "$WINEPREFIX/drive_c/winestreamproxy" ] ; then
         Info "Configuring Winestreamproxy (Discord RPC)"
