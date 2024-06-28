@@ -280,7 +280,7 @@ case "$1" in
     rm "$HOME/.local/share/osuconfig/winetricks"
     (wget -O "$HOME/.local/share/osuconfig/winetricks" https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && chmod +x "$HOME/.local/share/osuconfig/winetricks") || Error "Downloading Winetricks failed, try again later.."
 
-    "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32
+    "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet20 dotnet48 gdiplus_winxp comctl32
     "$HOME/.local/share/osuconfig/winetricks" -q win2k3
     wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
 
