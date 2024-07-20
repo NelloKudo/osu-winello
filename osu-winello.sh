@@ -207,8 +207,9 @@ function Dependencies(){
                 "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
             
                 Info "Dependencies done, skipping.."
-        
+
             fi
+            return
         fi
     fi
 
@@ -243,6 +244,7 @@ function Dependencies(){
 
         "$root_var" emerge --noreplace @osu-winello || Error "Some libraries didn't install for some reason, check portage or your connection"
         Info "Dependencies done, skipping.."
+        return
     fi
 
     # Checking for Arch Linux
@@ -252,23 +254,7 @@ function Dependencies(){
         Info "Please enter your password when asked"
         Info "------------------------------------"
 
-        if [ "$osid" != "steamos" ] ; then
-
-            if ! grep -q -E '^\[multilib\]' '/etc/pacman.conf'; then
-                Info "Enabling multilib.."
-                printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | "$root_var" tee -a /etc/pacman.conf
-            fi
-
-            Info "Installing packages and wine-staging dependencies.."
-            if command -v wine >/dev/null 2>&1 ; then
-                Info "Wine (possibly) already found, removing it to replace with staging.."
-                "$root_var" pacman -Rdd --noconfirm wine || Info "Looks like staging is already installed"
-            fi
-            
-            "$root_var" pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity wine-staging winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
-            Info "Dependencies done, skipping.." 
-
-        else
+        if [ "$osid" = "steamos" ] ; then
 
             deck_fs_check=$("$root_var" [ -w /usr ] && echo "rw" || echo "ro")
             if [ "$deck_fs_check" = "ro" ]; then
@@ -277,7 +263,50 @@ function Dependencies(){
                 "$root_var" pacman --needed -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection"
 
             fi
+        
+        else 
+
+            # Checking for whether it's Vanilla Arch or ArcoLinux etc.
+            if grep -q 'lib32' '/etc/pacman.conf'; then
+                if ! grep -q -E '^\[lib32\]' '/etc/pacman.conf'; then
+                    Info "Enabling lib32.."
+                    printf "\n# lib32 repo enabled by osu-winello\n[lib32]\nInclude = /etc/pacman.d/mirrorlist\n" | "$root_var" tee -a /etc/pacman.conf
+                fi
+            else
+                if ! grep -q -E '^\[multilib\]' '/etc/pacman.conf'; then
+                    Info "Enabling multilib.."
+                    printf "\n# Multilib repo enabled by osu-winello\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | "$root_var" tee -a /etc/pacman.conf
+                fi
+            fi
+
+            Info "Installing packages and wine-staging dependencies.."
+            "$root_var" pacman -Sy --noconfirm --needed git base-devel p7zip wget zenity winetricks giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo libxcomposite lib32-libxcomposite libxinerama lib32-libxinerama ncurses lib32-ncurses opencl-icd-loader lib32-opencl-icd-loader libxslt lib32-libxslt libva lib32-libva gtk3 lib32-gtk3 gst-plugins-base-libs lib32-gst-plugins-base-libs vulkan-icd-loader lib32-vulkan-icd-loader cups samba dosbox || Error "Some libraries didn't install for some reason, check pacman or your connection"
+
+            if [ "$osid" != "cachyos" ]; then
+                "$root_var" pacman -Sy --noconfirm --needed wine || Error "Some libraries didn't install for some reason, check pacman or your connection"
+            fi
+
+            Info "Dependencies done, skipping.." 
+            
         fi
+        return
+    fi
+
+    # Checking for Fedora SilverBlue and related
+    if command -v rpm-ostree >/dev/null 2>&1; then
+
+        Info "Fedora SilverBlue based distro detected, using rpm-ostree.."
+        Info "Please enter your password when asked"
+        Info "------------------------------------"
+        Info "Installing packages and wine-staging dependencies.."
+        
+        "$root_var" rpm-ostree install -y --idempotent --allow-inactive git zstd p7zip p7zip-plugins wget zenity winetricks wine || Error "Installing packages failed, check if there's another installation on-going or try again.."
+        
+        if ! command -v 7z >/dev/null 2>&1; then
+	        Info "Winello dependencies have been installed, but the script needs a reboot in order to use them. Please reboot your pc and run the script again!"
+            exit 0
+        fi
+        return
     fi
 
     # Checking for Fedora / Nobara
@@ -300,7 +329,7 @@ function Dependencies(){
         fi
 
         Info "Dependencies done, skipping.."
-    
+        return
     fi
 
     # Checking for openSUSE
@@ -316,7 +345,7 @@ function Dependencies(){
         "$root_var" zypper install -y wine || Error "Some libraries didn't install for some reason, check zypper or your connection"
 
         Info "Dependencies done, skipping.."
-    
+        return
     fi
 }
 
