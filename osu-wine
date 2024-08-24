@@ -20,6 +20,7 @@ export vblank_mode=0            # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
 export WINE_DISABLE_GLCHILD_HACK=0 # Set this to 1 to fix black top-panel in editor!
+export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
 
 function Info(){
     echo -e '\033[1;34m'"Winello:\033[0m $*";
