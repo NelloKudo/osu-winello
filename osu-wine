@@ -6,13 +6,16 @@
 
 ## If you ever need to change something to the osu! launcher besides args, just go to line ~68
 
-
 export LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
-export WINEESYNC=1 # Enables esync (when possible)
-export WINEFSYNC=1 # Enables fsync (when possible)
+
+export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
+export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
+export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
+export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
+export GAMEID="osu-wine-umu"
+UMU_RUN="$HOME/.local/share/osuconfig/umu-run"
+
 export WINE_BLOCK_GET_VERSION=1 # Hides wine ver. thanks to oglfreak's patch
-export WINEPATH="$HOME/.local/share/osuconfig/wine-osu"
-export PATH="$WINEPATH/bin:$PATH" # Path to wine-osu
 export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
@@ -20,8 +23,9 @@ export OSUPATH="$osuinstall"
 export vblank_mode=0            # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
-export WINE_DISABLE_GLCHILD_HACK=0 # Set this to 1 to fix black top-panel in editor!
+export WINE_ENABLE_GLCHILD_HACK=1 # Set this to 0 to fix black top-panel in editor!
 export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
+
 
 function Info(){
     echo -e '\033[1;34m'"Winello:\033[0m $*";
@@ -70,24 +74,24 @@ function Update(){
 case "$1" in
 
     '')
-    $LAUNCH_ARGS wine "$OSUPATH/osu!.exe" # osu! launcher
+    $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" # osu! launcher
     Checkshort
     ;;
 
     '--devserver')
-    $LAUNCH_ARGS wine "$OSUPATH/osu!.exe" -devserver "$2" # osu! launcher with specified devserver
+    $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" -devserver "$2" # osu! launcher with specified devserver
     ;;
 
     '--regedit')
-    regedit
+    "$UMU_RUN" regedit
     ;;
 
     '--winecfg')
-    winecfg
+    "$UMU_RUN" winecfg
     ;;
 
     '--winetricks')
-    winetricks "${@:2}"
+    "$UMU_RUN" winetricks "${@:2}"
     ;;
 
     '--changedir')
@@ -157,120 +161,21 @@ case "$1" in
     ;;
 
     '--kill')
-    wineserver -k
+    "$WINESERVER_PATH" -k
     ;;
 
     '--kill9')
-    wineserver -k9
+    "$WINESERVER_PATH" -k9
     ;;
 
     '--update')
     Update
     ;;
 
-    '--fixsteamdeck')
-    # Reading the OS id..
-    osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
-
-    # Checking for 'sudo' or 'doas'        
-    root_var="sudo"
-    if command -v doas >/dev/null 2>&1 ; then
-        doascheck=$(doas id -u)
-        if [ "$doascheck" = "0" ] ; then 
-            root_var="doas"
-        fi
-    fi
-    
-    if [ "$osid" != "steamos" ] ; then
-        Error "Your PC isn't really a Steam Deck, no need to use this c.c"
-    
-    else
-        deck_fs_check=$("$root_var" [ -w /usr ] && echo "rw" || echo "ro") 
-        
-        if [ "$deck_fs_check" = "ro" ]; then
-            Error "The Steam Deck's file system is in read-only mode, preventing further action. To continue, you must disable read-only mode. More information can be found on GitHub: https://github.com/NelloKudo/osu-winello#steam-deck-support"
-        else
-            "$root_var" pacman --needed -Sy libxcomposite lib32-libxcomposite gnutls lib32-gnutls wine winetricks || Error "Check your connection"
-        fi
-    fi    
-    ;;
-
-    '--lutris')
-    if [ -d "$HOME/.local/share/lutris" ]; then
-        Info "Lutris was found, do you want to copy wine-osu there? (y/n)"
-        read -r -p "$(Info "Choose your option: ")" lutrischoice
-        if [ "$lutrischoice" = 'y' ] || [ "$lutrischoice" = 'Y' ]; then
-            mkdir -p "$HOME/.local/share/lutris/runners/wine"
-            
-            if [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-                Info "wine-osu is already installed in Lutris, skipping..."
-            else
-                cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.local/share/lutris/runners/wine" 
-            fi
-
-            if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ]; then
-                mkdir -p "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine"
-                
-                if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
-                    Info "wine-osu is already installed in Flatpak Lutris, skipping..."
-                else
-                    cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" 
-                fi
-            fi
-        fi
-    else
-        Info "Lutris not detected; if you installed it, launch it at least once."
-    fi
-
-    if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris" ] && [ ! -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
-        Info "Flatpak Lutris was found, do you want to copy wine-osu there? (y/n)"
-        read -r -p "$(Info "Choose your option: ")" lutrischoice2
-            if [ "$lutrischoice2" = 'y' ] || [ "$lutrischoice2" = 'Y' ]; then
-        
-                mkdir -p "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine"
-                if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ]; then
-                    Info "wine-osu is already installed in Flatpak Lutris, skipping..."
-                
-                else
-                    cp -r "$HOME/.local/share/osuconfig/wine-osu" "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine" 
-                fi
-            fi
-    fi
- 
-    if [ -d "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine/wine-osu" ] || [ -d "$HOME/.local/share/lutris/runners/wine/wine-osu" ]; then
-        Info "Instructions to add osu! to Lutris..
-
-        Add a new game by pressing '+' on the top left > add locally
-        installed game
-
-        Choose osu! as name and set Wine as runner in Game info
-        Then just paste the following in Game options:
-
-        - Executable: $OSUPATH/osu!.exe
-        - Working directory: $OSUPATH
-        - Wine prefix: $WINEPREFIX
-
-        In runner options, select 'wine-osu' as Wine version
-        and disable DXVK/VKD3D.
-
-        Last but not least:
-        
-        - Select 'disable desktop effects' in system options.
-        - Set WINE_BLOCK_GET_VERSION to 1 in environment variables.
-
-        You're done! Just save and play e.e"
-    fi
-    ;;
-
     '--fixfolders')
-    wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
-    wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
-    ;;
-
-    '--w10fonts')
-    git -C "$HOME/.local/share/osuconfig/update" pull --quiet
-    bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" w10fonts
+    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+    "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
     ;;
 
     '--fixprefix')
@@ -280,56 +185,24 @@ case "$1" in
     Info "Deleting old Wineprefix..."
     rm -rf "$WINEPREFIX"
 
-    Info "Downloading latest Winetricks.. (to prevent issues)"
-    rm "$HOME/.local/share/osuconfig/winetricks"
-    (wget -O "$HOME/.local/share/osuconfig/winetricks" https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && chmod +x "$HOME/.local/share/osuconfig/winetricks") || Error "Downloading Winetricks failed, try again later.."
+    export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 
-    "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet20 dotnet48 gdiplus_winxp comctl32
-    "$HOME/.local/share/osuconfig/winetricks" -q win2k3
-    wine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v winemenubuilder /t REG_SZ /d ""
-
-    # Adding Windows fonts to Wineprefix
-    FONT_DIR="/home/$USER/.local/share/osuconfig/W10Fonts"
-    REG_FILE="/home/$USER/.local/share/osuconfig/win10-fonts-fix.reg"
-    
-    if [ -s "$REG_FILE" ] ; then 
-        Info "Adding fonts to Wineprefix.."
-        wine regedit /S "$REG_FILE"
-    else
-        # Generating the .reg file used to add fonts to prefix
-        while IFS= read -r -d '' FONTFILE; do
-            
-            FONTNAME=$(fc-query -f '%{fullname[0]}\n' "$FONTFILE" | head -n 1)
-            FONTFILE='Z:'$(sed 's/\//\\\\/g' <<< "$FONTFILE")
-            REG_KEYS="${REG_KEYS}\"$FONTNAME (TrueType)\"=\"$FONTFILE\"
-"
-        done < <(find "$FONT_DIR" -type f \( -iname '*.ttf' -o -iname '*.ttc' \) -print0)
-        REG_KEYS=$(uniq <<< "$REG_KEYS")
-
-# Forgive me for the indentation here xd
-cat > "$REG_FILE" <<-EOF
-Windows Registry Editor Version 5.00
-
-[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts]$REG_KEYS
-
-[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts]$REG_KEYS
-EOF
-
-        # Importing the .reg file to prefix
-        wine regedit /S "$REG_FILE"
-    fi
+    WINEESYNC=0 WINEFSYNC=0 PROTON_NO_ESYNC=1 PROTON_NO_FSYNC=1 "$UMU_RUN" \
+    winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
 
     # Adding fixfolderosu again
-    wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
-    wine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    wine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+    "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
     if [ ! -d "$WINEPREFIX/drive_c/winestreamproxy" ] ; then
         Info "Configuring Winestreamproxy (Discord RPC)"
         wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
         mkdir -p "/tmp/winestreamproxy"
         tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-        WINE="$WINEPATH/bin/wine" bash "/tmp/winestreamproxy/install.sh"
+        WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
+        WINE_PATH="$PROTONPATH/files/bin/wine"
+        $WINESERVER_PATH -k && WINE=$WINE_PATH bash "/tmp/winestreamproxy/install.sh"
         rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
         rm -rf "/tmp/winestreamproxy"
     fi
@@ -344,7 +217,8 @@ EOF
     fi
 
     Info "Launching gosumemory..."
-    wine "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe"
+    WINE_PATH="$PROTONPATH/files/bin/wine"
+    $WINE_PATH "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe"
     ;;
 
     '--info')
