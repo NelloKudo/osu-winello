@@ -10,8 +10,8 @@ export LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
 
 export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
-export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
+export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export GAMEID="osu-wine-umu"
 UMU_RUN="$HOME/.local/share/osuconfig/umu-run"
 
