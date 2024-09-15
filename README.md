@@ -20,16 +20,16 @@ osu! stable installer for Linux with patched Proton-osu and other features.
 
 ## Prerequisites 
 
-The only requirements, besides drivers, are `git` and `wget`.
+The only requirements, besides drivers, are `git`, `zenity` and `wget`.
 You can easily install it like this:
 
-**Ubuntu/Debian:** `sudo apt install -y git wget`
+**Ubuntu/Debian:** `sudo apt install -y git wget zenity`
 
-**Arch Linux:** `sudo pacman -Sy --needed  --noconfirm git wget`
+**Arch Linux:** `sudo pacman -Sy --needed  --noconfirm git wget zenity`
 
-**Fedora:** `sudo dnf install -y git wget`
+**Fedora:** `sudo dnf install -y git wget zenity`
 
-**openSUSE:** `sudo zypper install -y git wget`
+**openSUSE:** `sudo zypper install -y git wget zenity`
 
 ## Drivers:
 
