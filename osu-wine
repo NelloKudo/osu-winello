@@ -191,7 +191,6 @@ case "$1" in
 
     WINEESYNC=0 WINEFSYNC=0 PROTON_NO_ESYNC=1 PROTON_NO_FSYNC=1 "$UMU_RUN" \
     winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
-    WINEESYNC=0 WINEFSYNC=0 WINE=$WINE_PATH $WINETRICKS_PATH -q -f comctl32
 
     # Adding fixfolderosu again
     "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"

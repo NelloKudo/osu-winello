@@ -8,7 +8,7 @@
 #   =======================================
 
 # Proton-osu current versions for update
-PROTONVERSION=9.0.3
+PROTONVERSION=9.0.4
 LASTPROTONVERSION=0 
 
 # Proton-osu mirrors
