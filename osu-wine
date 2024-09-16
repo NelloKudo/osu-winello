@@ -12,6 +12,8 @@ export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
 export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
+export WINE_PATH="$PROTONPATH/files/bin/wine"
+export WINETRICKS_PATH="$PROTONPATH/protontricks/winetricks"
 export GAMEID="osu-wine-umu"
 UMU_RUN="$HOME/.local/share/osuconfig/umu-run"
 
@@ -189,6 +191,7 @@ case "$1" in
 
     WINEESYNC=0 WINEFSYNC=0 PROTON_NO_ESYNC=1 PROTON_NO_FSYNC=1 "$UMU_RUN" \
     winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
+    WINEESYNC=0 WINEFSYNC=0 WINE=$WINE_PATH $WINETRICKS_PATH -q -f comctl32
 
     # Adding fixfolderosu again
     "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
@@ -200,8 +203,6 @@ case "$1" in
         wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
         mkdir -p "/tmp/winestreamproxy"
         tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-        WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
-        WINE_PATH="$PROTONPATH/files/bin/wine"
         $WINESERVER_PATH -k && WINE=$WINE_PATH bash "/tmp/winestreamproxy/install.sh"
         rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
         rm -rf "/tmp/winestreamproxy"
