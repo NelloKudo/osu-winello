@@ -322,12 +322,12 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz?ref_type=heads" && chk="$?" 
+        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" && chk="$?" 
     
         # If download failed:
         if [ ! "$chk" = 0 ] ; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz?ref_type=heads" || failprefix="true"
+            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" || failprefix="true"
         fi     
 
         # Checking whether to create prefix manually or install it from repos
