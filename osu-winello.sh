@@ -704,69 +704,8 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
     # So if there's no prefix (or the user wants to reinstall):
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
 
-        # Downloading prefix in temporary ~/.winellotmp folder
-        # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
-        mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" && chk="$?" 
-    
-        # If download failed:
-        if [ ! "$chk" = 0 ] ; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/WINE.win32.7z" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.7z" && chk="$?"
-        
-            # If it failed again (lol):
-            if [ ! "$chk" = 0 ] || [ ! -s "$HOME/.winellotmp/WINE.win32.7z" ] ; then
-                Info "The downloaded hasn't finished properly, creating the prefix manually.."
-                manualprefix="true"
-            fi
-        fi
-
-
-        # Variable to check if extraction finished properly
-        fail7z="false"
-
-        # Checking whether to create prefix manually or install it from repos
-        if [ "$manualprefix" = "true" ]; then
-            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 win2k3 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
-        
-        else
-            7z x -y -o/home/$USER/.winellotmp/osu-wineprefix "$HOME/.winellotmp/WINE.win32.7z" || fail7z="true"
-            
-            # Checking whether 7z extraction failed
-            if [ "$fail7z" == "false" ]; then
-                cp -r "$HOME/.winellotmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
-                rm -rf "$HOME/.winellotmp"
-
-            else
-                Info "7z extraction failed; trying with tar.gz package.."
-                
-                # Cleaning old downloads
-                rm -rf "$HOME/.winellotmp"
-
-                mkdir -p "$HOME/.winellotmp"
-                wget -O "$HOME/.winellotmp/WINE.win32.tar.gz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.gz" && chk="$?"
-                if [ ! "$chk" = 0 ] ; then
-                    Info "wget failed; trying with --no-check-certificate.."
-                    wget --no-check-certificate -O "$HOME/.winellotmp/WINE.win32.tar.gz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.gz" && chk="$?"
-            
-                    # If it failed again (lol):
-                    if [ ! "$chk" = 0 ] || [ ! -s "$HOME/.winellotmp/WINE.win32.tar.gz" ] ; then
-                        Info "The downloaded hasn't finished properly, creating the prefix manually.."
-                        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 win2k3 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
-                    fi
-                fi
-
-                # If prefix hasn't been created yet, then it didn't install manually.
-                # We can finally extract the new one, then..?
-                if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
-                    tar -xf "$HOME/.winellotmp/WINE.win32.tar.gz" -C "$HOME/.winellotmp" || Error "Extraction failed, try again or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-                    cp -r "$HOME/.winellotmp/osu-wineprefix/.osuwine/" "$HOME/.local/share/wineprefixes/osu-wineprefix"
-
-                    # Cleaning..
-                    rm -rf "$HOME/.winellotmp"
-                fi
-            fi
-        fi 
+        Info "Creating Wineprefix and installing deps, might take a while.."
+        WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$HOME/.local/share/osuconfig/winetricks" -q -f dotnet48 gdiplus_winxp comctl32 win2k3 || Error "Winetricks failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
 
         # We're now gonna refer to this as Wineprefix
         export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
@@ -777,8 +716,6 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
 	    ln -s / "$WINEPREFIX/dosdevices/z:"
-
-
 
         # Now installing W10 fonts from https://github.com/YourRandomGuy/ttf-ms-win10
         # You could also install them from AUR or whatever, the script only installs them in-game.
