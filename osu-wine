@@ -10,6 +10,7 @@ export LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
 
 export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
+export UMU_RUNTIME_UPDATE=0 # Setting Steam Runtime updates off by default
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
 export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export WINE_PATH="$PROTONPATH/files/bin/wine"
@@ -68,6 +69,9 @@ function Checkshort(){      # Deletes useless shortcuts created when installing
 }
 
 function Update(){
+    Info "Checking for Steam Runtime updates first.."
+    UMU_RUNTIME_UPDATE=1 $LAUNCH_ARGS "$UMU_RUN" wineboot -u
+    UMU_RUNTIME_UPDATE=1 $LAUNCH_ARGS "$UMU_RUN" "$WINESERVER_PATH" -k
     git -C "$HOME/.local/share/osuconfig/update" pull --quiet
     bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" update
 }
