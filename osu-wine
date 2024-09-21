@@ -16,7 +16,7 @@ export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export WINE_PATH="$PROTONPATH/files/bin/wine"
 export WINETRICKS_PATH="$PROTONPATH/protontricks/winetricks"
 export GAMEID="osu-wine-umu"
-UMU_RUN="$HOME/.local/share/osuconfig/umu-run"
+UMU_RUN="$PROTONPATH/umu-run"
 
 export WINE_BLOCK_GET_VERSION=1 # Hides wine ver. thanks to oglfreak's patch
 export WINEARCH=win64

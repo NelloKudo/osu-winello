@@ -8,11 +8,11 @@
 #   =======================================
 
 # Proton-osu current versions for update
-PROTONVERSION=9.0.4
+PROTONVERSION=9.4.0
 LASTPROTONVERSION=0 
 
 # Proton-osu mirrors
-PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-9-3/proton-osu-9-3.tar.xz"
+PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-9-4/proton-osu-9-4.tar.xz"
 
 
 #   =====================================
@@ -162,11 +162,9 @@ Categories=Wine;Game;" | tee "$HOME/.local/share/applications/osu-wine.desktop" 
     git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update" || Error "Git failed, check your connection.."
     echo "$LASTPROTONVERSION" >> "$HOME/.local/share/osuconfig/protonverupdate"
 
-    ## Installing umu-launcher-osu from the repo
-    Info "Installing umu-launcher.."
-    cp ./stuff/umu-run "$HOME/.local/share/osuconfig"
-    chmod +x "$HOME/.local/share/osuconfig/umu-run"
-    UMU_RUN="$HOME/.local/share/osuconfig/umu-run"
+    ## Setting up umu-launcher from the Proton package
+    Info "Setting up umu-launcher.."
+    UMU_RUN="$HOME/.local/share/osuconfig/proton-osu/umu-run"
     export GAMEID="osu-wine-umu"
 }
 
