@@ -62,7 +62,7 @@ Otherwise, make sure to install it following the instructions at here:
 
 ## Installing osu!:
 ```
-git clone https://github.com/NelloKudo/osu-winello.git
+git clone https://github.com/NelloKudo/osu-winello.git --branch=winello-legacy
 cd osu-winello
 chmod +x ./osu-winello.sh
 ./osu-winello.sh
