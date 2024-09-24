@@ -421,7 +421,7 @@ function Update(){
     fi
 
     # Reading the last version installed
-    LASTPROTONVERSION=$(</"$HOME/.local/share/osuconfig/protonverupdate")
+    LASTPROTONVERSION=$(</"$HOME/.local/share/osuconfig/protoneverupdate")
 
     if [ "$LASTPROTONVERSION" \!= "$PROTONVERSION" ]; then
         wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "$PROTONLINK" && chk="$?"
