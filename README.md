@@ -20,16 +20,21 @@ osu! stable installer for Linux with patched Proton-osu and other features.
 
 ## Prerequisites 
 
-The only requirements, besides drivers, are `git`, `zenity` and `wget`.
-You can easily install it like this:
+The only requirements, besides drivers, are `git`, `zenity`,`wget` and `xdg-desktop-portal` (for in-game links).
 
-**Ubuntu/Debian:** `sudo apt install -y git wget zenity`
+You can easily install them like this:
 
-**Arch Linux:** `sudo pacman -Sy --needed  --noconfirm git wget zenity`
+**Ubuntu/Debian:** `sudo apt install -y git wget zenity xdg-desktop-portal`
 
-**Fedora:** `sudo dnf install -y git wget zenity`
+**Arch Linux:** `sudo pacman -Sy --needed  --noconfirm git wget zenity xdg-desktop-portal`
 
-**openSUSE:** `sudo zypper install -y git wget zenity`
+**Fedora:** `sudo dnf install -y git wget zenity xdg-desktop-portal`
+
+**openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal`
+
+----------
+
+Ubuntu, Debian and related users *might* also need to install `steam` for it to pull some needed library (libGL mostly). Please do that if you're facing any issues with the game not launching!
 
 ## Drivers:
 
