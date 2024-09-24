@@ -71,7 +71,7 @@ function Checkshort(){      # Deletes useless shortcuts created when installing
 function Update(){
     Info "Checking for Steam Runtime updates first.."
     UMU_RUNTIME_UPDATE=1 $LAUNCH_ARGS "$UMU_RUN" wineboot -u
-    UMU_RUNTIME_UPDATE=1 $LAUNCH_ARGS "$UMU_RUN" "$WINESERVER_PATH" -k
+    UMU_RUNTIME_UPDATE=1 $LAUNCH_ARGS "$WINESERVER_PATH" -k
     git -C "$HOME/.local/share/osuconfig/update" pull --quiet
     bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" update
 }

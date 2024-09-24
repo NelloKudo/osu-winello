@@ -436,7 +436,7 @@ function Update(){
         tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/osuconfig"
         rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
         LASTPROTONVERSION="$PROTONVERSION"
-        rm -f "$HOME/.local/share/osuconfig/protonverupdate"
+        rm -f "$HOME/.local/share/osuconfig/protoneverupdate"
         echo "$LASTPROTONVERSION" >> "$HOME/.local/share/osuconfig/protoneverupdate"
         Info "Update is completed!"
 
