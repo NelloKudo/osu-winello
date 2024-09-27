@@ -32,10 +32,6 @@ You can easily install them like this:
 
 **openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal`
 
-----------
-
-Ubuntu, Debian and related users *might* also need to install `steam` for it to pull some needed library (libGL mostly). Please do that if you're facing any issues with the game not launching!
-
 ## Drivers:
 
 As obvious as this might sound, installing drivers the **right** way is needed to have a great experience overall

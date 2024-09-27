@@ -113,12 +113,12 @@ function InitialSetup(){
         fi
     done
 
-    # Ubuntu/Debian Hotfix: Install libGL manually as they don't provide it with drivers :/
+    # Ubuntu/Debian Hotfix: Install Steam as it is apparently needed from drivers to work with Proton
     if $root_var apt update; then
         Info "Ubuntu/Debian-based distro detected.."
         Info "Please insert your password to install dependencies!"
         $root_var dpkg --add-architecture i386
-        $root_var apt install libgl1-mesa-dri libgl1-mesa-dri:i386 || Error "Dependencies install failed, check apt or your connection.."
+        $root_var apt install libgl1-mesa-dri libgl1-mesa-dri:i386 steam || Error "Dependencies install failed, check apt or your connection.."
     fi
 }
 
