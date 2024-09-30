@@ -26,7 +26,7 @@ You can easily install them like this:
 
 **Ubuntu/Debian:** `sudo apt install -y git wget zenity xdg-desktop-portal`
 
-**Arch Linux:** `sudo pacman -Sy --needed  --noconfirm git wget zenity xdg-desktop-portal`
+**Arch Linux:** `sudo pacman -Syu --needed  --noconfirm git wget zenity xdg-desktop-portal`
 
 **Fedora:** `sudo dnf install -y git wget zenity xdg-desktop-portal`
 
