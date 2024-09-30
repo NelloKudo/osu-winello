@@ -214,15 +214,15 @@ case "$1" in
     Info "Wineprefix is now working; launch osu! with osu-wine"
     ;;
 
-    '--gosumemory')
-    if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
+    '--tosu')
+    if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
         git -C "$HOME/.local/share/osuconfig/update" pull --quiet
-        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" gosumemory
+        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" tosu
     fi
 
-    Info "Launching gosumemory..."
-    WINE_PATH="$PROTONPATH/files/bin/wine"
-    $WINE_PATH "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe"
+    Info "Launching tosu..."
+    TOSU_FILE="$HOME/.local/share/osuconfig/tosu"
+    ./"$TOSU_FILE/tosu"
     ;;
 
     '--info')

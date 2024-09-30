@@ -509,16 +509,17 @@ function Uninstall(){
 }
 
 
-# Simple function that downloads Gosumemory!
-function Gosumemory(){
-    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_windows_amd64.zip"
+# Simple function that downloads tosu!
+function Tosu(){
+    TOSU_LINK="https://github.com/KotRikD/tosu/releases/download/v3.3.1/tosu-linux-v3.3.1.zip"
 
-    if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
-        Info "Installing gosumemory.."
-        mkdir -p "$HOME/.local/share/osuconfig/gosumemory"
-        wget -O "/tmp/gosumemory.zip" "$GOSUMEMORY_LINK" || Error "Download failed, check your connection.."
-        unzip -d "$HOME/.local/share/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
-        rm "/tmp/gosumemory.zip"
+    if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
+        Info "Installing tosu.."
+        mkdir -p "$HOME/.local/share/osuconfig/tosu"
+        wget -O "/tmp/tosu.zip" "$TOSU_LINK" || Error "Download failed, check your connection.."
+        unzip -d "$HOME/.local/share/osuconfig/tosu" -q "/tmp/tosu.zip"
+        chmod +x $HOME/.local/share/osuconfig/tosu/tosu
+        rm "/tmp/tosu.zip"
     fi
 }
 
@@ -551,8 +552,8 @@ case "$1" in
     Uninstall
     ;;
 
-    'gosumemory')
-    Gosumemory
+    'tosu')
+    tosu
     ;;
 
     'update')
