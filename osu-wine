@@ -56,7 +56,7 @@ function Help(){
     osu-wine --devserver <address>: Runs osu on with the specified devserver
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
     osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
-    osu-wine --gosumemory: Installs and runs gosumemory without any needed config!"
+    osu-wine --tosu: Installs and runs tosu without any needed config!"
 }
 
 function Checkshort(){      # Deletes useless shortcuts created when installing
@@ -221,8 +221,8 @@ case "$1" in
     fi
 
     Info "Launching tosu..."
-    TOSU_FILE="$HOME/.local/share/osuconfig/tosu"
-    ./"$TOSU_FILE/tosu"
+    WINE_PATH="$PROTONPATH/files/bin/wine"
+    $WINE_PATH "$HOME/.local/share/osuconfig/tosu/tosu.exe"
     ;;
 
     '--info')
