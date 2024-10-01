@@ -56,7 +56,8 @@ function Help(){
     osu-wine --devserver <address>: Runs osu on with the specified devserver
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
     osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
-    osu-wine --tosu: Installs and runs tosu without any needed config!"
+    osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
+    osu-wine --tosu: Installs and runs tosu"
 }
 
 function Checkshort(){      # Deletes useless shortcuts created when installing
@@ -214,6 +215,17 @@ case "$1" in
     Info "Wineprefix is now working; launch osu! with osu-wine"
     ;;
 
+    '--gosumemory')
+    if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
+        git -C "$HOME/.local/share/osuconfig/update" pull --quiet
+        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" gosumemory
+    fi
+
+    Info "Launching gosumemory..."
+    WINE_PATH="$PROTONPATH/files/bin/wine"
+    $WINE_PATH "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe"
+    ;;
+
     '--tosu')
     if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
         git -C "$HOME/.local/share/osuconfig/update" pull --quiet
@@ -223,6 +235,7 @@ case "$1" in
     Info "Launching tosu..."
     WINE_PATH="$PROTONPATH/files/bin/wine"
     $WINE_PATH "$HOME/.local/share/osuconfig/tosu/tosu.exe"
+
     ;;
 
     '--info')
