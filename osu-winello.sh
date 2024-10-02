@@ -569,6 +569,10 @@ case "$1" in
     Gosumemory
     ;;
 
+    'tosu')
+    tosu
+    ;;
+    
     'update')
     Update
     ;;
