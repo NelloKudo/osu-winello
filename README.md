@@ -79,7 +79,7 @@ osu-wine
 - Comes with **updatable patched** [Proton-osu](https://github.com/whrvt/umubuilder) binaries with the latest osu! patches for low-latency audio, better performance, alt-tab behavior, crashes fixes and more.
 - Uses [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher) to run Proton-osu on Steam's runtime, providing great performance on every system.
 - Provides [osu-handler](https://aur.archlinux.org/packages/osu-handler) for importing maps and skins, Discord RPC with [winestreamproxy](https://github.com/openglfreak/winestreamproxy) and support for native file managers!
-- Supports [gosumemory](https://github.com/l3lackShark/gosumemory) for streaming etc. with automatic install! (Check [flags](#flags)!)
+- Supports the latest [tosu](https://github.com/KotRikD/tosu) and legacy [gosumemory](https://github.com/l3lackShark/gosumemory) for streaming etc. with automatic install! (Check [flags](#flags)!)
 - Installs osu! on either default or custom path (using GUI), also working for already existing osu! installations from Windows!
 - Skips the pain of downloading Wineprefix thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
 - Support for Windows fonts pre-installed in Proton (JP fonts, special characters etc.)

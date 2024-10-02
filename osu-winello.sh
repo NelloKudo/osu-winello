@@ -344,6 +344,9 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
             mv "$HOME/.local/share/wineprefixes/osu-umu" "$HOME/.local/share/wineprefixes/osu-wineprefix" 
         fi 
 
+        # Cleaning..
+        rm -rf "$HOME/.winellotmp"
+
         # We're now gonna refer to this as Wineprefix
         export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 
@@ -522,6 +525,17 @@ function Gosumemory(){
     fi
 }
 
+function tosu(){
+    TOSU_LINK="https://github.com/KotRikD/tosu/releases/download/v3.3.1/tosu-windows-v3.3.1.zip"
+    
+    if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
+        Info "Installing tosu.."
+        mkdir -p "$HOME/.local/share/osuconfig/tosu"
+        wget -O "/tmp/tosu.zip" "$TOSU_LINK" || Error "Download failed, check your connection.."
+        unzip -d "$HOME/.local/share/osuconfig/tosu" -q "/tmp/tosu.zip"
+        rm "/tmp/tosu.zip"
+    fi
+}   
 
 # Help!
 function Help(){
