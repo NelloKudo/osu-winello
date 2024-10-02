@@ -115,6 +115,7 @@ osu-wine --remove: Uninstalls osu! and the script
 osu-wine --changedir: Changes directory of the install according to the user
 osu-wine --devserver <server>: Runs osu on the specified devserver
 osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+osu-wine --tosu: Installs and runs tosu without any needed config!
 osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
 ```
 
