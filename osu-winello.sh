@@ -526,6 +526,18 @@ function Gosumemory(){
 }
 
 function tosu(){
+    TOSU_LINK="https://github.com/KotRikD/tosu/releases/download/v3.3.1/tosu-windows-v3.3.1.zip"
+    
+    if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
+        Info "Installing tosu.."
+        mkdir -p "$HOME/.local/share/osuconfig/tosu"
+        wget -O "/tmp/tosu.zip" "$TOSU_LINK" || Error "Download failed, check your connection.."
+        unzip -d "$HOME/.local/share/osuconfig/tosu" -q "/tmp/tosu.zip"
+        rm "/tmp/tosu.zip"
+    fi
+}   
+
+function tosu-linux(){
     TOSU_LINK="https://github.com/KotRikD/tosu/releases/download/v3.3.1/tosu-linux-v3.3.1.zip"
     
     if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
