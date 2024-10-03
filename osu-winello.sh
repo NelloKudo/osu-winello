@@ -526,7 +526,7 @@ function Gosumemory(){
 }
 
 function tosu(){
-    TOSU_LINK="https://github.com/KotRikD/tosu/releases/download/v3.3.1/tosu-windows-v3.3.1.zip"
+    TOSU_LINK="https://github.com/KotRikD/tosu/releases/download/v3.3.1/tosu-linux-v3.3.1.zip"
     
     if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
         Info "Installing tosu.."
@@ -534,6 +534,7 @@ function tosu(){
         wget -O "/tmp/tosu.zip" "$TOSU_LINK" || Error "Download failed, check your connection.."
         unzip -d "$HOME/.local/share/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
+        chmod +x ~/.local/share/osuconfig/tosu/tosu
     fi
 }   
 

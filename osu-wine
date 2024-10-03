@@ -233,14 +233,13 @@ case "$1" in
     '--tosu')
     if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
         git -C "$HOME/.local/share/osuconfig/update" pull --quiet
-        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" tosu
+        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" && tosu
     fi
 
     Info "Launching tosu..."
-    # tosu / gosumemory don't work with umu-run, so we always make sure that osu! is already running first
-    # to make sure a wineserver is already up and tosu won't rely on system libraries but on umu-run's runtime.
     $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" > /dev/null 2>&1 &
-    NODE_SKIP_PLATFORM_CHECK=1 WINEDEBUG=-all "$WINE_PATH" "$HOME/.local/share/osuconfig/tosu/tosu.exe"
+    cd $HOME
+    $HOME/.local/share/osuconfig/tosu/tosu
     ;;
 
     '--info')
