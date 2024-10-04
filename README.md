@@ -28,10 +28,11 @@ You can easily install them like this:
 
 **Arch Linux:** `sudo pacman -Syu --needed  --noconfirm git wget zenity xdg-desktop-portal`
 
-#### Enable The external repository rpmfusion Nonfree first
 **Fedora:** `sudo dnf install -y git wget zenity xdg-desktop-portal`
+- Enable rpmfusion repository and install [steam](https://docs.fedoraproject.org/en-US/gaming/proton/) to fix LibGL issue
 
 **openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal`
+
 
 ## Drivers:
 
