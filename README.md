@@ -28,6 +28,7 @@ You can easily install them like this:
 
 **Arch Linux:** `sudo pacman -Syu --needed  --noconfirm git wget zenity xdg-desktop-portal`
 
+#### Enable The external repository rpmfusion Nonfree first
 **Fedora:** `sudo dnf install -y git wget zenity xdg-desktop-portal`
 
 **openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal`
