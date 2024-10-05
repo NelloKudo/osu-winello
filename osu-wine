@@ -12,7 +12,6 @@ export PRESSURE_VESSEL_FILESYSTEMS_RW= # Add your external disks paths here if y
 export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
 export UMU_RUNTIME_UPDATE=0 # Setting Steam Runtime updates off by default
-export PROTON_VERB=runinprefix
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
 export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export WINE_PATH="$PROTONPATH/files/bin/wine"
@@ -28,7 +27,6 @@ export OSUPATH="$osuinstall"
 export vblank_mode=0            # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
-export WINE_ENABLE_GLCHILD_HACK=1 # Set this to 0 to fix black top-panel in editor!
 export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
 
 
@@ -49,15 +47,12 @@ function Help(){
     osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
     osu-wine --kill9: Kills osu! but with wineserver -k9
     osu-wine --update: Updates wine-osu to latest version
-    osu-wine --w10fonts: Installs Windows 10 fonts from either GitHub or ISO (Needed to fix P characters etc.)
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
     osu-wine --info: Troubleshooting and more info
     osu-wine --remove: Uninstalls osu! and the script
-    osu-wine --lutris: Copies wine-osu to lutris and shows instructions to add osu! there
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu on with the specified devserver
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
-    osu-wine --fixsteamdeck: Reinstalls game dependencies after SteamOS updates
     osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
     osu-wine --tosu: Installs and runs tosu without any needed config!"
 }
