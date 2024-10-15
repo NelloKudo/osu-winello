@@ -120,6 +120,33 @@ function InitialSetup(){
         $root_var dpkg --add-architecture i386
         $root_var apt install libgl1-mesa-dri libgl1-mesa-dri:i386 steam -y || Error "Dependencies install failed, check apt or your connection.."
     fi
+
+    # Ubuntu 24.x hotfix: Workaround umu-run not working due to apparmor restrictions
+    # for bwrap, you can read more at here: https://etbe.coker.com.au/2024/04/24/ubuntu-24-04-bubblewrap/
+    if grep -q '^NAME="Ubuntu"$' /etc/os-release && grep -q '^VERSION_ID="24\.' /etc/os-release && [ ! -f /etc/apparmor.d/bwrap ] ; then
+        Info "Ubuntu 24 detected: due to apparmor restrictions, osu! (umu-run) needs a workaround to launch properly.."
+        Info "Please enter your password if prompted if you need to fix it!"
+        read -r -p "$(Info "Do you want to enable it? (Y/N): ")" apparmorx
+
+        if [ "$apparmorx" = 'y' ] || [ "$apparmorx" = 'Y' ]; then
+
+echo "abi <abi/4.0>,
+include <tunables/global>
+
+profile bwrap /usr/bin/bwrap flags=(unconfined) {
+  userns,
+
+  # Site-specific additions and overrides. See local/README for details.
+  include if exists <local/bwrap>
+}" | $root_var tee /etc/apparmor.d/bwrap > /dev/null
+            
+            $root_var systemctl reload apparmor
+            Info "umu-run workaround now applied!"
+
+        else        
+            Info "Skipping.."
+        fi
+    fi
 }
 
 # Function to install script files, umu-launcher and Proton-osu
