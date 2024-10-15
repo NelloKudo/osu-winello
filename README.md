@@ -22,6 +22,8 @@ osu! stable installer for Linux with patched Proton-osu and other features.
 
 The only requirements, besides drivers, are `git`, `zenity`,`wget` and `xdg-desktop-portal` (for in-game links).
 
+**Python >= 3.10** is also needed for [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher) to work properly! (should be there by default on most distros).
+
 You can easily install them like this:
 
 **Ubuntu/Debian:** `sudo apt install -y git wget zenity xdg-desktop-portal`
