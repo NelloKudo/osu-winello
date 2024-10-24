@@ -9,6 +9,7 @@
 export LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
 export PRESSURE_VESSEL_FILESYSTEMS_RW= # Add your external disks paths here if you use symlinks
 
+export WINEDEBUG=
 export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
 export UMU_RUNTIME_UPDATE=0 # Setting Steam Runtime updates off by default
