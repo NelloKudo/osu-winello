@@ -1,6 +1,8 @@
 # osu-winello
 osu! stable installer for Linux with patched wine-osu and other features.
 
+**WARNING: Temporary main branch because of osu! crashing with Proton from last update.** More info here: https://github.com/NelloKudo/osu-winello/issues/109
+
 ![ezgif com-video-to-gif(1)](https://user-images.githubusercontent.com/98063377/224407211-70fa648c-b96f-442b-b5f5-eaf28a84670a.gif)
 
 # Index
