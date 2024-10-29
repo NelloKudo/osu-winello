@@ -21,6 +21,7 @@ osu! stable installer for Linux with patched Proton-osu and other features.
 ## Prerequisites 
 
 The only requirements, besides drivers, are `git`, `zenity`,`wget` and `xdg-desktop-portal` (for in-game links).
+- If osu is not lauching and you get error like "libGL error: MESA-LOADER failed to open", Install steam.
 
 **Python >= 3.10** is also needed for [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher) to work properly! (should be there by default on most distros).
 
@@ -33,6 +34,7 @@ You can easily install them like this:
 **Fedora:** `sudo dnf install -y git wget zenity xdg-desktop-portal`
 
 **openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal`
+
 
 ## Drivers:
 
