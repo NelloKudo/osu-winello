@@ -20,7 +20,7 @@ export WINETRICKS_PATH="$PROTONPATH/protontricks/winetricks"
 export GAMEID="osu-wine-umu"
 UMU_RUN="$PROTONPATH/umu-run"
 
-export WINE_BLOCK_GET_VERSION=1 # Hides wine ver. thanks to oglfreak's patch
+export WINE_BLOCK_GET_VERSION=0 # Hides wine ver. thanks to oglfreak's patch
 export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
