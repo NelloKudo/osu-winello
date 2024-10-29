@@ -10,7 +10,6 @@
 export LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
 export WINEESYNC=1 # Enables esync (when possible)
 export WINEFSYNC=1 # Enables fsync (when possible)
-export WINE_BLOCK_GET_VERSION=1 # Hides wine ver. thanks to oglfreak's patch
 export WINEPATH="$HOME/.local/share/osuconfig/wine-osu"
 export PATH="$WINEPATH/bin:$PATH" # Path to wine-osu
 export WINEARCH=win64
