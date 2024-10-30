@@ -8,11 +8,11 @@
 #   =======================================
 
 # Proton-osu current versions for update
-PROTONVERSION=9.6.0
+PROTONVERSION=9.8.0
 LASTPROTONVERSION=0 
 
 # Proton-osu mirrors
-PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-9-6/proton-osu-9-6.tar.xz"
+PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-9-8/proton-osu-9-8.tar.xz"
 
 
 #   =====================================
@@ -200,7 +200,7 @@ Categories=Wine;Game;" | tee "$HOME/.local/share/applications/osu-wine.desktop" 
     ## Setting up umu-launcher from the Proton package
     Info "Setting up umu-launcher.."
     UMU_RUN="$HOME/.local/share/osuconfig/proton-osu/umu-run"
-    export GAMEID="osu-wine-umu"
+    export GAMEID="umu-727"
 }
 
 # Function configuring folders to install the game

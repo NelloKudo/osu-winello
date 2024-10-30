@@ -9,18 +9,16 @@
 export LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
 export PRESSURE_VESSEL_FILESYSTEMS_RW= # Add your external disks paths here if you use symlinks
 
-export WINEDEBUG=
+export WINEDEBUG=${WINEDEBUG:-}
 export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
-export UMU_RUNTIME_UPDATE=0 # Setting Steam Runtime updates off by default
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
 export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export WINE_PATH="$PROTONPATH/files/bin/wine"
 export WINETRICKS_PATH="$PROTONPATH/protontricks/winetricks"
-export GAMEID="osu-wine-umu"
+export GAMEID="umu-727"
 UMU_RUN="$PROTONPATH/umu-run"
 
-export WINE_BLOCK_GET_VERSION=0 # Hides wine ver. thanks to oglfreak's patch
 export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
@@ -29,6 +27,7 @@ export vblank_mode=0            # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
 export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
+export PROTON_USE_WINED3D=${PROTON_USE_WINED3D:-1} # For some reason this might be required on GE-Proton-9-8
 
 
 function Info(){
@@ -69,8 +68,8 @@ function Checkshort(){      # Deletes useless shortcuts created when installing
 
 function Update(){
     Info "Checking for Steam Runtime updates first.."
-    UMU_RUNTIME_UPDATE=1 $LAUNCH_ARGS "$UMU_RUN" wineboot -u
-    UMU_RUNTIME_UPDATE=1 $LAUNCH_ARGS "$WINESERVER_PATH" -k
+    $LAUNCH_ARGS "$UMU_RUN" wineboot -u
+    $LAUNCH_ARGS "$WINESERVER_PATH" -k
     git -C "$HOME/.local/share/osuconfig/update" pull --quiet
     bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" update
 }
