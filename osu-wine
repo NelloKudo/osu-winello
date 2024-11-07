@@ -27,7 +27,6 @@ export vblank_mode=0            # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
 export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
-export PROTON_USE_WINED3D=${PROTON_USE_WINED3D:-1} # For some reason this might be required on GE-Proton-9-8
 
 
 function Info(){
