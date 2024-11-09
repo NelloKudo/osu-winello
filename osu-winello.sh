@@ -8,11 +8,11 @@
 #   =======================================
 
 # Proton-osu current versions for update
-PROTONVERSION=9.9.0
+PROTONVERSION=9.10.0
 LASTPROTONVERSION=0 
 
 # Proton-osu mirrors
-PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-9-9/proton-osu-9-9.tar.xz"
+PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-9-10/proton-osu-9-10.tar.xz"
 
 
 #   =====================================

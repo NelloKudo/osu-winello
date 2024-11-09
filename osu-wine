@@ -12,6 +12,7 @@ export PRESSURE_VESSEL_FILESYSTEMS_RW= # Add your external disks paths here if y
 export WINEDEBUG=${WINEDEBUG:-}
 export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
+export WINE_BLOCK_GET_VERSION=0 # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
 export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export WINE_PATH="$PROTONPATH/files/bin/wine"
