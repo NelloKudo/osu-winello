@@ -79,24 +79,24 @@ function InitialSetup(){
     fi
 
     # Checking if ~/.local/bin is in PATH:
-    mkdir -p "/home/$USER/.local/bin"
-    pathcheck=$(echo "$PATH" | grep -q "/home/$USER/.local/bin" && echo "y")
+    mkdir -p "$HOME/.local/bin"
+    pathcheck=$(echo "$PATH" | grep -q "$HOME/.local/bin" && echo "y")
 
     # If ~/.local/bin is not in PATH:
     if [ "$pathcheck" != "y" ] ; then
         
         if grep -q "bash" "$SHELL" ; then
-            touch -a "/home/$USER/.bashrc"
-            echo "export PATH=/home/$USER/.local/bin:$PATH" >> "/home/$USER/.bashrc"
+            touch -a "$HOME/.bashrc"
+            echo "export PATH=$HOME/.local/bin:$PATH" >> "$HOME/.bashrc"
         fi
 
         if grep -q "zsh" "$SHELL" ; then
-            touch -a "/home/$USER/.zshrc"
-            echo "export PATH=/home/$USER/.local/bin:$PATH" >> "/home/$USER/.zshrc"
+            touch -a "$HOME/.zshrc"
+            echo "export PATH=$HOME/.local/bin:$PATH" >> "$HOME/.zshrc"
         fi
 
         if grep -q "fish" "$SHELL" ; then
-            mkdir -p "/home/$USER/.config/fish" && touch -a "/home/$USER/.config/fish/config.fish"
+            mkdir -p "$HOME/.config/fish" && touch -a "$HOME/.config/fish/config.fish"
             fish_add_path ~/.local/bin/
         fi
     fi
@@ -165,8 +165,8 @@ function InstallProton(){
 Name=osu!
 Comment=osu! - Rhythm is just a *click* away!
 Type=Application
-Exec=/home/$USER/.local/bin/osu-wine %U
-Icon=/home/$USER/.local/share/icons/osu-wine.png
+Exec=$HOME/.local/bin/osu-wine %U
+Icon=$HOME/.local/share/icons/osu-wine.png
 Terminal=false
 Categories=Wine;Game;" | tee "$HOME/.local/share/applications/osu-wine.desktop" >/dev/null
     chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
@@ -309,20 +309,20 @@ function FullInstall(){
 Type=Application
 Name=osu!
 MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
-Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %f
+Exec=$HOME/.local/share/osuconfig/osu-handler-wine %f
 NoDisplay=true
 StartupNotify=true
-Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
+Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
     chmod +x "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
 
     echo "[Desktop Entry]
 Type=Application
 Name=osu!
 MimeType=x-scheme-handler/osu;
-Exec=/home/$USER/.local/share/osuconfig/osu-handler-wine %u
+Exec=$HOME/.local/share/osuconfig/osu-handler-wine %u
 NoDisplay=true
 StartupNotify=true
-Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
+Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
     chmod +x "$HOME/.local/share/applications/osuwinello-url-handler.desktop" >/dev/null
     update-desktop-database "$HOME/.local/share/applications"
 
@@ -390,7 +390,7 @@ Icon=/home/$USER/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/appl
         cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
         "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$HOME/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
     fi
 
