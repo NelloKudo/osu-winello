@@ -78,7 +78,7 @@ osu-wine
 # Features:
 - Comes with **updatable patched** [Proton-osu](https://github.com/whrvt/umubuilder) binaries with the latest osu! patches for low-latency audio, better performance, alt-tab behavior, crashes fixes and more.
 - Uses [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher) to run Proton-osu on Steam's runtime, providing great performance on every system.
-- Provides [osu-handler](https://aur.archlinux.org/packages/osu-handler) for importing maps and skins, Discord RPC with [winestreamproxy](https://github.com/openglfreak/winestreamproxy) and support for native file managers!
+- Provides [osu-handler](https://aur.archlinux.org/packages/osu-handler) for importing maps and skins, Discord RPC with [rpc-bridge](https://github.com/EnderIce2/rpc-bridge) and support for native file managers!
 - Supports the latest [tosu](https://github.com/KotRikD/tosu) and legacy [gosumemory](https://github.com/l3lackShark/gosumemory) for streaming etc. with automatic install! (Check [flags](#flags)!)
 - Installs osu! on either default or custom path (using GUI), also working for already existing osu! installations from Windows!
 - Skips the pain of downloading Wineprefix thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
@@ -115,6 +115,7 @@ osu-wine --remove: Uninstalls osu! and the script
 osu-wine --changedir: Changes directory of the install according to the user
 osu-wine --devserver <server>: Runs osu on the specified devserver
 osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
 osu-wine --tosu: Installs and runs tosu without any needed config!
 osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
 ```
@@ -138,6 +139,7 @@ Special thanks to:
 - [hwsnemo's wine-osu](https://software.opensuse.org//download.html?project=home%3Ahwsnemo%3Apackaged-wine-osu&package=wine-osu)
 - [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
 - [openglfreak's packages](https://github.com/openglfreak)
+- [EnderIce2's rpc-bridge](https://github.com/EnderIce2/rpc-bridge)
 - Last but not least, every contributor. Thanks for making Winello even better!
 
 And that's all. Have fun playing osu!

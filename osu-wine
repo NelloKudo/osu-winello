@@ -53,6 +53,7 @@ function Help(){
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu on with the specified devserver
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+    osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
     osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
     osu-wine --tosu: Installs and runs tosu without any needed config!"
 }
@@ -182,6 +183,24 @@ case "$1" in
     "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
     ;;
 
+    '--fixrpc')
+    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
+        Info "Configuring rpc-bridge (Discord RPC)"
+        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
+    
+        if [ ! "$chk" = 0 ] ; then
+            Info "wget failed; trying with --no-check-certificate.."
+            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
+        fi  
+
+        mkdir -p /tmp/rpc-bridge
+        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
+        "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+        rm -f "/tmp/bridge.zip"
+        rm -rf "/tmp/rpc-bridge"
+    fi
+    ;;
+
     '--fixprefix')
     Info "Checking for internet connection.."
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
@@ -199,14 +218,20 @@ case "$1" in
     "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
-    if [ ! -d "$WINEPREFIX/drive_c/winestreamproxy" ] ; then
-        Info "Configuring Winestreamproxy (Discord RPC)"
-        wget --no-check-certificate "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" --output-document "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
-        mkdir -p "/tmp/winestreamproxy"
-        tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-        $WINESERVER_PATH -k && WINE=$WINE_PATH bash "/tmp/winestreamproxy/install.sh"
-        rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
-        rm -rf "/tmp/winestreamproxy"
+    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
+        Info "Configuring rpc-bridge (Discord RPC)"
+        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
+    
+        if [ ! "$chk" = 0 ] ; then
+            Info "wget failed; trying with --no-check-certificate.."
+            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
+        fi  
+
+        mkdir -p /tmp/rpc-bridge
+        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
+        "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+        rm -f "/tmp/bridge.zip"
+        rm -rf "/tmp/rpc-bridge"
     fi
 
     Info "Wineprefix is now working; launch osu! with osu-wine"

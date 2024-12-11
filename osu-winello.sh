@@ -106,7 +106,7 @@ function InitialSetup(){
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && ! ping -c 1 google.com >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
 
     # Looking for dependencies..
-    deps=(wget zenity)
+    deps=(wget zenity unzip)
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" >/dev/null 2>&1 ; then
             Error "Please install $dep before continuing!"
@@ -272,7 +272,7 @@ function ConfigurePath(){
 # - osu!mime and osu!handler to properly import skins and maps
 # - Wineprefix
 # - Regedit keys to integrate native file manager with Wine
-# - Winestreamproxy for Discord RPC (flatpak users, google "flatpak discord rpc")
+# - rpc-bridge for Discord RPC (flatpak users, google "flatpak discord rpc")
 
 function FullInstall(){
 
@@ -394,28 +394,22 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 
     fi
 
-    # Installing Winestreamproxy for Discord RPC (https://github.com/openglfreak/winestreamproxy)
+    # Installing rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
 
-    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/winestreamproxy" ] ; then
-        Info "Configuring Winestreamproxy (Discord RPC)"
-        wget -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" && chk="$?"
+    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
+        Info "Configuring rpc-bridge (Discord RPC)"
+        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
     
         if [ ! "$chk" = 0 ] ; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" "https://github.com/openglfreak/winestreamproxy/releases/download/v2.0.3/winestreamproxy-2.0.3-amd64.tar.gz" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
+            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
         fi  
 
-        mkdir -p "/tmp/winestreamproxy"
-        tar -xf "/tmp/winestreamproxy-2.0.3-amd64.tar.gz" -C "/tmp/winestreamproxy"
-        
-        # Make sure to kill wineserver when installing it or otherwise it will most likely fail to install.
-        WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
-        WINE_PATH="$PROTONPATH/files/bin/wine"
-        $WINESERVER_PATH -k && WINE=$WINE_PATH bash "/tmp/winestreamproxy/install.sh"
-        
-        rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.gz"
-        rm -rf "/tmp/winestreamproxy"
-    
+        mkdir -p /tmp/rpc-bridge
+        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
+        "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+        rm -f "/tmp/bridge.zip"
+        rm -rf "/tmp/rpc-bridge"
     fi
 
     # Well...
