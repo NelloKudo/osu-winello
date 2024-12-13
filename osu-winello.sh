@@ -27,6 +27,10 @@ function Info(){
     echo -e '\033[1;34m'"Winello:\033[0m $*";
 }
 
+function Warning(){
+    echo -e '\033[0;33m'"Winello (WARNING):\033[0m $*";
+}
+
 # Function to quit the install but not revert it in some cases
 function Quit(){
     echo -e '\033[1;31m'"Winello:\033[0m $*"; exit 1;
@@ -330,7 +334,7 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
     # Time to install my prepackaged Wineprefix, which works in most cases
     # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
 
-    PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix-umu.tar.xz"
+    PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz"
     export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
 
     Info "Configuring Wineprefix:"
@@ -355,12 +359,12 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" && chk="$?" 
+        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "$PREFIXLINK" && chk="$?"
     
         # If download failed:
         if [ ! "$chk" = 0 ] ; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" || failprefix="true"
+            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "$PREFIXLINK" || failprefix="true"
         fi     
 
         # Checking whether to create prefix manually or install it from repos
@@ -414,25 +418,20 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 
     # Well...
     Info "Downloading osu!"
-    if [ -s "$OSUPATH/osu!.exe" ]; then
-      
-        Info "Installation is completed! Run 'osu-wine' to play osu!"
-        Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
-        exit 0
-
-    else
+    if [ ! -s "$OSUPATH/osu!.exe" ]; then
         wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && chk="$?"
 
         if [ ! "$chk" = 0 ] ; then
             Info "wget failed; trying with --no-check-certificate.."
             wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
-        fi  
-
-        Info "Installation is completed! Run 'osu-wine' to play osu!"
-        Info "WARNING: If 'osu-wine' doesn't work, just close and relaunch your terminal."
-        exit 0
-
+        fi
     fi
+
+    Check32
+
+    Info "Installation is completed! Run 'osu-wine' to play osu!"
+    Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    exit 0
 }
 
 
@@ -442,6 +441,29 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 #   =====================================
 #   =====================================
 
+# Sanity check to make sure we can run 32-bit GLX apps inside the steam runtime
+function Check32(){
+    Info "Checking to make sure we can run 32-bit OpenGL apps..."
+    Info "If all is well, a window should pop up with some spinning gears. Just close it."
+
+    chmod +x "./stuff/glxgears32"
+    UMU_RUN="$HOME/.local/share/osuconfig/proton-osu/umu-run"
+
+    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" GAMEID="umu-727" UMU_NO_PROTON=1 \
+    "$UMU_RUN" "./stuff/glxgears32" 2>&1 | grep -i explicit && Info "Success!" && return 0
+
+    # It could have worked but printed a different message other than "explicit kill or shutdown", check for that
+    read -r -p "$(Info "Did you see a window with the spinning gears? (y/n) ")" glx32worked
+    if [ "$glx32worked" = 'y' ] || [ "$glx32worked" = 'Y' ]; then
+        Info "Success!" && return 0
+    fi
+
+    # Failed
+    Warning "It looks like we can't run 32-bit OpenGL apps, osu! probably won't work!"
+    Warning "Please read the documentation on how to install 32-bit graphics drivers for your distro."
+    Warning "Here is a good starting point: https://github.com/lutris/docs/blob/master/InstallingDrivers.md"
+    return 1
+}
 
 # This function reads files located in ~/.local/share/osuconfig
 # to see whether a new wine-osu version has been released.
