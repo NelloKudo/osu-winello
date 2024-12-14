@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# This will remove a single quote (') that comes with the argument for some reason
-truepath=${2::-1}
+# if the path ends in a quote, strip it, otherwise keep full path
+if [[ "${2}" == *'"' ]]; then
+    truepath="${2%?}"
+else
+    truepath="${2}"
+fi
 
-# This will execute the first argument with the unix path provided by the second argument
-echo "$truepath" | sed -e 's/\\/\//g' -e 's/://' | sed -r 's/^.{1}//' | xargs -d \\n $1
+# use winepath to convert the Windows path to a proper Unix path
+unixpath="$("$WINE_PATH" winepath -u "$truepath")"
+exec "$1" "$unixpath"
