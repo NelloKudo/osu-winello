@@ -6,7 +6,7 @@
 
 ## If you ever need to change something to the osu! launcher besides args, just go to line ~68
 
-export LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
+LAUNCH_ARGS="env PROTONFIXES_DISABLE=1" # Use this for args like prime-run or gamemoderun!
 export PRESSURE_VESSEL_FILESYSTEMS_RW= # Add your external disks paths here if you use symlinks
 
 export WINEDEBUG=${WINEDEBUG:-}
@@ -55,7 +55,8 @@ function Help(){
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
     osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
     osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
-    osu-wine --tosu: Installs and runs tosu without any needed config!"
+    osu-wine --tosu: Installs and runs tosu without any needed config!
+    osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
 
 function Checkshort(){      # Deletes useless shortcuts created when installing
@@ -77,27 +78,44 @@ function Update(){
 
 
 case "$1" in
-
     '')
-    $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" # osu! launcher
+    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
+        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" "$OSUPATH/launch_with_memory.bat"
+    else
+        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe"
+    fi
     Checkshort
     ;;
 
+###################################################################################################
+
     '--devserver')
-    $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" -devserver "$2" # osu! launcher with specified devserver
+    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
+        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" "$OSUPATH/launch_with_memory.bat" -devserver "$2"
+    else
+        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" -devserver "$2"
+    fi
     ;;
+
+###################################################################################################
 
     '--regedit')
-    "$UMU_RUN" regedit
+    $LAUNCH_ARGS "$UMU_RUN" regedit
     ;;
+
+###################################################################################################
 
     '--winecfg')
-    "$UMU_RUN" winecfg
+    $LAUNCH_ARGS "$UMU_RUN" winecfg
     ;;
 
+###################################################################################################
+
     '--winetricks')
-    "$UMU_RUN" winetricks "${@:2}"
+    $LAUNCH_ARGS "$UMU_RUN" winetricks "${@:2}"
     ;;
+
+###################################################################################################
 
     '--changedir')
     function deleteFolder(){
@@ -109,16 +127,16 @@ case "$1" in
 
                     if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
                         lastdir=$(</"$HOME/.local/share/osuconfig/osupath")
-                        rm -rf "$lastdir/osu!" && Info "Cleaning done!"  
-                    else 
+                        rm -rf "$lastdir/osu!" && Info "Cleaning done!"
+                    else
                         Info "Skipping..."
                     fi
 
             else
-                Info "Skipping.." 
-            fi 
+                Info "Skipping.."
+            fi
     }
-    
+
     Info "Please choose your new directory:"
 
     newdir="$(zenity --file-selection --directory)"
@@ -143,7 +161,6 @@ case "$1" in
             Info "Change done from '$lastdir' to '$newdir'!"
             deleteFolder
         fi
-
     else
         mkdir "$newdir/osu!"
         OSUPATH="$newdir/osu!"
@@ -161,50 +178,64 @@ case "$1" in
     fi
     ;;
 
+###################################################################################################
+
     '--remove')
     bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" uninstall
     ;;
+
+###################################################################################################
 
     '--kill')
     "$WINESERVER_PATH" -k
     ;;
 
+###################################################################################################
+
     '--kill9')
     "$WINESERVER_PATH" -k9
     ;;
+
+###################################################################################################
 
     '--update')
     Update
     ;;
 
+###################################################################################################
+
     '--fixfolders')
-    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
-    "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+    $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
     ;;
+
+###################################################################################################
 
     '--fixrpc')
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
         Info "Configuring rpc-bridge (Discord RPC)"
         wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
-    
+
         if [ ! "$chk" = 0 ] ; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
-        fi  
+            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        fi
 
         mkdir -p /tmp/rpc-bridge
         unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+        $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
         rm -f "/tmp/bridge.zip"
         rm -rf "/tmp/rpc-bridge"
     fi
     ;;
 
+###################################################################################################
+
     '--fixprefix')
     Info "Checking for internet connection.."
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
-    
+
     Info "Deleting old Wineprefix..."
     rm -rf "$WINEPREFIX"
 
@@ -214,22 +245,22 @@ case "$1" in
     winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
 
     # Adding fixfolderosu again
-    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
-    "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+    $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
 
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
         Info "Configuring rpc-bridge (Discord RPC)"
         wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
-    
+
         if [ ! "$chk" = 0 ] ; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" 
-        fi  
+            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        fi
 
         mkdir -p /tmp/rpc-bridge
         unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+        $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
         rm -f "/tmp/bridge.zip"
         rm -rf "/tmp/rpc-bridge"
     fi
@@ -237,18 +268,40 @@ case "$1" in
     Info "Wineprefix is now working; launch osu! with osu-wine"
     ;;
 
+###################################################################################################
+
     '--gosumemory')
     if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
         git -C "$HOME/.local/share/osuconfig/update" pull --quiet
         bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" gosumemory
     fi
+
+    Info "Setting up gosumemory wrapper..."
+    GOSUMEM_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe")"
+    OSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH/osu!.exe")"
+    OSU_DIR="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH")"
     
-    Info "Launching gosumemory..."
-    # tosu / gosumemory don't work with umu-run, so we always make sure that osu! is already running first
-    # to make sure a wineserver is already up and tosu won't rely on system libraries but on umu-run's runtime.
-    $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" > /dev/null 2>&1 &
-    WINEDEBUG=-all "$WINE_PATH" "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe"
+    # launcher batch file which monitors osu! and closes gosumemory when osu! exits
+    cat > "$OSUPATH/launch_with_memory.bat" << EOF
+@echo off
+cd /d "$OSU_DIR"
+start "" "$OSU_PATH" %*
+start /b "" "$GOSUMEM_PATH"
+
+:loop
+tasklist | find "osu!.exe" >nul
+if ERRORLEVEL 1 (
+    taskkill /F /IM gosumemory.exe >nul 2>&1
+    exit
+)
+ping -n 5 127.0.0.1 >nul
+goto loop
+EOF
+
+    Info "gosumemory wrapper enabled. Launch osu! normally to use it!"
     ;;
+
+###################################################################################################
 
     '--tosu')
     if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
@@ -256,12 +309,44 @@ case "$1" in
         bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" tosu
     fi
 
-    Info "Launching tosu..."
-    # tosu / gosumemory don't work with umu-run, so we always make sure that osu! is already running first
-    # to make sure a wineserver is already up and tosu won't rely on system libraries but on umu-run's runtime.
-    $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" > /dev/null 2>&1 &
-    NODE_SKIP_PLATFORM_CHECK=1 WINEDEBUG=-all "$WINE_PATH" "$HOME/.local/share/osuconfig/tosu/tosu.exe"
+    Info "Setting up tosu wrapper..."
+    TOSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix $UMU_RUN winepath -w "$HOME/.local/share/osuconfig/tosu/tosu.exe")"
+    OSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix $UMU_RUN winepath -w "$OSUPATH/osu!.exe")"
+    OSU_DIR="$($LAUNCH_ARGS PROTON_VERB=runinprefix $UMU_RUN winepath -w "$OSUPATH")"
+    
+    # ditto
+    cat > "$OSUPATH/launch_with_memory.bat" << EOF
+@echo off
+set NODE_SKIP_PLATFORM_CHECK=1
+cd /d "$OSU_DIR"
+start "" "$OSU_PATH" %*
+start /b "" "$TOSU_PATH"
+
+:loop
+tasklist | find "osu!.exe" >nul
+if ERRORLEVEL 1 (
+    taskkill /F /IM tosu.exe >nul 2>&1
+    exit
+)
+ping -n 5 127.0.0.1 >nul
+goto loop
+EOF
+
+    Info "tosu wrapper enabled. Launch osu! normally to use it!"
     ;;
+
+###################################################################################################
+
+    '--disable-memory-reader')
+    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
+        rm "$OSUPATH/launch_with_memory.bat"
+        Info "Memory reader wrapper disabled."
+    else
+        Info "No memory reader wrapper was enabled."
+    fi
+    ;;
+
+###################################################################################################
 
     '--info')
     Info "Need info?:
@@ -273,12 +358,16 @@ case "$1" in
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1"
     ;;
 
+###################################################################################################
+
     '--help')
     Help
     ;;
 
+###################################################################################################
+
     'help')
     Help
     ;;
-    
+
 esac
