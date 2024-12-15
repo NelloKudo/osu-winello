@@ -176,6 +176,10 @@ case "$1" in
         Info "Change done from '$lastdir' to '$newdir'!"
         deleteFolder
     fi
+
+    # Applying fix for long names/paths...
+    rm -rf "$WINEPREFIX/dosdevices/d:"
+    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
     ;;
 
 ###################################################################################################

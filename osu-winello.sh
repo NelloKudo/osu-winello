@@ -381,12 +381,13 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
         # We're now gonna refer to this as Wineprefix
         export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 
-        # Time to debloat the prefix a bit and make necessary symlinks (example: drag and drop)
+        # Time to debloat the prefix a bit and make necessary symlinks (drag and drop, long name maps/paths..)
         rm -rf "$WINEPREFIX/dosdevices"
         rm -rf "$WINEPREFIX/drive_c/users/nellokudo"
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
 	    ln -s / "$WINEPREFIX/dosdevices/z:"
+        ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
@@ -475,7 +476,7 @@ function Update(){
     fi
 
     # Reading the last version installed
-    LASTPROTONVERSION=$(</"$HOME/.local/share/osuconfig/protoneverupdate")
+    LASTPROTONVERSION=$(</"$HOME/.local/share/osuconfig/protonverupdate")
 
     if [ "$LASTPROTONVERSION" \!= "$PROTONVERSION" ]; then
         wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "$PROTONLINK" && chk="$?"
@@ -490,8 +491,8 @@ function Update(){
         tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/osuconfig"
         rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
         LASTPROTONVERSION="$PROTONVERSION"
-        rm -f "$HOME/.local/share/osuconfig/protoneverupdate"
-        echo "$LASTPROTONVERSION" >> "$HOME/.local/share/osuconfig/protoneverupdate"
+        rm -f "$HOME/.local/share/osuconfig/protonverupdate"
+        echo "$LASTPROTONVERSION" >> "$HOME/.local/share/osuconfig/protonverupdate"
         Info "Update is completed!"
 
     else
