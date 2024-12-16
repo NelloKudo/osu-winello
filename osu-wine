@@ -76,6 +76,12 @@ function Update(){
     bash "/$HOME/.local/share/osuconfig/update/osu-winello.sh" update
 }
 
+function longPathsFix(){
+    # Applying fix for long names/paths...
+    rm -rf "$WINEPREFIX/dosdevices/d:"
+    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+}
+
 
 case "$1" in
     '')
@@ -177,9 +183,7 @@ case "$1" in
         deleteFolder
     fi
 
-    # Applying fix for long names/paths...
-    rm -rf "$WINEPREFIX/dosdevices/d:"
-    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+    longPathsFix
     ;;
 
 ###################################################################################################
@@ -252,6 +256,9 @@ case "$1" in
     $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
     $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "/home/$USER/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+
+    # Applying fix for long names/paths...
+    longPathsFix
 
     if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
         Info "Configuring rpc-bridge (Discord RPC)"
