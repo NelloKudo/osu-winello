@@ -118,6 +118,7 @@ osu-wine --fixfolders: Reinstalls registry keys for native file manager in case 
 osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
 osu-wine --tosu: Installs and runs tosu without any needed config!
 osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
+osu-wine --disable-memory-reader: Turn off gosumemory and tosu
 ```
 
 # Steam Deck Support
