@@ -32,6 +32,8 @@ You can easily install them like this:
 
 **openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal`
 
+**Gentoo:**  `sudo emerge -navq git wget zenity xdg/xdg-desktop-portal`
+
 ## Drivers:
 
 As obvious as this might sound, installing drivers the **right** way is needed to have a great experience overall
