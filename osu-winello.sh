@@ -430,10 +430,8 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 
     Check32
 
-    Info "Reloading the Shell File"
-    Terminal
     Info "Installation is completed! Run 'osu-wine' to play osu!"
-    Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    Terminal
     exit 0
 }
 
@@ -444,18 +442,13 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 #   =====================================
 #   =====================================
 
-# just a function to not restart the game after installing
+# function that reloads the shell file
 function Terminal(){
-    read -r -p "$(Info "Do you use Bash or ZSH? (b/z) ")" shell
-    if ["$shell" = 'b']; then
-    source $HOME/.bashrc
-
-    elif [ "$shell" = 'z' ]; then
-    source $HOME/.zshrc
-
-    else
-        echo "Wrong Input! (dont use capslock)"
-    fi
+if [[ "$SHELL" == *"zsh"* ]]; then
+    zsh || source $HOME/.zshrc
+elif [[ "$SHELL" == *"bash"* ]]; then
+    bash || source $HOME/.zshrc
+fi
 }
 
 # Sanity check to make sure we can run 32-bit GLX apps inside the steam runtime
