@@ -148,6 +148,10 @@ case "$1" in
     newdir="$(zenity --file-selection --directory)"
     lastdir=$(</"$HOME/.local/share/osuconfig/osupath")
 
+    if [ ! -d "$newdir" ]; then
+        Error "No folder selected, please make sure zenity is installed.."
+    fi
+
     rm -f "$HOME/.local/share/osuconfig/osupath"
     if [ -d "$newdir/osu!" ] || [ -s "$newdir/osu!.exe" ]; then
         Info "osu! folder/game already exists: skipping.."
@@ -232,7 +236,7 @@ case "$1" in
 
         mkdir -p /tmp/rpc-bridge
         unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+        WINE_BLOCK_GET_VERSION=0 $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
         rm -f "/tmp/bridge.zip"
         rm -rf "/tmp/rpc-bridge"
     fi
@@ -271,7 +275,7 @@ case "$1" in
 
         mkdir -p /tmp/rpc-bridge
         unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+        WINE_BLOCK_GET_VERSION=0 $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
         rm -f "/tmp/bridge.zip"
         rm -rf "/tmp/rpc-bridge"
     fi
