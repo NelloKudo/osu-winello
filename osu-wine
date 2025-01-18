@@ -8,11 +8,8 @@
 
 LAUNCH_ARGS="env PROTONFIXES_DISABLE=1" # Use this for args like prime-run or gamemoderun!
 export PRESSURE_VESSEL_FILESYSTEMS_RW= # Add your external disks paths here if you use symlinks
-
 export WINEDEBUG=${WINEDEBUG:-}
-export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
-export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
-export WINE_BLOCK_GET_VERSION=0 # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
+
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
 export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export WINE_PATH="$PROTONPATH/files/bin/wine"
@@ -20,15 +17,18 @@ export WINETRICKS_PATH="$PROTONPATH/protontricks/winetricks"
 export GAMEID="umu-727"
 UMU_RUN="$PROTONPATH/umu-run"
 
-export WINEARCH=win64
 export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$HOME/.local/share/osuconfig/osupath")
 export OSUPATH="$osuinstall"
+
 export vblank_mode=0            # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
 export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
 
+export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
+export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
+export WINE_BLOCK_GET_VERSION=0 # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
 
 function Info(){
     echo -e '\033[1;34m'"Winello:\033[0m $*";
@@ -82,25 +82,77 @@ function longPathsFix(){
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
+function SetupReader(){
+    local READER_NAME="${1}"
+    if [ ! -d "$HOME/.local/share/osuconfig/$READER_NAME" ]; then
+        git -C "$HOME/.local/share/osuconfig/update" pull --quiet
+        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" "$READER_NAME"
+    fi
+
+    Info "Setting up $READER_NAME wrapper..."
+    READER_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$HOME/.local/share/osuconfig/$READER_NAME/$READER_NAME.exe")"
+    OSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH/osu!.exe")"
+    OSU_DIR="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH")"
+
+    # launcher batch file which monitors osu! and closes gosumemory when osu! exits
+    cat >"$OSUPATH/launch_with_memory.bat" <<EOF
+@echo off
+set NODE_SKIP_PLATFORM_CHECK=1
+cd /d "$OSU_DIR"
+start "" "$OSU_PATH" %*
+start /b "" "$READER_PATH"
+
+:loop
+tasklist | find "osu!.exe" >nul
+if ERRORLEVEL 1 (
+    taskkill /F /IM $READER_NAME.exe >nul 2>&1
+    exit
+)
+ping -n 5 127.0.0.1 >nul
+goto loop
+EOF
+
+    Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
+}
+
+function LaunchGame() {
+    local PRE_COMMAND=("${LAUNCH_ARGS//env /}" "UMU_RUNTIME_UPDATE=0")
+    local POST_COMMAND=("$UMU_RUN")
+    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
+        PRE_COMMAND+=("PROTON_VERB=runinprefix")
+        POST_COMMAND+=("$OSUPATH/launch_with_memory.bat")
+        Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
+    else
+        POST_COMMAND+=("$OSUPATH"/'osu!.exe')
+    fi
+
+    if [ -n "$1" ]; then POST_COMMAND+=("-devserver" "${1}"); fi
+
+    export PROTON_LOG=1 # only want to redirect to a file for the game
+    export PROTON_LOG_DIR="$HOME/.local/share/osuconfig/"
+    export WINEDEBUG="+timestamp,+pid,+tid,+seh,+unwind,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
+
+    Info "Launching ${PRE_COMMAND[*]} ${POST_COMMAND[*]} !"
+    Info "The log is located in ${PROTON_LOG_DIR}steam-${GAMEID:4}.log, should anything go wrong."
+
+    exec env "${PRE_COMMAND[@]}" "${POST_COMMAND[@]}"
+}
+
+###################################################################################################
+# Begin argument handling
+###################################################################################################
 
 case "$1" in
     '')
-    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
-        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" "$OSUPATH/launch_with_memory.bat"
-    else
-        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe"
-    fi
+    LaunchGame
     Checkshort
     ;;
 
 ###################################################################################################
 
     '--devserver')
-    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
-        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" "$OSUPATH/launch_with_memory.bat" -devserver "$2"
-    else
-        UMU_RUNTIME_UPDATE=0 $LAUNCH_ARGS "$UMU_RUN" "$OSUPATH/osu!.exe" -devserver "$2"
-    fi
+    if [ -z "$2" ]; then Error "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
+    LaunchGame "$2"
     ;;
 
 ###################################################################################################
@@ -285,69 +337,11 @@ case "$1" in
 
 ###################################################################################################
 
-    '--gosumemory')
-    if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
-        git -C "$HOME/.local/share/osuconfig/update" pull --quiet
-        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" gosumemory
-    fi
-
-    Info "Setting up gosumemory wrapper..."
-    GOSUMEM_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$HOME/.local/share/osuconfig/gosumemory/gosumemory.exe")"
-    OSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH/osu!.exe")"
-    OSU_DIR="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH")"
-    
-    # launcher batch file which monitors osu! and closes gosumemory when osu! exits
-    cat > "$OSUPATH/launch_with_memory.bat" << EOF
-@echo off
-cd /d "$OSU_DIR"
-start "" "$OSU_PATH" %*
-start /b "" "$GOSUMEM_PATH"
-
-:loop
-tasklist | find "osu!.exe" >nul
-if ERRORLEVEL 1 (
-    taskkill /F /IM gosumemory.exe >nul 2>&1
-    exit
-)
-ping -n 5 127.0.0.1 >nul
-goto loop
-EOF
-
-    Info "gosumemory wrapper enabled. Launch osu! normally to use it!"
-    ;;
-
-###################################################################################################
-
     '--tosu')
-    if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
-        git -C "$HOME/.local/share/osuconfig/update" pull --quiet
-        bash "$HOME/.local/share/osuconfig/update/osu-winello.sh" tosu
-    fi
-
-    Info "Setting up tosu wrapper..."
-    TOSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix $UMU_RUN winepath -w "$HOME/.local/share/osuconfig/tosu/tosu.exe")"
-    OSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix $UMU_RUN winepath -w "$OSUPATH/osu!.exe")"
-    OSU_DIR="$($LAUNCH_ARGS PROTON_VERB=runinprefix $UMU_RUN winepath -w "$OSUPATH")"
-    
-    # ditto
-    cat > "$OSUPATH/launch_with_memory.bat" << EOF
-@echo off
-set NODE_SKIP_PLATFORM_CHECK=1
-cd /d "$OSU_DIR"
-start "" "$OSU_PATH" %*
-start /b "" "$TOSU_PATH"
-
-:loop
-tasklist | find "osu!.exe" >nul
-if ERRORLEVEL 1 (
-    taskkill /F /IM tosu.exe >nul 2>&1
-    exit
-)
-ping -n 5 127.0.0.1 >nul
-goto loop
-EOF
-
-    Info "tosu wrapper enabled. Launch osu! normally to use it!"
+    SetupReader 'tosu'
+    ;;
+    '--gosumemory')
+    SetupReader 'gosumemory'
     ;;
 
 ###################################################################################################
