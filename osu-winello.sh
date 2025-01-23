@@ -313,7 +313,7 @@ function FullInstall(){
 Type=Application
 Name=osu!
 MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
-Exec=$HOME/.local/share/osuconfig/osu-handler-wine %f
+Exec=$HOME/.local/bin/osu-wine --osuhandler %f
 NoDisplay=true
 StartupNotify=true
 Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
@@ -323,7 +323,7 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 Type=Application
 Name=osu!
 MimeType=x-scheme-handler/osu;
-Exec=$HOME/.local/share/osuconfig/osu-handler-wine %u
+Exec=$HOME/.local/bin/osu-wine --osuhandler %u
 NoDisplay=true
 StartupNotify=true
 Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
@@ -388,6 +388,116 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
 	    ln -s / "$WINEPREFIX/dosdevices/z:"
         ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+
+        # Fix to importing maps/skins/osu links after Stable update 20250122.1: https://osu.ppy.sh/home/changelog/stable40/20250122.1
+        # This assumes the osu! folder is mounted at the D: drive (which Winello does just a line above)
+        REGFILE="$HOME/.local/share/osuconfig/osu-handler.reg"
+
+cat > "${REGFILE}" << 'EOF'
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\osu]
+@="URL:osu!"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\osustable.File.osk]
+@="osu! Skin"
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.File.osr]
+@="osu! Replay"
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.File.osz]
+@="osu! Beatmap"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2]
+@="osu! Beatmap"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu]
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\.osk]
+
+[HKEY_CLASSES_ROOT\.osk\OpenWithProgIds]
+"osustable.File.osk"=""
+
+[HKEY_CLASSES_ROOT\.osr]
+
+[HKEY_CLASSES_ROOT\.osr\OpenWithProgIds]
+"osustable.File.osr"=""
+
+[HKEY_CLASSES_ROOT\.osz]
+
+[HKEY_CLASSES_ROOT\.osz\OpenWithProgIds]
+"osustable.File.osz"=""
+
+[HKEY_CLASSES_ROOT\.osz2]
+
+[HKEY_CLASSES_ROOT\.osz2\OpenWithProgIds]
+"osustable.File.osz2"=""
+
+[HKEY_CLASSES_ROOT\osu]
+@=-
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\osu\shell]
+
+[HKEY_CLASSES_ROOT\osu\shell\open]
+
+[HKEY_CLASSES_ROOT\osu\shell\open\command]
+@="\"D:\\osu!.exe\" \"%1\""
+EOF
+
+        # Adding the osu-handler.reg file to registry
+        "$UMU_RUN" regedit /s "${REGFILE}"
 
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
