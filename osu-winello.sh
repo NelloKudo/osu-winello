@@ -727,12 +727,35 @@ function tosu(){
         unzip -d "$HOME/.local/share/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
-}   
+}
+
+function FixUmu(){
+    UMU_RUN="${UMU_RUN:-"$HOME/.local/share/osuconfig/proton-osu/umu-run"}"
+    if [ ! -f "$HOME/.local/bin/osu-wine" ]; then
+        Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
+        return
+    elif [ ! -f "${UMU_RUN}" ]; then
+        Info "umu-launcher comes with Proton, so you should run ./osu-winello.sh first."
+        return
+    fi
+
+    Info "Removing umu-launcher..."
+    rm -rf "${HOME}/.local/share/umu" "${HOME}/.local/share/pybstrap"
+
+    Info "Reinstalling umu-launcher..."
+    UMU_NO_PROTON=1 GAMEID="umu-727" "$UMU_RUN" true && chk="$?"
+    if [ "${chk}" != 0 ]; then
+        Info "That didn't seem to work... try again?"
+    else
+        Info "umu-launcher should be good to go now."
+    fi
+}
 
 # Help!
 function Help(){
     Info "To install the game, run ./osu-winello.sh
           To uninstall the game, run ./osu-winello.sh uninstall
+          To retry installing umu-launcher-related files, run ./osu-winello.sh fixumu
           You can read more at README.md or https://github.com/NelloKudo/osu-winello"
 }
 
@@ -764,16 +787,16 @@ case "$1" in
     'tosu')
     tosu
     ;;
-    
+
     'update')
     Update
     ;;
 
-    'help')
-    Help
+    *umu*)
+    FixUmu
     ;;
 
-    '-h')
+    *help*|'-h')
     Help
     ;;
 
