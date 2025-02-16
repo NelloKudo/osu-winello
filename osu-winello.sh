@@ -557,16 +557,51 @@ EOF
 
 # Sanity check to make sure we can run 32-bit GLX apps inside the steam runtime
 function Check32(){
+    local temp_out; local tail_pid; local umu_pid; local _timeout
     Info "Checking to make sure we can run 32-bit OpenGL apps..."
     Info "If all is well, a window should pop up with some spinning gears. Just close it."
+    Info "(Window will automatically close after 15 seconds anyways)"
 
     chmod +x "./stuff/glxgears32"
     UMU_RUN="$HOME/.local/share/osuconfig/proton-osu/umu-run"
 
-    WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" GAMEID="umu-727" UMU_NO_PROTON=1 \
-    "$UMU_RUN" "./stuff/glxgears32" 2>&1 | grep -i explicit && Info "Success!" && return 0
+    temp_out=$(mktemp)
 
-    # It could have worked but printed a different message other than "explicit kill or shutdown", check for that
+    tail -f "$temp_out" | grep -i --line-buffered "explicit\|X_GLXSwapBuffers" > "$temp_out.success" &
+    tail_pid=$!
+
+    GAMEID="umu-727" UMU_NO_PROTON=1 "$UMU_RUN" "./stuff/glxgears32" > "$temp_out" 2>&1 &
+    umu_pid=$!
+
+    _timeout=15
+    while [ $_timeout -gt 0 ]; do
+        # Check for "explicit kill or shutdown" (Xwayland) or "GLXBadDrawable -> X_GLXSwapBuffers" (X11)
+        if [ -s "$temp_out.success" ]; then
+            kill $tail_pid 2>/dev/null
+            rm -f "$temp_out" "$temp_out.success"
+            Info "Success!" && return 0
+        fi
+        if ! ps -p $umu_pid >/dev/null 2>&1; then
+            break
+        fi
+        sleep 1
+        _timeout=$((_timeout - 1))
+    done
+
+    # Clean up and fall back to manual confirmation otherwise
+    kill $tail_pid 2>/dev/null
+    rm -f "$temp_out" "$temp_out.success"
+
+    if ps -p $umu_pid >/dev/null 2>&1; then
+        Info "Closing window for you now..."
+        pkill -f "glxgears32"
+        sleep 0.5
+        pkill -9 -f "glxgears32" 2>/dev/null
+        kill $umu_pid 2>/dev/null
+        sleep 0.5
+        kill -9 $umu_pid 2>/dev/null
+    fi
+
     read -r -p "$(Info "Did you see a window with the spinning gears? (y/n) ")" glx32worked
     if [ "$glx32worked" = 'y' ] || [ "$glx32worked" = 'Y' ]; then
         Info "Success!" && return 0
