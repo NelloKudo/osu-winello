@@ -9,7 +9,7 @@
 
 # Proton-osu current versions for update
 MAJOR=9
-MINOR=14
+MINOR=15
 PATCH=0
 PROTONVERSION=$MAJOR.$MINOR.$PATCH
 LASTPROTONVERSION=0
