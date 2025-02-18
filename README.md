@@ -98,6 +98,7 @@ If that doesn't help, either:
 ./osu-winello.sh: Installs the game
 ./osu-winello.sh --no-deps: Installs the game but skips installing dependencies
 ./osu-winello.sh uninstall: Uninstalls the game
+./osu-winello.sh fix-umu: Tries to fix umu-launcher issues (partial downloads, corruption etc.)
 ```
 
 **Game script:**
@@ -110,14 +111,15 @@ osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
 osu-wine --kill9: Kills osu! but with wineserver -k9
 osu-wine --update: Updates wine-osu to latest version
 osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
+osu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
+osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
 osu-wine --info: Troubleshooting and more info
 osu-wine --remove: Uninstalls osu! and the script
 osu-wine --changedir: Changes directory of the install according to the user
-osu-wine --devserver <server>: Runs osu on the specified devserver
-osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
-osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
-osu-wine --tosu: Installs and runs tosu without any needed config!
+osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
 osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
+osu-wine --tosu: Installs and runs tosu without any needed config!
 osu-wine --disable-memory-reader: Turn off gosumemory and tosu
 ```
 
