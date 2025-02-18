@@ -29,6 +29,7 @@ export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode 
 export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
 export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
 export WINE_BLOCK_GET_VERSION=0 # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
+export WINE_DISABLE_VK_CHILD_WINDOW_RENDERING_HACK=1 # Fixes compat. mode crashing after Proton-osu-9-15
 
 function Info(){
     echo -e '\033[1;34m'"Winello:\033[0m $*";
