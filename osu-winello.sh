@@ -133,7 +133,7 @@ function InitialSetup(){
     if grep -q '^NAME="Ubuntu"$' /etc/os-release && grep -q '^VERSION_ID="24\.' /etc/os-release && [ ! -f /etc/apparmor.d/bwrap ] ; then
         Info "Ubuntu 24 detected: due to apparmor restrictions, osu! (umu-run) needs a workaround to launch properly.."
         Info "Please enter your password if prompted if you need to fix it!"
-        read -r -p "$(Info "Do you want to enable it? (Y/N): ")" apparmorx
+        read -r -p "$(Info "Do you want to enable it? (y/N): ")" apparmorx
 
         if [ "$apparmorx" = 'y' ] || [ "$apparmorx" = 'Y' ]; then
 
@@ -349,7 +349,7 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
     if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
         
         Info "Wineprefix already exists; do you want to reinstall it?"
-        read -r -p "$(Info "Choose: (Y/N)")" prefchoice
+        read -r -p "$(Info "Choose: (y/N)")" prefchoice
             
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
             rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
@@ -602,7 +602,7 @@ function Check32(){
         kill -9 $umu_pid 2>/dev/null
     fi
 
-    read -r -p "$(Info "Did you see a window with the spinning gears? (y/n) ")" glx32worked
+    read -r -p "$(Info "Did you see a window with the spinning gears? (y/N) ")" glx32worked
     if [ "$glx32worked" = 'y' ] || [ "$glx32worked" = 'Y' ]; then
         Info "Success!" && return 0
     fi
@@ -668,17 +668,17 @@ function Uninstall(){
     Info "Uninstalling proton-osu:"
     rm -rf "$HOME/.local/share/osuconfig/proton-osu"
     
-    read -r -p "$(Info "Do you want to uninstall Wineprefix? (y/n)")" wineprch
+    read -r -p "$(Info "Do you want to uninstall Wineprefix? (y/N)")" wineprch
 
     if [ "$wineprch" = 'y' ] || [ "$wineprch" = 'Y' ]; then
         rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
     else
         Info "Skipping.." ; fi
 
-    read -r -p "$(Info "Do you want to uninstall game files? (y/n)")" choice
+    read -r -p "$(Info "Do you want to uninstall game files? (y/N)")" choice
     
     if [ "$choice" = 'y' ] || [ "$choice" = 'Y' ]; then
-        read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" choice2
+        read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" choice2
         
         if [ "$choice2" = 'y' ] || [ "$choice2" = 'Y' ]; then
 		    

@@ -132,7 +132,7 @@ function Update(){
     Warning "This will remove any customizations you might have made to ${self},"
     Warning "   but a backup will be left in ${HOME}/.local/share/osuconfig/osu-wine.bak ."
 
-    read -r -p "$(Info "Update the 'osu-wine' launcher? (y/n) ")" selfupdate
+    read -r -p "$(Info "Update the 'osu-wine' launcher? (y/N) ")" selfupdate
     if [ "${selfupdate}" = 'y' ] || [ "${selfupdate}" = 'Y' ]; then
         if SelfUpdate "${self}"; then
             Info "Launcher update successful!"
@@ -247,10 +247,10 @@ case "$1" in
     '--changedir')
     function deleteFolder(){
         Info "Do you want to delete the previous install?"
-        read -r -p "$(Info "Choose your option (y/n): ")" dirchoice
+        read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
 
             if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
-                read -r -p "$(Info "Are you sure? This will delete your files! (y/n)")" dirchoice2
+                read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" dirchoice2
 
                     if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
                         lastdir=$(</"$HOME/.local/share/osuconfig/osupath")
