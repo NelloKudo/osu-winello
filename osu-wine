@@ -7,7 +7,7 @@
 ## If you ever need to change something to the osu! launcher besides args, just go to line ~68
 
 LAUNCH_ARGS="env PROTONFIXES_DISABLE=1" # Use this for args like prime-run or gamemoderun!
-export PRESSURE_VESSEL_FILESYSTEMS_RW= # Add your external disks paths here if you use symlinks
+export PRESSURE_VESSEL_FILESYSTEMS_RW=${PRESSURE_VESSEL_FILESYSTEMS_RW:-} # Set this to your external disk paths if you use symlinks!
 export WINEDEBUG=${WINEDEBUG:-}
 
 export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
