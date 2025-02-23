@@ -718,7 +718,7 @@ function Gosumemory(){
 }
 
 function tosu(){
-    TOSU_LINK="https://github.com/KotRikD/tosu/releases/download/v3.3.1/tosu-windows-v3.3.1.zip"
+    TOSU_LINK="https://github.com/tosuapp/tosu/releases/download/v4.3.1/tosu-windows-v4.3.1.zip"
     
     if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
         Info "Installing tosu.."
