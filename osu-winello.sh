@@ -17,6 +17,8 @@ LASTPROTONVERSION=0
 # Proton-osu mirrors
 PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-$MAJOR-$MINOR/proton-osu-$MAJOR-$MINOR.tar.xz"
 
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
 #   =====================================
 #   =====================================
@@ -42,16 +44,16 @@ function Quit(){
 # Function to revert the install in case of any type of fail
 function Revert(){
     echo -e '\033[1;31m'"Reverting install...:\033[0m"
-    rm -f "$HOME/.local/share/icons/osu-wine.png"
-    rm -f "$HOME/.local/share/applications/osu-wine.desktop"
-    rm -f "$HOME/.local/bin/osu-wine"
-    rm -rf "$HOME/.local/share/osuconfig"
+    rm -f "$XDG_DATA_HOME/icons/osu-wine.png"
+    rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
+    rm -f "$BINDIR/osu-wine"
+    rm -rf "$XDG_DATA_HOME/osuconfig"
     rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
     rm -f "/tmp/osu-mime.tar.xz"
     rm -rf "/tmp/osu-mime"
-    rm -f "$HOME/.local/share/mime/packages/osuwinello-file-extensions.xml"
-    rm -f "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
-    rm -f "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
+    rm -f "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
+    rm -f "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
+    rm -f "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.xz"
     rm -rf "/tmp/winestreamproxy"
     echo -e '\033[1;31m'"Reverting done, try again with ./osu-winello.sh\033[0m"
@@ -72,7 +74,7 @@ function InitialSetup(){
 
     # Checking for previous versions of osu-wine (mine or DiamondBurned's)
     if [ -e /usr/bin/osu-wine ] ; then Quit "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!"; fi
-    if [ -e "$HOME/.local/bin/osu-wine" ] ; then Quit "Please uninstall Winello (osu-wine --remove) before installing!" ; fi
+    if [ -e "$BINDIR/osu-wine" ] ; then Quit "Please uninstall Winello (osu-wine --remove) before installing!" ; fi
 
     Info "Welcome to the script! Follow it to install osu! 8)"
 
@@ -85,26 +87,26 @@ function InitialSetup(){
         fi
     fi
 
-    # Checking if ~/.local/bin is in PATH:
-    mkdir -p "$HOME/.local/bin"
-    pathcheck=$(echo "$PATH" | grep -q "$HOME/.local/bin" && echo "y")
+    # Checking if $BINDIR is in PATH:
+    mkdir -p "$BINDIR"
+    pathcheck=$(echo "$PATH" | grep -q "$BINDIR" && echo "y")
 
-    # If ~/.local/bin is not in PATH:
+    # If $BINDIR is not in PATH:
     if [ "$pathcheck" != "y" ] ; then
         
         if grep -q "bash" "$SHELL" ; then
             touch -a "$HOME/.bashrc"
-            echo "export PATH=$HOME/.local/bin:$PATH" >> "$HOME/.bashrc"
+            echo "export PATH=$BINDIR:$PATH" >> "$HOME/.bashrc"
         fi
 
         if grep -q "zsh" "$SHELL" ; then
             touch -a "$HOME/.zshrc"
-            echo "export PATH=$HOME/.local/bin:$PATH" >> "$HOME/.zshrc"
+            echo "export PATH=$BINDIR:$PATH" >> "$HOME/.zshrc"
         fi
 
         if grep -q "fish" "$SHELL" ; then
             mkdir -p "$HOME/.config/fish" && touch -a "$HOME/.config/fish/config.fish"
-            fish_add_path ~/.local/bin/
+            fish_add_path "$BINDIR/"
         fi
     fi
 
@@ -163,28 +165,28 @@ profile bwrap /usr/bin/bwrap flags=(unconfined) {
 function InstallProton(){
     
     Info "Installing game script:"
-    cp ./osu-wine "$HOME/.local/bin/osu-wine" && chmod +x "$HOME/.local/bin/osu-wine"
+    cp ./osu-wine "$BINDIR/osu-wine" && chmod +x "$BINDIR/osu-wine"
 
     Info "Installing icons:"
-    mkdir -p "$HOME/.local/share/icons"    
-    cp "./stuff/osu-wine.png" "$HOME/.local/share/icons/osu-wine.png" && chmod 644 "$HOME/.local/share/icons/osu-wine.png"
+    mkdir -p "$XDG_DATA_HOME/icons"    
+    cp "./stuff/osu-wine.png" "$XDG_DATA_HOME/icons/osu-wine.png" && chmod 644 "$XDG_DATA_HOME/icons/osu-wine.png"
 
     Info "Installing .desktop:"
-    mkdir -p "$HOME/.local/share/applications"
+    mkdir -p "$XDG_DATA_HOME/applications"
     echo "[Desktop Entry]
 Name=osu!
 Comment=osu! - Rhythm is just a *click* away!
 Type=Application
-Exec=$HOME/.local/bin/osu-wine %U
-Icon=$HOME/.local/share/icons/osu-wine.png
+Exec=$BINDIR/osu-wine %U
+Icon=$XDG_DATA_HOME/icons/osu-wine.png
 Terminal=false
-Categories=Wine;Game;" | tee "$HOME/.local/share/applications/osu-wine.desktop" >/dev/null
-    chmod +x "$HOME/.local/share/applications/osu-wine.desktop"
+Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/dev/null
+    chmod +x "$XDG_DATA_HOME/applications/osu-wine.desktop"
 
-    if [ -d "$HOME/.local/share/osuconfig" ]; then
+    if [ -d "$XDG_DATA_HOME/osuconfig" ]; then
         Info "Skipping osuconfig.."
     else
-        mkdir "$HOME/.local/share/osuconfig"
+        mkdir "$XDG_DATA_HOME/osuconfig"
     fi
 
     Info "Installing Proton-osu:"
@@ -196,20 +198,20 @@ Categories=Wine;Game;" | tee "$HOME/.local/share/applications/osu-wine.desktop" 
     fi
 
     # This will extract Proton-osu and set last version to the one downloaded
-    tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/osuconfig"
+    tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
     LASTPROTONVERSION="$PROTONVERSION"
     rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
 
     # The update function works under this folder: it compares variables from files stored in osuconfig 
     # with latest values from GitHub and check whether to update or not
     Info "Installing script copy for updates.."
-    mkdir -p "$HOME/.local/share/osuconfig/update"
-    git clone https://github.com/NelloKudo/osu-winello.git "$HOME/.local/share/osuconfig/update" || Error "Git failed, check your connection.."
-    echo "$LASTPROTONVERSION" >> "$HOME/.local/share/osuconfig/protonverupdate"
+    mkdir -p "$XDG_DATA_HOME/osuconfig/update"
+    git clone https://github.com/NelloKudo/osu-winello.git "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
+    echo "$LASTPROTONVERSION" >> "$XDG_DATA_HOME/osuconfig/protonverupdate"
 
     ## Setting up umu-launcher from the Proton package
     Info "Setting up umu-launcher.."
-    UMU_RUN="$HOME/.local/share/osuconfig/proton-osu/umu-run"
+    UMU_RUN="$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"
     export GAMEID="umu-727"
 }
 
@@ -218,7 +220,7 @@ function ConfigurePath(){
     
     Info "Configuring osu! folder:"
     Info "Where do you want to install the game?: 
-          1 - Default path (~/.local/share/osu-wine)
+          1 - Default path ($XDG_DATA_HOME/osu-wine)
           2 - Custom path"
     read -r -p "$(Info "Choose your option: ")" installpath
     
@@ -228,16 +230,16 @@ function ConfigurePath(){
         
         '1')  
             
-            mkdir -p "$HOME/.local/share/osu-wine"
-            GAMEDIR="$HOME/.local/share/osu-wine"
+            mkdir -p "$XDG_DATA_HOME/osu-wine"
+            GAMEDIR="$XDG_DATA_HOME/osu-wine"
             
             if [ -d "$GAMEDIR/OSU" ]; then
                 OSUPATH="$GAMEDIR/OSU"
-                echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+                echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
             else
                 mkdir -p "$GAMEDIR/osu!"
                 OSUPATH="$GAMEDIR/osu!"
-                echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+                echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
             fi
         ;;
         
@@ -248,11 +250,11 @@ function ConfigurePath(){
         
             if [ -e "$GAMEDIR/osu!.exe" ]; then
                 OSUPATH="$GAMEDIR"
-                echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath" 
+                echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath" 
             else
                 mkdir -p "$GAMEDIR/osu!"
                 OSUPATH="$GAMEDIR/osu!"
-                echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+                echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
             fi
         ;;
      
@@ -260,18 +262,18 @@ function ConfigurePath(){
 
     else
     
-        Info "No option chosen, installing to default.. (~/.local/share/osu-wine)"
+        Info "No option chosen, installing to default.. ($XDG_DATA_HOME/osu-wine)"
 
-        mkdir -p "$HOME/.local/share/osu-wine"
-        GAMEDIR="$HOME/.local/share/osu-wine"
+        mkdir -p "$XDG_DATA_HOME/osu-wine"
+        GAMEDIR="$XDG_DATA_HOME/osu-wine"
         
         if [ -d "$GAMEDIR/OSU" ]; then
             OSUPATH="$GAMEDIR/OSU"
-            echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+            echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
         else
             mkdir -p "$GAMEDIR/osu!"
             OSUPATH="$GAMEDIR/osu!"
-            echo "$OSUPATH" > "$HOME/.local/share/osuconfig/osupath"
+            echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
         fi
 
     fi
@@ -297,70 +299,70 @@ function FullInstall(){
     fi
     
     tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
-    mkdir -p "$HOME/.local/share/mime/packages"
-    cp "/tmp/osu-mime/osu-file-extensions.xml" "$HOME/.local/share/mime/packages/osuwinello-file-extensions.xml"
-    update-mime-database "$HOME/.local/share/mime"
+    mkdir -p "$XDG_DATA_HOME/mime/packages"
+    cp "/tmp/osu-mime/osu-file-extensions.xml" "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
+    update-mime-database "$XDG_DATA_HOME/mime"
     rm -f "/tmp/osu-mime.tar.gz"
     rm -rf "/tmp/osu-mime"
     
     # Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
     # Binary was compiled from source on Ubuntu 18.04
-    wget -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" && chk="$?"
+    wget -O "$XDG_DATA_HOME/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" && chk="$?"
     
     if [ ! "$chk" = 0 ] ; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "$HOME/.local/share/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget --no-check-certificate -O "$XDG_DATA_HOME/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
     fi
     
-    chmod +x "$HOME/.local/share/osuconfig/osu-handler-wine"
+    chmod +x "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
 
     # Creating entries for those two
     echo "[Desktop Entry]
 Type=Application
 Name=osu!
 MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
-Exec=$HOME/.local/bin/osu-wine --osuhandler %f
+Exec=$BINDIR/osu-wine --osuhandler %f
 NoDisplay=true
 StartupNotify=true
-Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
-    chmod +x "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
+Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
+    chmod +x "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
 
     echo "[Desktop Entry]
 Type=Application
 Name=osu!
 MimeType=x-scheme-handler/osu;
-Exec=$HOME/.local/bin/osu-wine --osuhandler %u
+Exec=$BINDIR/osu-wine --osuhandler %u
 NoDisplay=true
 StartupNotify=true
-Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
-    chmod +x "$HOME/.local/share/applications/osuwinello-url-handler.desktop" >/dev/null
-    update-desktop-database "$HOME/.local/share/applications"
+Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
+    chmod +x "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop" >/dev/null
+    update-desktop-database "$XDG_DATA_HOME/applications"
 
 
     # Time to install my prepackaged Wineprefix, which works in most cases
     # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
 
     PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz"
-    export PROTONPATH="$HOME/.local/share/osuconfig/proton-osu"
+    export PROTONPATH="$XDG_DATA_HOME/osuconfig/proton-osu"
 
     Info "Configuring Wineprefix:"
 
     # Variable to check if download finished properly
     failprefix="false"
 
-    mkdir -p "$HOME/.local/share/wineprefixes"
-    if [ -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
+    mkdir -p "$XDG_DATA_HOME/wineprefixes"
+    if [ -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix" ] ; then
         
         Info "Wineprefix already exists; do you want to reinstall it?"
         read -r -p "$(Info "Choose: (y/N)")" prefchoice
             
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
-            rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
+            rm -rf "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
         fi
     fi
 
     # So if there's no prefix (or the user wants to reinstall):
-    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix" ] ; then
+    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix" ] ; then
 
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
@@ -375,17 +377,17 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix" "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
+            WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix" "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
         else
-            tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$HOME/.local/share/wineprefixes"
-            mv "$HOME/.local/share/wineprefixes/osu-umu" "$HOME/.local/share/wineprefixes/osu-wineprefix" 
+            tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
+            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix" 
         fi 
 
         # Cleaning..
         rm -rf "$HOME/.winellotmp"
 
         # We're now gonna refer to this as Wineprefix
-        export WINEPREFIX="$HOME/.local/share/wineprefixes/osu-wineprefix"
+        export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 
         # Time to debloat the prefix a bit and make necessary symlinks (drag and drop, long name maps/paths..)
         rm -rf "$WINEPREFIX/dosdevices"
@@ -397,7 +399,7 @@ Icon=$HOME/.local/share/icons/osu-wine.png" | tee "$HOME/.local/share/applicatio
 
         # Fix to importing maps/skins/osu links after Stable update 20250122.1: https://osu.ppy.sh/home/changelog/stable40/20250122.1
         # This assumes the osu! folder is mounted at the D: drive (which Winello does just a line above)
-        REGFILE="$HOME/.local/share/osuconfig/osu-handler.reg"
+        REGFILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
 
 cat > "${REGFILE}" << 'EOF'
 Windows Registry Editor Version 5.00
@@ -508,16 +510,16 @@ EOF
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
 
-        cp "./stuff/folderfixosu" "$HOME/.local/share/osuconfig/folderfixosu" && chmod +x "$HOME/.local/share/osuconfig/folderfixosu"
+        cp "./stuff/folderfixosu" "$XDG_DATA_HOME/osuconfig/folderfixosu" && chmod +x "$XDG_DATA_HOME/osuconfig/folderfixosu"
         "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
         "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$HOME/.local/share/osuconfig/folderfixosu xdg-open \"%1\""
+        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
 
     fi
 
     # Installing rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
 
-    if [ ! -d "$HOME/.local/share/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
+    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
         Info "Configuring rpc-bridge (Discord RPC)"
         wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
     
@@ -566,7 +568,7 @@ function Check32(){
     Info "(Window will automatically close after 15 seconds anyways)"
 
     chmod +x "./stuff/glxgears32"
-    UMU_RUN="$HOME/.local/share/osuconfig/proton-osu/umu-run"
+    UMU_RUN="$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"
 
     temp_out=$(mktemp)
 
@@ -617,17 +619,17 @@ function Check32(){
     return 1
 }
 
-# This function reads files located in ~/.local/share/osuconfig
+# This function reads files located in $XDG_DATA_HOME/osuconfig
 # to see whether a new wine-osu version has been released.
 function Update(){
 
     # Checking for old installs with Wine
-    if [ -d "$HOME/.local/share/osuconfig/wine-osu" ]; then
+    if [ -d "$XDG_DATA_HOME/osuconfig/wine-osu" ]; then
         Quit "wine-osu detected and already up-to-date; please reinstall Winello if you want to use proton-osu!"
     fi
 
     # Reading the last version installed
-    LASTPROTONVERSION=$(</"$HOME/.local/share/osuconfig/protonverupdate")
+    LASTPROTONVERSION=$(</"$XDG_DATA_HOME/osuconfig/protonverupdate")
 
     if [ "$LASTPROTONVERSION" \!= "$PROTONVERSION" ]; then
         wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "$PROTONLINK" && chk="$?"
@@ -638,12 +640,12 @@ function Update(){
         fi
         Info "Updating Proton-osu"...
 
-        rm -rf "$HOME/.local/share/osuconfig/proton-osu"
-        tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$HOME/.local/share/osuconfig"
+        rm -rf "$XDG_DATA_HOME/osuconfig/proton-osu"
+        tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
         rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
         LASTPROTONVERSION="$PROTONVERSION"
-        rm -f "$HOME/.local/share/osuconfig/protonverupdate"
-        echo "$LASTPROTONVERSION" >> "$HOME/.local/share/osuconfig/protonverupdate"
+        rm -f "$XDG_DATA_HOME/osuconfig/protonverupdate"
+        echo "$LASTPROTONVERSION" >> "$XDG_DATA_HOME/osuconfig/protonverupdate"
         Info "Update is completed!"
 
     else
@@ -656,25 +658,25 @@ function Update(){
 function Uninstall(){
 
     Info "Uninstalling icons:"
-    rm -f "$HOME/.local/share/icons/osu-wine.png"
+    rm -f "$XDG_DATA_HOME/icons/osu-wine.png"
     
     Info "Uninstalling .desktop:"
-    rm -f "$HOME/.local/share/applications/osu-wine.desktop"
+    rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
     
     Info "Uninstalling game script, utilities & folderfix:"
-    rm -f "$HOME/.local/bin/osu-wine"
-    rm -f "$HOME/.local/bin/folderfixosu"
-    rm -f "$HOME/.local/share/mime/packages/osuwinello-file-extensions.xml"
-    rm -f "$HOME/.local/share/applications/osuwinello-file-extensions-handler.desktop"
-    rm -f "$HOME/.local/share/applications/osuwinello-url-handler.desktop"
+    rm -f "$BINDIR/osu-wine"
+    rm -f "$BINDIR/folderfixosu"
+    rm -f "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
+    rm -f "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
+    rm -f "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
 
     Info "Uninstalling proton-osu:"
-    rm -rf "$HOME/.local/share/osuconfig/proton-osu"
+    rm -rf "$XDG_DATA_HOME/osuconfig/proton-osu"
     
     read -r -p "$(Info "Do you want to uninstall Wineprefix? (y/N)")" wineprch
 
     if [ "$wineprch" = 'y' ] || [ "$wineprch" = 'Y' ]; then
-        rm -rf "$HOME/.local/share/wineprefixes/osu-wineprefix"
+        rm -rf "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
     else
         Info "Skipping.." ; fi
 
@@ -686,21 +688,21 @@ function Uninstall(){
         if [ "$choice2" = 'y' ] || [ "$choice2" = 'Y' ]; then
 		    
             Info "Uninstalling game:"
-            if [ -e "$HOME/.local/share/osuconfig/osupath" ]; then
-                OSUUNINSTALLPATH=$(<"$HOME/.local/share/osuconfig/osupath")
+            if [ -e "$XDG_DATA_HOME/osuconfig/osupath" ]; then
+                OSUUNINSTALLPATH=$(<"$XDG_DATA_HOME/osuconfig/osupath")
 		        rm -rf "$OSUUNINSTALLPATH"
-                rm -rf "$HOME/.local/share/osuconfig"
+                rm -rf "$XDG_DATA_HOME/osuconfig"
             else
-                rm -rf "$HOME/.local/share/osuconfig"
+                rm -rf "$XDG_DATA_HOME/osuconfig"
             fi
 
         else
-            rm -rf "$HOME/.local/share/osuconfig"
+            rm -rf "$XDG_DATA_HOME/osuconfig"
             Info "Exiting.."
         fi
     
     else
-        rm -rf "$HOME/.local/share/osuconfig"
+        rm -rf "$XDG_DATA_HOME/osuconfig"
     fi
     
     Info "Uninstallation completed!"
@@ -711,11 +713,11 @@ function Uninstall(){
 function Gosumemory(){
     GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_windows_amd64.zip"
 
-    if [ ! -d "$HOME/.local/share/osuconfig/gosumemory" ]; then
+    if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
         Info "Installing gosumemory.."
-        mkdir -p "$HOME/.local/share/osuconfig/gosumemory"
+        mkdir -p "$XDG_DATA_HOME/osuconfig/gosumemory"
         wget -O "/tmp/gosumemory.zip" "$GOSUMEMORY_LINK" || Error "Download failed, check your connection.."
-        unzip -d "$HOME/.local/share/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
+        unzip -d "$XDG_DATA_HOME/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
         rm "/tmp/gosumemory.zip"
     fi
 }
@@ -723,18 +725,18 @@ function Gosumemory(){
 function tosu(){
     TOSU_LINK="https://github.com/tosuapp/tosu/releases/download/v4.3.1/tosu-windows-v4.3.1.zip"
     
-    if [ ! -d "$HOME/.local/share/osuconfig/tosu" ]; then
+    if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
         Info "Installing tosu.."
-        mkdir -p "$HOME/.local/share/osuconfig/tosu"
+        mkdir -p "$XDG_DATA_HOME/osuconfig/tosu"
         wget -O "/tmp/tosu.zip" "$TOSU_LINK" || Error "Download failed, check your connection.."
-        unzip -d "$HOME/.local/share/osuconfig/tosu" -q "/tmp/tosu.zip"
+        unzip -d "$XDG_DATA_HOME/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
 }
 
 function FixUmu(){
-    UMU_RUN="${UMU_RUN:-"$HOME/.local/share/osuconfig/proton-osu/umu-run"}"
-    if [ ! -f "$HOME/.local/bin/osu-wine" ]; then
+    UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
+    if [ ! -f "$BINDIR/osu-wine" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
         return
     elif [ ! -f "${UMU_RUN}" ]; then
@@ -743,7 +745,12 @@ function FixUmu(){
     fi
 
     Info "Removing umu-launcher..."
-    rm -rf "${HOME}/.local/share/umu" "${HOME}/.local/share/pybstrap"
+    # As of writing, umu-launcher still hardcodes $HOME/.local/share
+    # rather than respecting $XDG_DATA_HOME. To be safe, try cleaning
+    # under both directories.
+    for base in "$XDG_DATA_HOME" "$HOME/.local/share"; do
+        rm -rf "$base/umu" "$base/pybstrap"
+    done
 
     Info "Reinstalling umu-launcher..."
     UMU_NO_PROTON=1 GAMEID="umu-727" "$UMU_RUN" true && chk="$?"
