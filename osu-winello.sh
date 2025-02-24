@@ -121,14 +121,14 @@ function InitialSetup(){
     done
 
     # Ubuntu/Debian Hotfix: Install Steam as it is apparently needed from drivers to work with Proton
-    if command -v apt 2>&1 >/dev/null; then
+    if command -v apt >/dev/null 2>&1; then
         Info "Ubuntu/Debian-based distro detected.."
         Info "Please insert your password to install dependencies!"
         (
             $root_var apt update &&
             $root_var dpkg --add-architecture i386 &&
             $root_var apt install libgl1-mesa-dri libgl1-mesa-dri:i386 steam -y
-        ) || Error "Dependencies install failed, check apt or your connection.."
+        ) || Warning "Dependencies install failed, check apt or your connection.."
     fi
 
     # Ubuntu 24.x hotfix: Workaround umu-run not working due to apparmor restrictions
