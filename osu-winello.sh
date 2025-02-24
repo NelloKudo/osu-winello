@@ -742,7 +742,12 @@ function FixUmu(){
     fi
 
     Info "Removing umu-launcher..."
-    rm -rf "$XDG_DATA_HOME/umu" "$XDG_DATA_HOME/pybstrap"
+    # As of writing, umu-launcher still hardcodes $HOME/.local/share
+    # rather than respecting $XDG_DATA_HOME. To be safe, try cleaning
+    # under both directories.
+    for base in "$XDG_DATA_HOME" "$HOME/.local/share"; do
+        rm -rf "$base/umu" "$base/pybstrap"
+    done
 
     Info "Reinstalling umu-launcher..."
     UMU_NO_PROTON=1 GAMEID="umu-727" "$UMU_RUN" true && chk="$?"
