@@ -511,7 +511,7 @@ EOF
         # This only involves regedit keys.
 
         cp "./stuff/folderfixosu" "$XDG_DATA_HOME/osuconfig/folderfixosu" && chmod +x "$XDG_DATA_HOME/osuconfig/folderfixosu"
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
         "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
         "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
 

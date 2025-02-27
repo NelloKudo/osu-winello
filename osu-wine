@@ -342,7 +342,7 @@ case "$1" in
 ###################################################################################################
 
     '--fixfolders')
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
     $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
     ;;
@@ -419,7 +419,7 @@ case "$1" in
     winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
 
     # Adding fixfolderosu again
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command"
+    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
     $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
 
