@@ -155,6 +155,20 @@ function longPathsFix(){
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
+function folderFix(){
+    # Applying fix for long names/paths...
+    local FOLDERFIX
+    FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || fallback=1
+
+    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
+    $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    if [ -z "${fallback:-}" ]; then
+        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${FOLDERFIX//\\/\\\\}\" \"%1\""
+    else
+        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
+    fi
+}
+
 function SetupReader(){
     local READER_NAME="${1}"
     if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
@@ -342,9 +356,7 @@ case "$1" in
 ###################################################################################################
 
     '--fixfolders')
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
-    $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
+    folderFix
     ;;
 
 ###################################################################################################
@@ -416,12 +428,9 @@ case "$1" in
     export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 
     WINEESYNC=0 WINEFSYNC=0 PROTON_NO_ESYNC=1 PROTON_NO_FSYNC=1 "$UMU_RUN" \
-    winetricks dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
+        winetricks dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
 
-    # Adding fixfolderosu again
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
-    $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
+    folderFix
 
     # Applying fix for long names/paths...
     longPathsFix
@@ -487,6 +496,10 @@ case "$1" in
 ###################################################################################################
 
     *help*)
+    Help
+    ;;
+    *)
+    Info "Unknown argument: ${1}"
     Help
     ;;
 

@@ -510,10 +510,18 @@ EOF
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
 
-        cp "./stuff/folderfixosu" "$XDG_DATA_HOME/osuconfig/folderfixosu" && chmod +x "$XDG_DATA_HOME/osuconfig/folderfixosu"
+        cp "./stuff/folderfixosu.vbs" "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs"
+        cp "./stuff/folderfixosu" "$XDG_DATA_HOME/osuconfig/folderfixosu"
+        local FOLDERFIX
+        FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || fallback=1
+
         "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
         "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
+        if [ -z "${fallback:-}" ]; then
+            "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${FOLDERFIX//\\/\\\\}\" \"%1\""
+        else
+            "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
+        fi
 
     fi
 
@@ -666,6 +674,7 @@ function Uninstall(){
     Info "Uninstalling game script, utilities & folderfix:"
     rm -f "$BINDIR/osu-wine"
     rm -f "$BINDIR/folderfixosu"
+    rm -f "$BINDIR/folderfixosu.vbs"
     rm -f "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
     rm -f "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
     rm -f "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
