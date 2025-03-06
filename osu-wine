@@ -156,7 +156,7 @@ function longPathsFix(){
 }
 
 function folderFix(){
-    # Applying fix for long names/paths...
+    # Applying fix for opening folders in the native file browser...
     local FOLDERFIX
     FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || fallback=1
 
