@@ -512,12 +512,12 @@ EOF
 
         cp "./stuff/folderfixosu.vbs" "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs"
         cp "./stuff/folderfixosu" "$XDG_DATA_HOME/osuconfig/folderfixosu"
-        local FOLDERFIX
-        FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || fallback=1
+        local FOLDERFIX; local FALLBACK
+        FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || FALLBACK=1
 
         "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
         "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-        if [ -z "${fallback:-}" ]; then
+        if [ -z "${FALLBACK:-}" ]; then
             "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${FOLDERFIX//\\/\\\\}\" \"%1\""
         else
             "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
