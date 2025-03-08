@@ -14,7 +14,7 @@ PATCH=0
 PROTONVERSION=$MAJOR.$MINOR.$PATCH
 LASTPROTONVERSION=0
 
-# Proton-osu mirrors
+# Proton-osu mirror
 PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-$MAJOR-$MINOR/proton-osu-$MAJOR-$MINOR.tar.xz"
 
 # Other versions for external downloads
@@ -22,8 +22,17 @@ DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
 
+# Shell local variables
+
+UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
+
+# Exported global variables
+
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
+
+export PROTONPATH="${PROTONPATH:-"$XDG_DATA_HOME/osuconfig/proton-osu"}"
+export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
 
 #   =====================================
 #   =====================================
@@ -209,6 +218,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     Info "Installing script copy for updates.."
     mkdir -p "$XDG_DATA_HOME/osuconfig/update"
     git clone https://github.com/NelloKudo/osu-winello.git "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
+
     echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
 
     ## Setting up umu-launcher from the Proton package
@@ -516,23 +526,8 @@ EOF
 
     fi
 
-    # Installing rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
-
-    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ]; then
-        Info "Configuring rpc-bridge (Discord RPC)"
-        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" && chk="$?"
-
-        if [ ! "$chk" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-        fi
-
-        mkdir -p /tmp/rpc-bridge
-        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
-        rm -f "/tmp/bridge.zip"
-        rm -rf "/tmp/rpc-bridge"
-    fi
+    # Set up the discord rpc bridge
+    discordRpc
 
     # Well...
     Info "Downloading osu!"
@@ -614,9 +609,10 @@ Check32() {
     fi
 
     # Failed
-    Warning "It looks like we can't run 32-bit OpenGL apps, osu! probably won't work!"
+    Warning "It looks like we can't run 32-bit OpenGL apps, osu! WILL NOT work!"
     Warning "Please read the documentation on how to install 32-bit graphics drivers for your distro."
     Warning "Here is a good starting point: https://github.com/lutris/docs/blob/master/InstallingDrivers.md"
+    Warning "If you need to ask for help installing drivers, PLEASE mention that this part of the installation process failed!"
     return 1
 }
 
@@ -730,6 +726,41 @@ tosu() {
     fi
 }
 
+# Installs rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
+discordRpc() {
+    Info "Configuring rpc-bridge (Discord RPC)"
+    if [ -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
+        local _timeout=5
+        Info "Discord RPC bridge is already installed, do you want to reinstall it?"
+        echo -n "$(Info "Choose: (Y/n) [${_timeout}s] ")"
+
+        read -t $_timeout -r prefchoice
+
+        if [[ "$prefchoice" =~ ^(n|N)(o|O)?$ ]]; then
+            Info "Okay, won't reinstall the Discord RPC bridge."
+            return 0
+        fi
+        echo ""
+    fi
+
+    # try uninstalling the service first
+    "$UMU_RUN" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
+    local chk
+
+    wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" && chk="$?"
+
+    if [ ! "$chk" = 0 ]; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+    fi
+
+    mkdir -p /tmp/rpc-bridge
+    unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
+    "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+    rm -f "/tmp/bridge.zip"
+    rm -rf "/tmp/rpc-bridge"
+}
+
 FixUmu() {
     UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
     if [ ! -f "$BINDIR/osu-wine" ]; then
@@ -749,7 +780,7 @@ FixUmu() {
     done
 
     Info "Reinstalling umu-launcher..."
-    UMU_NO_PROTON=1 GAMEID="umu-727" "$UMU_RUN" true && chk="$?"
+    UMU_NO_RUNTIME_UPDATE=0 UMU_NO_PROTON=1 GAMEID="umu-727" "$UMU_RUN" true && chk="$?"
     if [ "${chk}" != 0 ]; then
         Info "That didn't seem to work... try again?"
     else
@@ -789,6 +820,10 @@ case "$1" in
 
 'tosu')
     tosu
+    ;;
+
+'discordrpc')
+    discordRpc
     ;;
 
 'update')

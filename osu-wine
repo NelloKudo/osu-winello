@@ -185,6 +185,14 @@ folderFix() {
     fi
 }
 
+fixRpc() {
+    # reinstall discord rpc bridge
+    if [ ! -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
+        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    fi
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" discordrpc
+}
+
 SetupReader() {
     local READER_NAME="${1}"
     if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
@@ -367,21 +375,7 @@ case "$1" in
     ###################################################################################################
 
 '--fixrpc')
-    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ]; then
-        Info "Configuring rpc-bridge (Discord RPC)"
-        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
-
-        if [ ! "$chk" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-        fi
-
-        mkdir -p /tmp/rpc-bridge
-        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        WINE_BLOCK_GET_VERSION=0 $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
-        rm -f "/tmp/bridge.zip"
-        rm -rf "/tmp/rpc-bridge"
-    fi
+    fixRpc
     ;;
 
     ###################################################################################################
@@ -438,21 +432,8 @@ case "$1" in
     REGFILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
     "$UMU_RUN" regedit /s "${REGFILE}"
 
-    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ]; then
-        Info "Configuring rpc-bridge (Discord RPC)"
-        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
-
-        if [ ! "$chk" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-        fi
-
-        mkdir -p /tmp/rpc-bridge
-        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        WINE_BLOCK_GET_VERSION=0 $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
-        rm -f "/tmp/bridge.zip"
-        rm -rf "/tmp/rpc-bridge"
-    fi
+    # Try fixing the rpc bridge
+    fixRpc
 
     Info "Wineprefix is now working; launch osu! with osu-wine"
     ;;
