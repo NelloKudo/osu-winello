@@ -417,8 +417,6 @@ case "$1" in
     Info "Deleting old Wineprefix..."
     rm -rf "$WINEPREFIX"
 
-    export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
-
     WINEESYNC=0 WINEFSYNC=0 PROTON_NO_ESYNC=1 PROTON_NO_FSYNC=1 "$UMU_RUN" \
         winetricks dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
 

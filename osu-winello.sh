@@ -34,6 +34,9 @@ export BINDIR="${BINDIR:-$HOME/.local/bin}"
 export PROTONPATH="${PROTONPATH:-"$XDG_DATA_HOME/osuconfig/proton-osu"}"
 export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
 
+# For umu-launcher
+export GAMEID="umu-727"
+
 #   =====================================
 #   =====================================
 #           INSTALLER FUNCTIONS
@@ -175,6 +178,9 @@ profile bwrap /usr/bin/bwrap flags=(unconfined) {
 
 # Function to install script files, umu-launcher and Proton-osu
 InstallProton() {
+    ## Setting up umu-launcher from the Proton package
+    Info "Setting up umu-launcher.."
+
     Info "Installing game script:"
     cp ./osu-wine "$BINDIR/osu-wine" && chmod +x "$BINDIR/osu-wine"
 
@@ -220,11 +226,6 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     git clone https://github.com/NelloKudo/osu-winello.git "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
 
     echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
-
-    ## Setting up umu-launcher from the Proton package
-    Info "Setting up umu-launcher.."
-    UMU_RUN="$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"
-    export GAMEID="umu-727"
 }
 
 # Function configuring folders to install the game
@@ -343,7 +344,6 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
     # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
 
     PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz"
-    export PROTONPATH="$XDG_DATA_HOME/osuconfig/proton-osu"
 
     Info "Configuring Wineprefix:"
 
@@ -377,7 +377,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix" "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
+            "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
         else
             tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
             mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
@@ -385,9 +385,6 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         # Cleaning..
         rm -rf "$HOME/.winellotmp"
-
-        # We're now gonna refer to this as Wineprefix
-        export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 
         # Time to debloat the prefix a bit and make necessary symlinks (drag and drop, long name maps/paths..)
         rm -rf "$WINEPREFIX/dosdevices"
@@ -564,14 +561,12 @@ Check32() {
     Info "(Window will automatically close after 15 seconds anyways)"
 
     chmod +x "./stuff/glxgears32"
-    UMU_RUN="$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"
-
     temp_out=$(mktemp)
 
     tail -f "$temp_out" | grep -i --line-buffered "explicit\|X_GLXSwapBuffers" >"$temp_out.success" &
     tail_pid=$!
 
-    GAMEID="umu-727" UMU_NO_PROTON=1 "$UMU_RUN" "./stuff/glxgears32" >"$temp_out" 2>&1 &
+    UMU_NO_PROTON=1 "$UMU_RUN" "./stuff/glxgears32" >"$temp_out" 2>&1 &
     umu_pid=$!
 
     _timeout=15
@@ -762,7 +757,6 @@ discordRpc() {
 }
 
 FixUmu() {
-    UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
     if [ ! -f "$BINDIR/osu-wine" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
         return
@@ -780,7 +774,7 @@ FixUmu() {
     done
 
     Info "Reinstalling umu-launcher..."
-    UMU_NO_RUNTIME_UPDATE=0 UMU_NO_PROTON=1 GAMEID="umu-727" "$UMU_RUN" true && chk="$?"
+    UMU_RUNTIME_UPDATE=0 UMU_NO_PROTON=1 "$UMU_RUN" true && chk="$?"
     if [ "${chk}" != 0 ]; then
         Info "That didn't seem to work... try again?"
     else
