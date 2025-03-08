@@ -500,9 +500,84 @@ Check32() {
     return 1
 }
 
+# Remember whether the user wants to overwrite their local files
+askConfirmTimeout() {
+    [ -z "${1:-}" ] && Info "Missing an argument for ${FUNCNAME[0]}!?" && exit 1
+
+    local rememberfile="${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
+    touch "${rememberfile}"
+
+    local lastchoice
+    lastchoice="$(grep "${1}" "${rememberfile}" | grep -Eo '(y|n)' | tail -n 1)"
+
+    if [ -n "$lastchoice" ] && [ "$lastchoice" = "n" ]; then
+        Info "Won't update ${1}, using saved choice from ${rememberfile}"
+        Info "Remove this file if you've changed your mind."
+        return 1
+    elif [ -n "$lastchoice" ] && [ "$lastchoice" = "y" ]; then
+        Info "Will update ${1}, using saved choice from ${rememberfile}"
+        Info "Remove this file if you've changed your mind."
+        return 0
+    fi
+
+    local _timeout=${2:-7} # use a 7 second timeout unless manually specified
+    echo -n "$(Info "Choose: (Y/n) [${_timeout}s] ")"
+
+    read -t "$_timeout" -r prefchoice
+
+    if [[ "$prefchoice" =~ ^(n|N)(o|O)?$ ]]; then
+        Info "Okay, won't update ${1}, saving this choice to ${rememberfile}."
+        echo "${1} n" >> "${rememberfile}"
+        return 1
+    fi
+    Info "Will update ${1}, saving this choice to ${rememberfile}."
+    echo "${1} y" >> "${rememberfile}"
+    echo ""
+    return 0
+}
+
+# A helper for updating the osu-wine launcher itself
+launcherUpdate() {
+    local launcher="${1}"
+    local update_source="$XDG_DATA_HOME/osuconfig/update/osu-wine"
+    local backup_path="$XDG_DATA_HOME/osuconfig/osu-wine.bak"
+
+    if [ ! -f "$update_source" ]; then
+        Warning "Update source not found: $update_source"
+        return 1
+    fi
+
+    if ! cp -f "$launcher" "$backup_path"; then
+        Warning "Failed to create backup at $backup_path"
+        return 1
+    fi
+
+    if ! cp -f "$update_source" "$launcher"; then
+        Warning "Failed to apply update to $launcher"
+        Warning "Attempting to restore from backup..."
+
+        if ! cp -f "$backup_path" "$launcher"; then
+            Warning "Failed to restore backup - system may be in inconsistent state"
+            Warning "Manual restoration required from: $backup_path"
+            return 1
+        fi
+        return 1
+    fi
+
+    if ! chmod --reference="$backup_path" "$launcher" 2>/dev/null; then
+        chmod +x "$launcher" 2>/dev/null || {
+            Warning "Failed to set executable permissions on $launcher"
+            return 1
+        }
+    fi
+
+    return 0
+}
+
 # This function reads files located in $XDG_DATA_HOME/osuconfig
 # to see whether a new wine-osu version has been released.
 Update() {
+    local launcher_path="${1:-}"
     # Checking for old installs with Wine
     if [ -d "$XDG_DATA_HOME/osuconfig/wine-osu" ]; then
         Quit "wine-osu detected and already up-to-date; please reinstall Winello if you want to use proton-osu!"
@@ -527,9 +602,35 @@ Update() {
         rm -f "$XDG_DATA_HOME/osuconfig/protonverupdate"
         echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
         Info "Update is completed!"
-
     else
         Info "Your Proton-osu is already up-to-date!"
+    fi
+
+    [ ! -x "${launcher_path}" ] && return
+
+    if [ ! -w "${launcher_path}" ]; then
+        Warning "Note: ${launcher_path} is not writable - updating the osu-wine launcher will not be possible"
+        Warning "Try running the update with appropriate permissions if you want to update the launcher,"
+        Warning "   or move it to a place like $BINDIR and then run it from there."
+        return
+    fi
+
+    Info "Do you want to update the 'osu-wine' launcher as well?"
+    Info "This is recommended, as there may be important fixes and updates."
+    Warning "This will remove any customizations you might have made to ${launcher_path},"
+    Warning "   but a backup will be left in $XDG_DATA_HOME/osuconfig/osu-wine.bak ."
+
+    # use a really long timeout so the user can read everything and decide
+    askConfirmTimeout "the 'osu-wine' launcher" 60 && selfupdate=y
+    if [ -n "${selfupdate}" ]; then
+        if launcherUpdate "${launcher_path}"; then
+            Info "Launcher update successful!"
+            Info "Backup saved to: $XDG_DATA_HOME/osuconfig/osu-wine.bak"
+        else
+            Error "Launcher update failed"
+        fi
+    else
+        Info "Your osu-wine launcher will be left alone."
     fi
 }
 
@@ -606,48 +707,13 @@ tosu() {
     fi
 }
 
-# only used for rpc bridge for now, but should be used for other update functionality in the future
-# (so that we don't overwrite local files if that's not wanted)
-askConfirmTimeout() {
-    [ -z "${1:-}" ] && Info "Missing an argument for ${FUNCNAME[0]}!?" && exit 1
-
-    local rememberfile="${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
-    touch "${rememberfile}"
-
-    local lastchoice
-    lastchoice="$(grep "${1}" "${rememberfile}" | grep -Eo '(y|n)' | tail -n 1)"
-
-    if [ -n "$lastchoice" ] && [ "$lastchoice" = "n" ]; then
-        Info "Won't reinstall ${1}, using saved choice from ${rememberfile}"
-        Info "Remove this file if you change your mind in the future."
-        return 1
-    elif [ -n "$lastchoice" ] && [ "$lastchoice" = "y" ]; then
-        Info "Will reinstall ${1}, using saved choice from ${rememberfile}"
-        Info "Remove this file if you change your mind in the future."
-        return 0
-    fi
-
-    local _timeout=5
-    Info "${1} is already installed, do you want to reinstall it?"
-    echo -n "$(Info "Choose: (Y/n) [${_timeout}s] ")"
-
-    read -t $_timeout -r prefchoice
-
-    if [[ "$prefchoice" =~ ^(n|N)(o|O)?$ ]]; then
-        Info "Okay, won't reinstall ${1}, saving this choice to ${rememberfile}."
-        echo "${1} n" >> "${rememberfile}"
-        return 1
-    fi
-    Info "Will install ${1}, saving this choice to ${rememberfile}."
-    echo "${1} y" >> "${rememberfile}"
-    echo ""
-    return 0
-}
-
 # Installs rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
 discordRpc() {
     Info "Configuring rpc-bridge (Discord RPC)"
-    [ -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ] && askConfirmTimeout "rpc-bridge (Discord RPC)" || return 1
+    if [ -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
+        Info "rpc-bridge (Discord RPC) is already installed, do you want to reinstall it?"
+        askConfirmTimeout "rpc-bridge (Discord RPC)" || return 1
+    fi
 
     # try uninstalling the service first
     UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 "$UMU_RUN" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
@@ -769,7 +835,7 @@ case "$1" in
     ;;
 
 'update')
-    Update
+    Update "${2:-}" # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
     ;;
 
 *umu*)

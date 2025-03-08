@@ -94,76 +94,14 @@ deleteFolder() {
     fi
 }
 
-SelfUpdate() {
-    local self="$1"
-    local update_source="$XDG_DATA_HOME/osuconfig/update/osu-wine"
-    local backup_path="$XDG_DATA_HOME/osuconfig/osu-wine.bak"
-
-    if [ ! -f "$update_source" ]; then
-        Warning "Update source not found: $update_source"
-        return 1
-    fi
-
-    if ! cp -f "$self" "$backup_path"; then
-        Warning "Failed to create backup at $backup_path"
-        return 1
-    fi
-
-    if ! cp -f "$update_source" "$self"; then
-        Warning "Failed to apply update to $self"
-        Warning "Attempting to restore from backup..."
-
-        if ! cp -f "$backup_path" "$self"; then
-            Warning "Failed to restore backup - system may be in inconsistent state"
-            Warning "Manual restoration required from: $backup_path"
-            return 1
-        fi
-        return 1
-    fi
-
-    if ! chmod --reference="$backup_path" "$self" 2>/dev/null; then
-        chmod +x "$self" 2>/dev/null || {
-            Warning "Failed to set executable permissions on $self"
-            return 1
-        }
-    fi
-
-    return 0
-}
-
 Update() {
     Info "Checking for Steam Runtime updates first.."
     $LAUNCH_ARGS "$UMU_RUN" wineboot -u
     $LAUNCH_ARGS "$WINESERVER_PATH" -k
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update
-
     local self
     self="$(realpath "$0")"
-
-    if [ ! -w "${self}" ]; then
-        Warning "Note: ${self} is not writable - updating the osu-wine launcher will not be possible"
-        Warning "Try running the update with appropriate permissions if you want to update the launcher,"
-        Warning "   or move it to a place like $BINDIR and then run it from there."
-        return
-    fi
-
-    Info "Do you want to update the 'osu-wine' launcher as well?"
-    Info "This is recommended, as there may be important fixes and updates."
-    Warning "This will remove any customizations you might have made to ${self},"
-    Warning "   but a backup will be left in $XDG_DATA_HOME/osuconfig/osu-wine.bak ."
-
-    read -r -p "$(Info "Update the 'osu-wine' launcher? (y/N) ")" selfupdate
-    if [ "${selfupdate}" = 'y' ] || [ "${selfupdate}" = 'Y' ]; then
-        if SelfUpdate "${self}"; then
-            Info "Launcher update successful!"
-            Info "Backup saved to: $XDG_DATA_HOME/osuconfig/osu-wine.bak"
-        else
-            Error "Launcher update failed"
-        fi
-    else
-        Info "Your osu-wine launcher will be left alone."
-    fi
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    exec bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update "${self}"
 }
 
 longPathsFix() {
