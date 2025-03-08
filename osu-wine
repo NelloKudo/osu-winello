@@ -348,6 +348,15 @@ case "$1" in
 
     ###################################################################################################
 
+'--runinprefix')
+
+    export PROTON_VERB=runinprefix
+    Info "Launching your custom executable: $2.."
+    $LAUNCH_ARGS "$UMU_RUN" "$2"
+    ;;
+
+    ###################################################################################################
+
 '--fixprefix')
     Info "Checking for internet connection.."
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
