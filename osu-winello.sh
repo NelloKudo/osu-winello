@@ -7,6 +7,9 @@
 #   Feel free to contribute!
 #   =======================================
 
+# The URL for this git repo
+WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
+
 # Proton-osu current versions for update
 MAJOR=9
 MINOR=16
@@ -22,7 +25,17 @@ DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
 
-# Shell local variables
+# Other download links
+PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
+OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" # osu-mime (file associations)
+
+OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
+
+DISCRPCLINK="https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip"
+GOSUMEMORYLINK="https://github.com/l3lackShark/gosumemory/releases/download/${GOSUMEMORYVERSION}/gosumemory_windows_amd64.zip"
+TOSULINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu-windows-v${TOSUVERSION}.zip"
+
+# Other shell local variables
 
 UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
 
@@ -223,7 +236,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     # with latest values from GitHub and check whether to update or not
     Info "Installing script copy for updates.."
     mkdir -p "$XDG_DATA_HOME/osuconfig/update"
-    git clone https://github.com/NelloKudo/osu-winello.git "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
+    git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
 
     echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
 }
@@ -293,11 +306,11 @@ FullInstall() {
     Info "Configuring osu-mime and osu-handler:"
 
     # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
-    wget -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" && chk="$?"
+    wget -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" && chk="$?"
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
     fi
 
     tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
@@ -309,12 +322,7 @@ FullInstall() {
 
     # Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
     # Binary was compiled from source on Ubuntu 18.04
-    wget -O "$XDG_DATA_HOME/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" && chk="$?"
-
-    if [ ! "$chk" = 0 ]; then
-        Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "$XDG_DATA_HOME/osuconfig/osu-handler-wine" "https://github.com/NelloKudo/osu-winello/raw/main/stuff/osu-handler-wine" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-    fi
+    cp "./stuff/osu-handler-wine" "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
 
     chmod +x "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
 
@@ -343,8 +351,6 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
     # Time to install my prepackaged Wineprefix, which works in most cases
     # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
 
-    PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz"
-
     Info "Configuring Wineprefix:"
 
     # Variable to check if download finished properly
@@ -367,12 +373,12 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "$PREFIXLINK" && chk="$?"
+        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
 
         # If download failed:
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "$PREFIXLINK" || failprefix="true"
+            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
         fi
 
         # Checking whether to create prefix manually or install it from repos
@@ -529,11 +535,11 @@ EOF
     # Well...
     Info "Downloading osu!"
     if [ ! -s "$OSUPATH/osu!.exe" ]; then
-        wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && chk="$?"
+        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && chk="$?"
 
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
         fi
     fi
 
@@ -623,11 +629,11 @@ Update() {
     LASTPROTONVERSION=$(</"$XDG_DATA_HOME/osuconfig/protonverupdate")
 
     if [ "$LASTPROTONVERSION" \!= "$PROTONVERSION" ]; then
-        wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "$PROTONLINK" && chk="$?"
+        wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "${PROTONLINK}" && chk="$?"
 
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "$PROTONLINK" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+            wget --no-check-certificate -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "${PROTONLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
         fi
         Info "Updating Proton-osu"...
 
@@ -698,24 +704,20 @@ Uninstall() {
 
 # Simple function that downloads Gosumemory!
 Gosumemory() {
-    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/${GOSUMEMORYVERSION}/gosumemory_windows_amd64.zip"
-
     if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
         Info "Installing gosumemory.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/gosumemory"
-        wget -O "/tmp/gosumemory.zip" "$GOSUMEMORY_LINK" || Error "Download failed, check your connection.."
+        wget -O "/tmp/gosumemory.zip" "${GOSUMEMORYLINK}" || Error "Download failed, check your connection.."
         unzip -d "$XDG_DATA_HOME/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
         rm "/tmp/gosumemory.zip"
     fi
 }
 
 tosu() {
-    TOSU_LINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu-windows-v${TOSUVERSION}.zip"
-
     if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
         Info "Installing tosu.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/tosu"
-        wget -O "/tmp/tosu.zip" "$TOSU_LINK" || Error "Download failed, check your connection.."
+        wget -O "/tmp/tosu.zip" "${TOSULINK}" || Error "Download failed, check your connection.."
         unzip -d "$XDG_DATA_HOME/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
@@ -742,11 +744,11 @@ discordRpc() {
     "$UMU_RUN" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
     local chk
 
-    wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" && chk="$?"
+    wget -O "/tmp/bridge.zip" "${DISCRPCLINK}" && chk="$?"
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget --no-check-certificate -O "/tmp/bridge.zip" "${DISCRPCLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
     fi
 
     mkdir -p /tmp/rpc-bridge

@@ -35,8 +35,10 @@ export WINE_BLOCK_GET_VERSION=0                      # Set this to 1 to enable W
 export WINE_DISABLE_VK_CHILD_WINDOW_RENDERING_HACK=1 # Fixes compat. mode crashing after Proton-osu-9-15
 
 ###################################################################################################
-# Helper functions for the launcher script
+# Helper functions and variables for the launcher script
 ###################################################################################################
+
+OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 
 Info() {
     echo -e '\033[1;34m'"Winello:\033[0m $*"
@@ -321,11 +323,11 @@ case "$1" in
         echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
 
         Info "Downloading osu! to your new install.."
-        wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && wgetcheck6="$?"
+        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && wgetcheck6="$?"
 
         if [ ! "$wgetcheck6" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe"
+            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}"
         fi
 
         Info "Change done from '$lastdir' to '$newdir'!"
