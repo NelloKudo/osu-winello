@@ -61,7 +61,7 @@ Help() {
     osu-wine --regedit: Opens regedit on osu! Wineprefix
     osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
     osu-wine --kill9: Kills osu! but with wineserver -k9
-    osu-wine --update: Updates wine-osu to latest version
+    osu-wine --update: Updates proton-osu (and optionally, the osu-wine script) to upstream
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
     osu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
@@ -70,6 +70,8 @@ Help() {
     osu-wine --remove: Uninstalls osu! and the script
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
+    osu-wine --runinprefix <file>: Launches a custom executable within osu!'s Wineprefix
+    osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
     osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
     osu-wine --tosu: Installs and runs tosu without any needed config!
     osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
@@ -408,8 +410,8 @@ case "$1" in
     Wineprefix location: $WINEPREFIX
     osu! folder: '$OSUPATH'
 
-    If you need to add more options to osu!, see around line 77 of the script (ex. nano $BINDIR/osu-wine)
-    You can run 'osu-wine --help' to see all the script's functions (fix prefix, w10 fonts etc.)
+    If you need to add more options to osu!, check the LaunchGame function of the script (ex. nano $BINDIR/osu-wine)
+    You can run 'osu-wine --help' to see all the script's functions (fix prefix, change dir etc.)
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1
 
     If you get an error like 'Runtime Platform missing or download incomplete', try running 'osu-wine --fix-umu'."

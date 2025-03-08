@@ -118,6 +118,8 @@ osu-wine --info: Troubleshooting and more info
 osu-wine --remove: Uninstalls osu! and the script
 osu-wine --changedir: Changes directory of the install according to the user
 osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
+osu-wine --runinprefix <file>: Launches a custom executable within osu!'s Wineprefix
+osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
 osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
 osu-wine --tosu: Installs and runs tosu without any needed config!
 osu-wine --disable-memory-reader: Turn off gosumemory and tosu
