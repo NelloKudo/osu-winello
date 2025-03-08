@@ -17,6 +17,11 @@ LASTPROTONVERSION=0
 # Proton-osu mirrors
 PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-$MAJOR-$MINOR/proton-osu-$MAJOR-$MINOR.tar.xz"
 
+# Other versions for external downloads
+DISCRPCBRIDGEVERSION=1.2
+GOSUMEMORYVERSION=1.3.9
+TOSUVERSION=4.3.1
+
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
@@ -515,11 +520,11 @@ EOF
 
     if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ]; then
         Info "Configuring rpc-bridge (Discord RPC)"
-        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
+        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" && chk="$?"
 
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
         fi
 
         mkdir -p /tmp/rpc-bridge
@@ -702,7 +707,7 @@ Uninstall() {
 
 # Simple function that downloads Gosumemory!
 Gosumemory() {
-    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_windows_amd64.zip"
+    GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/${GOSUMEMORYVERSION}/gosumemory_windows_amd64.zip"
 
     if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
         Info "Installing gosumemory.."
@@ -714,7 +719,7 @@ Gosumemory() {
 }
 
 tosu() {
-    TOSU_LINK="https://github.com/tosuapp/tosu/releases/download/v4.3.1/tosu-windows-v4.3.1.zip"
+    TOSU_LINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu-windows-v${TOSUVERSION}.zip"
 
     if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
         Info "Installing tosu.."
