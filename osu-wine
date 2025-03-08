@@ -6,7 +6,7 @@
 
 ## If you ever need to change something to the osu! launcher besides args, just go to line ~68
 
-LAUNCH_ARGS="env PROTONFIXES_DISABLE=1" # Use this for args like prime-run or gamemoderun!
+LAUNCH_ARGS="env PROTONFIXES_DISABLE=1"                                   # Use this for args like prime-run or gamemoderun!
 export PRESSURE_VESSEL_FILESYSTEMS_RW=${PRESSURE_VESSEL_FILESYSTEMS_RW:-} # Set this to your external disk paths if you use symlinks!
 export WINEDEBUG=${WINEDEBUG:-}
 
@@ -24,29 +24,36 @@ export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$XDG_DATA_HOME/osuconfig/osupath")
 export OSUPATH="$osuinstall"
 
-export vblank_mode=0            # Disables vsync for mesa
-export __GL_SYNC_TO_VBLANK=0    # Disables vsync for NVIDIA >=510
+export vblank_mode=0                           # Disables vsync for mesa
+export __GL_SYNC_TO_VBLANK=0                   # Disables vsync for NVIDIA >=510
 export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
-export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
+export WINE_ENABLE_ABS_TABLET_HACK=0           # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
 
-export WINEESYNC=1 # PROTON_NO_ESYNC=1 is also needed to disable
-export WINEFSYNC=1 # PROTON_NO_FSYNC=1 is also needed to disable
-export WINE_BLOCK_GET_VERSION=0 # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
+export WINEESYNC=1                                   # PROTON_NO_ESYNC=1 is also needed to disable
+export WINEFSYNC=1                                   # PROTON_NO_FSYNC=1 is also needed to disable
+export WINE_BLOCK_GET_VERSION=0                      # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
 export WINE_DISABLE_VK_CHILD_WINDOW_RENDERING_HACK=1 # Fixes compat. mode crashing after Proton-osu-9-15
 
-function Info(){
-    echo -e '\033[1;34m'"Winello:\033[0m $*";
+###################################################################################################
+# Helper functions and variables for the launcher script
+###################################################################################################
+
+OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
+
+Info() {
+    echo -e '\033[1;34m'"Winello:\033[0m $*"
 }
 
-function Warning(){
-    echo -e '\033[0;33m'"Winello:\033[0m $*";
+Warning() {
+    echo -e '\033[0;33m'"Winello:\033[0m $*"
 }
 
-function Error(){
-    echo -e '\033[1;31m'"Script failed:\033[0m $*"; exit 1;
+Error() {
+    echo -e '\033[1;31m'"Script failed:\033[0m $*"
+    exit 1
 }
 
-function Help(){
+Help() {
     Info "Script features:
     osu-wine: Runs osu!
     osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
@@ -68,108 +75,63 @@ function Help(){
     osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
 
-function Checkshort(){      # Deletes useless shortcuts created when installing
-    if [ -e "$XDG_DATA_HOME/applications/wine/Programs/osu!.desktop" ] ; then
-        rm -f "$XDG_DATA_HOME/applications/wine/Programs/osu!.desktop" ; fi
+deleteFolder() {
+    Info "Do you want to delete the previous install?"
+    read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
 
-    DESKTOPDIR=$(xdg-user-dir DESKTOP)
-    if [ -e "$DESKTOPDIR/osu!.lnk" ] ; then
-        rm -f "$DESKTOPDIR/osu!.lnk" ; fi
-}
+    if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
+        read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" dirchoice2
 
-function SelfUpdate() {
-    local self="$1"
-    local update_source="$XDG_DATA_HOME/osuconfig/update/osu-wine"
-    local backup_path="$XDG_DATA_HOME/osuconfig/osu-wine.bak"
-
-    if [ ! -f "$update_source" ]; then
-        Warning "Update source not found: $update_source"
-        return 1
-    fi
-
-    if ! cp -f "$self" "$backup_path"; then
-        Warning "Failed to create backup at $backup_path"
-        return 1
-    fi
-
-    if ! cp -f "$update_source" "$self"; then
-        Warning "Failed to apply update to $self"
-        Warning "Attempting to restore from backup..."
-
-        if ! cp -f "$backup_path" "$self"; then
-            Warning "Failed to restore backup - system may be in inconsistent state"
-            Warning "Manual restoration required from: $backup_path"
-            return 1
+        if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
+            lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+            rm -rf "$lastdir/osu!" && Info "Cleaning done!"
+        else
+            Info "Skipping..."
         fi
-        return 1
-    fi
 
-    if ! chmod --reference="$backup_path" "$self" 2>/dev/null; then
-        chmod +x "$self" 2>/dev/null || {
-            Warning "Failed to set executable permissions on $self"
-            return 1
-        }
+    else
+        Info "Skipping.."
     fi
-
-    return 0
 }
 
-function Update(){
+Update() {
     Info "Checking for Steam Runtime updates first.."
     $LAUNCH_ARGS "$UMU_RUN" wineboot -u
     $LAUNCH_ARGS "$WINESERVER_PATH" -k
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update
-
     local self
     self="$(realpath "$0")"
-
-    if [ ! -w "${self}" ]; then
-        Warning "Note: ${self} is not writable - updating the osu-wine launcher will not be possible"
-        Warning "Try running the update with appropriate permissions if you want to update the launcher,"
-        Warning "   or move it to a place like $BINDIR and then run it from there."
-        return
-    fi
-
-    Info "Do you want to update the 'osu-wine' launcher as well?"
-    Info "This is recommended, as there may be important fixes and updates."
-    Warning "This will remove any customizations you might have made to ${self},"
-    Warning "   but a backup will be left in $XDG_DATA_HOME/osuconfig/osu-wine.bak ."
-
-    read -r -p "$(Info "Update the 'osu-wine' launcher? (y/N) ")" selfupdate
-    if [ "${selfupdate}" = 'y' ] || [ "${selfupdate}" = 'Y' ]; then
-        if SelfUpdate "${self}"; then
-            Info "Launcher update successful!"
-            Info "Backup saved to: $XDG_DATA_HOME/osuconfig/osu-wine.bak"
-        else
-            Error "Launcher update failed"
-        fi
-    else
-        Info "Your osu-wine launcher will be left alone."
-    fi
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    exec bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update "${self}"
 }
 
-function longPathsFix(){
+longPathsFix() {
     # Applying fix for long names/paths...
     rm -rf "$WINEPREFIX/dosdevices/d:"
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
-function folderFix(){
-    # Applying fix for opening folders in the native file browser...
-    local FOLDERFIX
-    FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || fallback=1
-
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
-    $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    if [ -z "${fallback:-}" ]; then
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${FOLDERFIX//\\/\\\\}\" \"%1\""
-    else
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
-    fi
+osuHandlerSetup() {
+    # Fix to importing maps/skins/osu links after Stable update 20250122.1
+    # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
 }
 
-function SetupReader(){
+folderFix() {
+    # Applying fix for opening folders in the native file browser...
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixfolders
+}
+
+fixRpc() {
+    # reinstall discord rpc bridge
+    if [ ! -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
+        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    fi
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" discordrpc
+}
+
+SetupReader() {
     local READER_NAME="${1}"
     if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
         git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
@@ -202,7 +164,7 @@ EOF
     Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
 }
 
-function LaunchGame() {
+LaunchGame() {
     local PRE_COMMAND=("${LAUNCH_ARGS//env /}" "UMU_RUNTIME_UPDATE=0")
     local POST_COMMAND=("$UMU_RUN")
     if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
@@ -230,58 +192,39 @@ function LaunchGame() {
 ###################################################################################################
 
 case "$1" in
-    '')
+'')
     LaunchGame
     Checkshort
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--devserver')
+'--devserver')
     if [ -z "$2" ]; then Error "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
     LaunchGame "$2"
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--regedit')
+'--regedit')
     $LAUNCH_ARGS "$UMU_RUN" regedit
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--winecfg')
+'--winecfg')
     $LAUNCH_ARGS "$UMU_RUN" winecfg
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--winetricks')
+'--winetricks')
     $LAUNCH_ARGS "$UMU_RUN" winetricks "${@:2}"
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--changedir')
-    function deleteFolder(){
-        Info "Do you want to delete the previous install?"
-        read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
-
-            if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
-                read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" dirchoice2
-
-                    if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
-                        lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-                        rm -rf "$lastdir/osu!" && Info "Cleaning done!"
-                    else
-                        Info "Skipping..."
-                    fi
-
-            else
-                Info "Skipping.."
-            fi
-    }
-
+'--changedir')
     Info "Please choose your new directory:"
 
     newdir="$(zenity --file-selection --directory)"
@@ -297,7 +240,7 @@ case "$1" in
 
         if [ -d "$newdir/osu!" ]; then
             OSUPATH="$newdir/osu!"
-            echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
+            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
 
             Info "Change done from '$lastdir' to '$newdir'!"
             deleteFolder
@@ -305,7 +248,7 @@ case "$1" in
 
         if [ -s "$newdir/osu!.exe" ]; then
             OSUPATH="$newdir"
-            echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
+            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
 
             Info "Change done from '$lastdir' to '$newdir'!"
             deleteFolder
@@ -313,14 +256,15 @@ case "$1" in
     else
         mkdir "$newdir/osu!"
         OSUPATH="$newdir/osu!"
-        echo "$OSUPATH" > "$XDG_DATA_HOME/osuconfig/osupath"
+        echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
 
         Info "Downloading osu! to your new install.."
-        wget -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" && wgetcheck6="$?"
+        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && wgetcheck6="$?"
 
-        if [ ! "$wgetcheck6" = 0 ] ; then
+        if [ ! "$wgetcheck6" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "http://m1.ppy.sh/r/osu!install.exe" ; fi
+            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}"
+        fi
 
         Info "Change done from '$lastdir' to '$newdir'!"
         deleteFolder
@@ -329,66 +273,52 @@ case "$1" in
     longPathsFix
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--remove')
+'--remove')
     bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" uninstall
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--kill')
+'--kill')
     "$WINESERVER_PATH" -k
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--kill9')
+'--kill9')
     "$WINESERVER_PATH" -k9
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--update')
+'--update')
     Update
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--fixfolders')
+'--fixfolders')
     folderFix
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    *fix*umu*)
+*fix*umu*)
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
     bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixumu
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--fixrpc')
-    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
-        Info "Configuring rpc-bridge (Discord RPC)"
-        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
-
-        if [ ! "$chk" = 0 ] ; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-        fi
-
-        mkdir -p /tmp/rpc-bridge
-        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        WINE_BLOCK_GET_VERSION=0 $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
-        rm -f "/tmp/bridge.zip"
-        rm -rf "/tmp/rpc-bridge"
-    fi
+'--fixrpc')
+    fixRpc
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--osuhandler')
+'--osuhandler')
 
     OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/osu-handler-wine"
 
@@ -407,7 +337,7 @@ case "$1" in
         "$OSUHANDLERPATH" start /ProgIDOpen osustable.File.osz2 "$2"
         ;;
     osu://*)
-        "$OSUHANDLERPATH" "$2" 
+        "$OSUHANDLERPATH" "$2"
         ;;
     *)
         Info "Unsupported osu! file.."
@@ -416,16 +346,14 @@ case "$1" in
 
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--fixprefix')
+'--fixprefix')
     Info "Checking for internet connection.."
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
 
     Info "Deleting old Wineprefix..."
     rm -rf "$WINEPREFIX"
-
-    export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 
     WINEESYNC=0 WINEFSYNC=0 PROTON_NO_ESYNC=1 PROTON_NO_FSYNC=1 "$UMU_RUN" \
         winetricks dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
@@ -435,42 +363,27 @@ case "$1" in
     # Applying fix for long names/paths...
     longPathsFix
 
-    # Fix to importing maps/skins/osu links after Stable update 20250122.1
-    # This assumes the osu! folder is mounted at the D: drive (which Winello does just a line above)
-    REGFILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
-    "$UMU_RUN" regedit /s "${REGFILE}"
+    # Re-set-up osu-handler
+    osuHandlerSetup
 
-    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/drive_c/windows/bridge.exe" ] ; then
-        Info "Configuring rpc-bridge (Discord RPC)"
-        wget -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" && chk="$?"
-
-        if [ ! "$chk" = 0 ] ; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/bridge.zip" "https://github.com/EnderIce2/rpc-bridge/releases/download/v1.2/bridge.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-        fi
-
-        mkdir -p /tmp/rpc-bridge
-        unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-        WINE_BLOCK_GET_VERSION=0 $LAUNCH_ARGS "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
-        rm -f "/tmp/bridge.zip"
-        rm -rf "/tmp/rpc-bridge"
-    fi
+    # Try fixing the rpc bridge
+    fixRpc
 
     Info "Wineprefix is now working; launch osu! with osu-wine"
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--tosu')
+'--tosu')
     SetupReader 'tosu'
     ;;
-    '--gosumemory')
+'--gosumemory')
     SetupReader 'gosumemory'
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--disable-memory-reader')
+'--disable-memory-reader')
     if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
         rm "$OSUPATH/launch_with_memory.bat"
         Info "Memory reader wrapper disabled."
@@ -479,9 +392,9 @@ case "$1" in
     fi
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    '--info')
+'--info')
     Info "Need info?:
     Wineprefix location: $WINEPREFIX
     osu! folder: '$OSUPATH'
@@ -493,14 +406,13 @@ case "$1" in
     If you get an error like 'Runtime Platform missing or download incomplete', try running 'osu-wine --fix-umu'."
     ;;
 
-###################################################################################################
+    ###################################################################################################
 
-    *help*)
+*help*)
     Help
     ;;
-    *)
+*)
     Info "Unknown argument: ${1}"
     Help
     ;;
-
 esac
