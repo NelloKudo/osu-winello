@@ -27,22 +27,22 @@ export BINDIR="${BINDIR:-$HOME/.local/bin}"
 #   =====================================
 
 # Simple echo function (but with cool text e.e)
-function Info() {
+Info() {
     echo -e '\033[1;34m'"Winello:\033[0m $*"
 }
 
-function Warning() {
+Warning() {
     echo -e '\033[0;33m'"Winello (WARNING):\033[0m $*"
 }
 
 # Function to quit the install but not revert it in some cases
-function Quit() {
+Quit() {
     echo -e '\033[1;31m'"Winello:\033[0m $*"
     exit 1
 }
 
 # Function to revert the install in case of any type of fail
-function Revert() {
+Revert() {
     echo -e '\033[1;31m'"Reverting install...:\033[0m"
     rm -f "$XDG_DATA_HOME/icons/osu-wine.png"
     rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
@@ -60,14 +60,14 @@ function Revert() {
 }
 
 # Error function pointing at Revert(), but with an appropriate message
-function Error() {
+Error() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
     Revert
     exit 1
 }
 
 # Function looking for basic stuff needed for installation
-function InitialSetup() {
+InitialSetup() {
     # Better to not run the script as root, right?
     if [ "$USER" = "root" ]; then Error "Please run the script without root"; fi
 
@@ -160,7 +160,7 @@ profile bwrap /usr/bin/bwrap flags=(unconfined) {
 }
 
 # Function to install script files, umu-launcher and Proton-osu
-function InstallProton() {
+InstallProton() {
     Info "Installing game script:"
     cp ./osu-wine "$BINDIR/osu-wine" && chmod +x "$BINDIR/osu-wine"
 
@@ -213,7 +213,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
 }
 
 # Function configuring folders to install the game
-function ConfigurePath() {
+ConfigurePath() {
     Info "Configuring osu! folder:"
     Info "Where do you want to install the game?: 
           1 - Default path ($XDG_DATA_HOME/osu-wine)
@@ -273,7 +273,7 @@ function ConfigurePath() {
 # - Wineprefix
 # - Regedit keys to integrate native file manager with Wine
 # - rpc-bridge for Discord RPC (flatpak users, google "flatpak discord rpc")
-function FullInstall() {
+FullInstall() {
     Info "Configuring osu-mime and osu-handler:"
 
     # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
@@ -554,7 +554,7 @@ EOF
 #   =====================================
 
 # Sanity check to make sure we can run 32-bit GLX apps inside the steam runtime
-function Check32() {
+Check32() {
     local temp_out
     local tail_pid
     local umu_pid
@@ -617,7 +617,7 @@ function Check32() {
 
 # This function reads files located in $XDG_DATA_HOME/osuconfig
 # to see whether a new wine-osu version has been released.
-function Update() {
+Update() {
     # Checking for old installs with Wine
     if [ -d "$XDG_DATA_HOME/osuconfig/wine-osu" ]; then
         Quit "wine-osu detected and already up-to-date; please reinstall Winello if you want to use proton-osu!"
@@ -649,7 +649,7 @@ function Update() {
 }
 
 # Well, simple function to install the game (also implement in osu-wine --remove)
-function Uninstall() {
+Uninstall() {
     Info "Uninstalling icons:"
     rm -f "$XDG_DATA_HOME/icons/osu-wine.png"
 
@@ -701,7 +701,7 @@ function Uninstall() {
 }
 
 # Simple function that downloads Gosumemory!
-function Gosumemory() {
+Gosumemory() {
     GOSUMEMORY_LINK="https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_windows_amd64.zip"
 
     if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
@@ -713,7 +713,7 @@ function Gosumemory() {
     fi
 }
 
-function tosu() {
+tosu() {
     TOSU_LINK="https://github.com/tosuapp/tosu/releases/download/v4.3.1/tosu-windows-v4.3.1.zip"
 
     if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
@@ -725,7 +725,7 @@ function tosu() {
     fi
 }
 
-function FixUmu() {
+FixUmu() {
     UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
     if [ ! -f "$BINDIR/osu-wine" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
@@ -753,7 +753,7 @@ function FixUmu() {
 }
 
 # Help!
-function Help() {
+Help() {
     Info "To install the game, run ./osu-winello.sh
           To uninstall the game, run ./osu-winello.sh uninstall
           To retry installing umu-launcher-related files, run ./osu-winello.sh fixumu

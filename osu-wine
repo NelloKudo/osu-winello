@@ -38,20 +38,20 @@ export WINE_DISABLE_VK_CHILD_WINDOW_RENDERING_HACK=1 # Fixes compat. mode crashi
 # Helper functions for the launcher script
 ###################################################################################################
 
-function Info() {
+Info() {
     echo -e '\033[1;34m'"Winello:\033[0m $*"
 }
 
-function Warning() {
+Warning() {
     echo -e '\033[0;33m'"Winello:\033[0m $*"
 }
 
-function Error() {
+Error() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
     exit 1
 }
 
-function Help() {
+Help() {
     Info "Script features:
     osu-wine: Runs osu!
     osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
@@ -73,7 +73,7 @@ function Help() {
     osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
 
-function deleteFolder() {
+deleteFolder() {
     Info "Do you want to delete the previous install?"
     read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
 
@@ -92,7 +92,7 @@ function deleteFolder() {
     fi
 }
 
-function SelfUpdate() {
+SelfUpdate() {
     local self="$1"
     local update_source="$XDG_DATA_HOME/osuconfig/update/osu-wine"
     local backup_path="$XDG_DATA_HOME/osuconfig/osu-wine.bak"
@@ -129,7 +129,7 @@ function SelfUpdate() {
     return 0
 }
 
-function Update() {
+Update() {
     Info "Checking for Steam Runtime updates first.."
     $LAUNCH_ARGS "$UMU_RUN" wineboot -u
     $LAUNCH_ARGS "$WINESERVER_PATH" -k
@@ -164,13 +164,13 @@ function Update() {
     fi
 }
 
-function longPathsFix() {
+longPathsFix() {
     # Applying fix for long names/paths...
     rm -rf "$WINEPREFIX/dosdevices/d:"
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
-function folderFix() {
+folderFix() {
     # Applying fix for opening folders in the native file browser...
     local FOLDERFIX
     local FALLBACK
@@ -185,7 +185,7 @@ function folderFix() {
     fi
 }
 
-function SetupReader() {
+SetupReader() {
     local READER_NAME="${1}"
     if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
         git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
@@ -218,7 +218,7 @@ EOF
     Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
 }
 
-function LaunchGame() {
+LaunchGame() {
     local PRE_COMMAND=("${LAUNCH_ARGS//env /}" "UMU_RUNTIME_UPDATE=0")
     local POST_COMMAND=("$UMU_RUN")
     if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
