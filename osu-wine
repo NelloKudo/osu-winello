@@ -73,17 +73,6 @@ function Help() {
     osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
 
-function Checkshort() { # Deletes useless shortcuts created when installing
-    if [ -e "$XDG_DATA_HOME/applications/wine/Programs/osu!.desktop" ]; then
-        rm -f "$XDG_DATA_HOME/applications/wine/Programs/osu!.desktop"
-    fi
-
-    DESKTOPDIR=$(xdg-user-dir DESKTOP)
-    if [ -e "$DESKTOPDIR/osu!.lnk" ]; then
-        rm -f "$DESKTOPDIR/osu!.lnk"
-    fi
-}
-
 function deleteFolder() {
     Info "Do you want to delete the previous install?"
     read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
