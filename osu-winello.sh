@@ -780,7 +780,7 @@ FixUmu() {
     done
 
     Info "Reinstalling umu-launcher..."
-    UMU_RUNTIME_UPDATE=0 UMU_NO_PROTON=1 "$UMU_RUN" true && chk="$?"
+    UMU_RUNTIME_UPDATE=1 UMU_NO_PROTON=1 "$UMU_RUN" true && chk="$?"
     if [ "${chk}" != 0 ]; then
         Info "That didn't seem to work... try again?"
     else
