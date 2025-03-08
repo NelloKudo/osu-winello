@@ -10,6 +10,9 @@
 # The URL for this git repo
 WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
 
+# The directory osu-winello.sh is in
+SCRDIR="$(realpath "$(dirname "$0")")"
+
 # Proton-osu current versions for update
 MAJOR=9
 MINOR=16
@@ -35,10 +38,6 @@ DISCRPCLINK="https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRP
 GOSUMEMORYLINK="https://github.com/l3lackShark/gosumemory/releases/download/${GOSUMEMORYVERSION}/gosumemory_windows_amd64.zip"
 TOSULINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu-windows-v${TOSUVERSION}.zip"
 
-# Other shell local variables
-
-UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
-
 # Exported global variables
 
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -49,6 +48,11 @@ export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
 
 # For umu-launcher
 export GAMEID="umu-727"
+
+# Other shell local variables
+
+UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
+
 
 #   =====================================
 #   =====================================
@@ -195,11 +199,11 @@ InstallProton() {
     Info "Setting up umu-launcher.."
 
     Info "Installing game script:"
-    cp ./osu-wine "$BINDIR/osu-wine" && chmod +x "$BINDIR/osu-wine"
+    cp "${SCRDIR}/osu-wine" "$BINDIR/osu-wine" && chmod +x "$BINDIR/osu-wine"
 
     Info "Installing icons:"
     mkdir -p "$XDG_DATA_HOME/icons"
-    cp "./stuff/osu-wine.png" "$XDG_DATA_HOME/icons/osu-wine.png" && chmod 644 "$XDG_DATA_HOME/icons/osu-wine.png"
+    cp "${SCRDIR}/stuff/osu-wine.png" "$XDG_DATA_HOME/icons/osu-wine.png" && chmod 644 "$XDG_DATA_HOME/icons/osu-wine.png"
 
     Info "Installing .desktop:"
     mkdir -p "$XDG_DATA_HOME/applications"
@@ -322,7 +326,7 @@ FullInstall() {
 
     # Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
     # Binary was compiled from source on Ubuntu 18.04
-    cp "./stuff/osu-handler-wine" "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
+    cp "${SCRDIR}/stuff/osu-handler-wine" "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
 
     chmod +x "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
 
@@ -400,133 +404,12 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         ln -s / "$WINEPREFIX/dosdevices/z:"
         ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 
-        # Fix to importing maps/skins/osu links after Stable update 20250122.1: https://osu.ppy.sh/home/changelog/stable40/20250122.1
-        # This assumes the osu! folder is mounted at the D: drive (which Winello does just a line above)
-        REGFILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
-
-        cat >"${REGFILE}" <<'EOF'
-Windows Registry Editor Version 5.00
-
-[HKEY_CLASSES_ROOT\osu]
-@="URL:osu!"
-"URL Protocol"=""
-
-[HKEY_CLASSES_ROOT\osustable.File.osk]
-@="osu! Skin"
-
-[HKEY_CLASSES_ROOT\osustable.File.osk\DefaultIcon]
-@="\"D:\\osu!.exe\",1"
-
-[HKEY_CLASSES_ROOT\osustable.File.osk\Shell]
-
-[HKEY_CLASSES_ROOT\osustable.File.osk\Shell\Open]
-
-[HKEY_CLASSES_ROOT\osustable.File.osk\Shell\Open\Command]
-@="\"D:\\osu!.exe\" \"%1\""
-
-[HKEY_CLASSES_ROOT\osustable.File.osr]
-@="osu! Replay"
-
-[HKEY_CLASSES_ROOT\osustable.File.osr\DefaultIcon]
-@="\"D:\\osu!.exe\",1"
-
-[HKEY_CLASSES_ROOT\osustable.File.osr\Shell]
-
-[HKEY_CLASSES_ROOT\osustable.File.osr\Shell\Open]
-
-[HKEY_CLASSES_ROOT\osustable.File.osr\Shell\Open\Command]
-@="\"D:\\osu!.exe\" \"%1\""
-
-[HKEY_CLASSES_ROOT\osustable.File.osz]
-@="osu! Beatmap"
-
-[HKEY_CLASSES_ROOT\osustable.File.osz\DefaultIcon]
-@="\"D:\\osu!.exe\",1"
-
-[HKEY_CLASSES_ROOT\osustable.File.osz\Shell]
-
-[HKEY_CLASSES_ROOT\osustable.File.osz\Shell\Open]
-
-[HKEY_CLASSES_ROOT\osustable.File.osz\Shell\Open\Command]
-@="\"D:\\osu!.exe\" \"%1\""
-
-[HKEY_CLASSES_ROOT\osustable.File.osz2]
-@="osu! Beatmap"
-
-[HKEY_CLASSES_ROOT\osustable.File.osz2\DefaultIcon]
-@="\"D:\\osu!.exe\",1"
-
-[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell]
-
-[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell\Open]
-
-[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell\Open\Command]
-@="\"D:\\osu!.exe\" \"%1\""
-
-[HKEY_CLASSES_ROOT\osustable.Uri.osu]
-
-[HKEY_CLASSES_ROOT\osustable.Uri.osu\DefaultIcon]
-@="\"D:\\osu!.exe\",1"
-
-[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell]
-
-[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell\Open]
-
-[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell\Open\Command]
-@="\"D:\\osu!.exe\" \"%1\""
-
-[HKEY_CLASSES_ROOT\.osk]
-
-[HKEY_CLASSES_ROOT\.osk\OpenWithProgIds]
-"osustable.File.osk"=""
-
-[HKEY_CLASSES_ROOT\.osr]
-
-[HKEY_CLASSES_ROOT\.osr\OpenWithProgIds]
-"osustable.File.osr"=""
-
-[HKEY_CLASSES_ROOT\.osz]
-
-[HKEY_CLASSES_ROOT\.osz\OpenWithProgIds]
-"osustable.File.osz"=""
-
-[HKEY_CLASSES_ROOT\.osz2]
-
-[HKEY_CLASSES_ROOT\.osz2\OpenWithProgIds]
-"osustable.File.osz2"=""
-
-[HKEY_CLASSES_ROOT\osu]
-@=-
-"URL Protocol"=""
-
-[HKEY_CLASSES_ROOT\osu\shell]
-
-[HKEY_CLASSES_ROOT\osu\shell\open]
-
-[HKEY_CLASSES_ROOT\osu\shell\open\command]
-@="\"D:\\osu!.exe\" \"%1\""
-EOF
-
-        # Adding the osu-handler.reg file to registry
-        "$UMU_RUN" regedit /s "${REGFILE}"
+        # Setup osu-handler for file integrations
+        osuHandlerSetup
 
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
-
-        cp "./stuff/folderfixosu.vbs" "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs"
-        cp "./stuff/folderfixosu" "$XDG_DATA_HOME/osuconfig/folderfixosu"
-        local FOLDERFIX
-        local FALLBACK
-        FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || FALLBACK=1
-
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
-        "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-        if [ -z "${FALLBACK:-}" ]; then
-            "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${FOLDERFIX//\\/\\\\}\" \"%1\""
-        else
-            "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
-        fi
-
+        folderFixSetup
     fi
 
     # Set up the discord rpc bridge
@@ -566,13 +449,13 @@ Check32() {
     Info "If all is well, a window should pop up with some spinning gears. Just close it."
     Info "(Window will automatically close after 15 seconds anyways)"
 
-    chmod +x "./stuff/glxgears32"
+    chmod +x "${SCRDIR}/stuff/glxgears32"
     temp_out=$(mktemp)
 
     tail -f "$temp_out" | grep -i --line-buffered "explicit\|X_GLXSwapBuffers" >"$temp_out.success" &
     tail_pid=$!
 
-    UMU_NO_PROTON=1 "$UMU_RUN" "./stuff/glxgears32" >"$temp_out" 2>&1 &
+    UMU_NO_PROTON=1 "$UMU_RUN" "${SCRDIR}/stuff/glxgears32" >"$temp_out" 2>&1 &
     umu_pid=$!
 
     _timeout=15
@@ -723,25 +606,51 @@ tosu() {
     fi
 }
 
+# only used for rpc bridge for now, but should be used for other update functionality in the future
+# (so that we don't overwrite local files if that's not wanted)
+askConfirmTimeout() {
+    [ -z "${1:-}" ] && Info "Missing an argument for ${FUNCNAME[0]}!?" && exit 1
+
+    local rememberfile="${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
+    touch "${rememberfile}"
+
+    local lastchoice
+    lastchoice="$(grep "${1}" "${rememberfile}" | grep -Eo '(y|n)' | tail -n 1)"
+
+    if [ -n "$lastchoice" ] && [ "$lastchoice" = "n" ]; then
+        Info "Won't reinstall ${1}, using saved choice from ${rememberfile}"
+        Info "Remove this file if you change your mind in the future."
+        return 1
+    elif [ -n "$lastchoice" ] && [ "$lastchoice" = "y" ]; then
+        Info "Will reinstall ${1}, using saved choice from ${rememberfile}"
+        Info "Remove this file if you change your mind in the future."
+        return 0
+    fi
+
+    local _timeout=5
+    Info "${1} is already installed, do you want to reinstall it?"
+    echo -n "$(Info "Choose: (Y/n) [${_timeout}s] ")"
+
+    read -t $_timeout -r prefchoice
+
+    if [[ "$prefchoice" =~ ^(n|N)(o|O)?$ ]]; then
+        Info "Okay, won't reinstall ${1}, saving this choice to ${rememberfile}."
+        echo "${1} n" >> "${rememberfile}"
+        return 1
+    fi
+    Info "Will install ${1}, saving this choice to ${rememberfile}."
+    echo "${1} y" >> "${rememberfile}"
+    echo ""
+    return 0
+}
+
 # Installs rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
 discordRpc() {
     Info "Configuring rpc-bridge (Discord RPC)"
-    if [ -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
-        local _timeout=5
-        Info "Discord RPC bridge is already installed, do you want to reinstall it?"
-        echo -n "$(Info "Choose: (Y/n) [${_timeout}s] ")"
-
-        read -t $_timeout -r prefchoice
-
-        if [[ "$prefchoice" =~ ^(n|N)(o|O)?$ ]]; then
-            Info "Okay, won't reinstall the Discord RPC bridge."
-            return 0
-        fi
-        echo ""
-    fi
+    [ -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ] && askConfirmTimeout "rpc-bridge (Discord RPC)" || return 1
 
     # try uninstalling the service first
-    "$UMU_RUN" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
+    UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 "$UMU_RUN" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
     local chk
 
     wget -O "/tmp/bridge.zip" "${DISCRPCLINK}" && chk="$?"
@@ -756,6 +665,35 @@ discordRpc() {
     "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
     rm -f "/tmp/bridge.zip"
     rm -rf "/tmp/rpc-bridge"
+}
+
+folderFixSetup() {
+    # Applying fix for opening folders in the native file browser...
+    local VBS_PATH="$XDG_DATA_HOME/osuconfig/folderfixosu.vbs"
+    local FALLBACK_PATH="$XDG_DATA_HOME/osuconfig/folderfixosu"
+    cp "${SCRDIR}/stuff/folderfixosu.vbs" "${VBS_PATH}"
+    cp "${SCRDIR}/stuff/folderfixosu" "${FALLBACK_PATH}"
+
+    local VBS_WINPATH
+    local chk
+    VBS_WINPATH="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || chk=1
+
+    PROTONFIXES_DISABLE=1 "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
+    PROTONFIXES_DISABLE=1 "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    if [ -z "${chk:-}" ]; then
+        PROTONFIXES_DISABLE=1 "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\""
+    else
+        PROTONFIXES_DISABLE=1 "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
+    fi
+}
+
+osuHandlerSetup() {
+    # Fix to importing maps/skins/osu links after Stable update 20250122.1: https://osu.ppy.sh/home/changelog/stable40/20250122.1
+    local REG_FILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
+    cp "${SCRDIR}/stuff/osu-handler.reg" "${REG_FILE}"
+
+    # Adding the osu-handler.reg file to registry
+    PROTONFIXES_DISABLE=1 "$UMU_RUN" regedit /s "${REG_FILE}"
 }
 
 FixUmu() {
@@ -820,6 +758,14 @@ case "$1" in
 
 'discordrpc')
     discordRpc
+    ;;
+
+'fixfolders')
+    folderFixSetup
+    ;;
+
+'osuhandler')
+    osuHandlerSetup
     ;;
 
 'update')

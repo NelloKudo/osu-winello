@@ -172,19 +172,17 @@ longPathsFix() {
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
+osuHandlerSetup() {
+    # Fix to importing maps/skins/osu links after Stable update 20250122.1
+    # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
+}
+
 folderFix() {
     # Applying fix for opening folders in the native file browser...
-    local FOLDERFIX
-    local FALLBACK
-    FOLDERFIX="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "$XDG_DATA_HOME/osuconfig/folderfixosu.vbs" 2>/dev/null)" || FALLBACK=1
-
-    $LAUNCH_ARGS "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
-    $LAUNCH_ARGS "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    if [ -z "${FALLBACK:-}" ]; then
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${FOLDERFIX//\\/\\\\}\" \"%1\""
-    else
-        "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "$XDG_DATA_HOME/osuconfig/folderfixosu xdg-open \"%1\""
-    fi
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixfolders
 }
 
 fixRpc() {
@@ -427,10 +425,8 @@ case "$1" in
     # Applying fix for long names/paths...
     longPathsFix
 
-    # Fix to importing maps/skins/osu links after Stable update 20250122.1
-    # This assumes the osu! folder is mounted at the D: drive (which Winello does just a line above)
-    REGFILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
-    "$UMU_RUN" regedit /s "${REGFILE}"
+    # Re-set-up osu-handler
+    osuHandlerSetup
 
     # Try fixing the rpc bridge
     fixRpc

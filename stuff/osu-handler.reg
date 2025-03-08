@@ -1,0 +1,100 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\osu]
+@="URL:osu!"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\osustable.File.osk]
+@="osu! Skin"
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osk\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.File.osr]
+@="osu! Replay"
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osr\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.File.osz]
+@="osu! Beatmap"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2]
+@="osu! Beatmap"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.File.osz2\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu]
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\DefaultIcon]
+@="\"D:\\osu!.exe\",1"
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell]
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell\Open]
+
+[HKEY_CLASSES_ROOT\osustable.Uri.osu\Shell\Open\Command]
+@="\"D:\\osu!.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\.osk]
+
+[HKEY_CLASSES_ROOT\.osk\OpenWithProgIds]
+"osustable.File.osk"=""
+
+[HKEY_CLASSES_ROOT\.osr]
+
+[HKEY_CLASSES_ROOT\.osr\OpenWithProgIds]
+"osustable.File.osr"=""
+
+[HKEY_CLASSES_ROOT\.osz]
+
+[HKEY_CLASSES_ROOT\.osz\OpenWithProgIds]
+"osustable.File.osz"=""
+
+[HKEY_CLASSES_ROOT\.osz2]
+
+[HKEY_CLASSES_ROOT\.osz2\OpenWithProgIds]
+"osustable.File.osz2"=""
+
+[HKEY_CLASSES_ROOT\osu]
+@=-
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\osu\shell]
+
+[HKEY_CLASSES_ROOT\osu\shell\open]
+
+[HKEY_CLASSES_ROOT\osu\shell\open\command]
+@="\"D:\\osu!.exe\" \"%1\""
