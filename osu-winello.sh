@@ -429,7 +429,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
     Check32
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
-    Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    Terminal
     exit 0
 }
 
@@ -438,6 +438,15 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 #          POST-INSTALL FUNCTIONS
 #   =====================================
 #   =====================================
+
+# function that reloads the shell file
+function Terminal(){
+if [[ "$SHELL" == *"zsh"* ]]; then
+    zsh || source $HOME/.zshrc
+elif [[ "$SHELL" == *"bash"* ]]; then
+    bash || source $HOME/.zshrc
+fi
+}
 
 # Sanity check to make sure we can run 32-bit GLX apps inside the steam runtime
 Check32() {
