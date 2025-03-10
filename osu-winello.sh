@@ -13,24 +13,26 @@ WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
 # The directory osu-winello.sh is in
 SCRDIR="$(realpath "$(dirname "$0")")"
 
-# Proton-osu current versions for update
-MAJOR=9
-MINOR=16
-PATCH=0
-PROTONVERSION=$MAJOR.$MINOR.$PATCH
-LASTPROTONVERSION=0
+# Wine-osu current versions for update
+MAJOR=10
+MINOR=3
+PATCH=1
+WINEVERSION=$MAJOR.$MINOR.$PATCH
+LASTWINEVERSION=0
 
-# Proton-osu mirror
-PROTONLINK="https://github.com/whrvt/umubuilder/releases/download/proton-osu-$MAJOR-$MINOR/proton-osu-$MAJOR-$MINOR.tar.xz"
+# Wine-osu mirror
+WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-$MAJOR.$MINOR-$PATCH-yawl-test/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
 
 # Other versions for external downloads
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
+YAWLVERSION=0.5.1
 
 # Other download links
 PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
-OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" # osu-mime (file associations)
+OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz"                       # osu-mime (file associations)
+YAWLLINK="https://github.com/whrvt/yawl/releases/download/v${YAWLVERSION}/yawl"                     # yawl (Wine launcher for Steam Runtime)
 
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 
@@ -43,16 +45,11 @@ TOSULINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
-export PROTONPATH="${PROTONPATH:-"$XDG_DATA_HOME/osuconfig/proton-osu"}"
 export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
-
-# For umu-launcher
-export GAMEID="umu-727"
+export WINE_PATH="${WINE_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
 
 # Other shell local variables
-
-UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
-
+YAWL_PATH="${YAWL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl-winello"}"
 
 #   =====================================
 #   =====================================
@@ -82,7 +79,7 @@ Revert() {
     rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
     rm -f "$BINDIR/osu-wine"
     rm -rf "$XDG_DATA_HOME/osuconfig"
-    rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
+    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
     rm -f "/tmp/osu-mime.tar.xz"
     rm -rf "/tmp/osu-mime"
     rm -f "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
@@ -193,11 +190,9 @@ profile bwrap /usr/bin/bwrap flags=(unconfined) {
     fi
 }
 
-# Function to install script files, umu-launcher and Proton-osu
-InstallProton() {
-    ## Setting up umu-launcher from the Proton package
-    Info "Setting up umu-launcher.."
-
+# Function to install script files, umu-launcher and Wine-osu
+InstallWine() {
+    # Installing game launcher and related...
     Info "Installing game script:"
     cp "${SCRDIR}/osu-wine" "$BINDIR/osu-wine" && chmod +x "$BINDIR/osu-wine"
 
@@ -223,18 +218,29 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
         mkdir "$XDG_DATA_HOME/osuconfig"
     fi
 
-    Info "Installing Proton-osu:"
-    # Downloading Proton..
-    wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "$PROTONLINK" && chk="$?"
+    Info "Installing Wine-osu:"
+    # Downloading Wine..
+    wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" && chk="$?"
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "$PROTONLINK" || Error "Download failed, check your connection"
+        wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" || Error "Download failed, check your connection"
     fi
 
-    # This will extract Proton-osu and set last version to the one downloaded
-    tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
-    LASTPROTONVERSION="$PROTONVERSION"
-    rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
+    # This will extract Wine-osu and set last version to the one downloaded
+    tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" -C "$XDG_DATA_HOME/osuconfig"
+    LASTWINEVERSION="$WINEVERSION"
+    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
+
+    Info "Installing yawl-winello:"
+    # Downloading yawl and creating a wrapper for osu-winello!
+    wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
+    if [ ! "$chk" = 0 ]; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
+    fi
+    mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
+    chmod +x "$XDG_DATA_HOME/osuconfig/yawl"
+    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$XDG_DATA_HOME/osuconfig/yawl"
 
     # The update function works under this folder: it compares variables from files stored in osuconfig
     # with latest values from GitHub and check whether to update or not
@@ -242,7 +248,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     mkdir -p "$XDG_DATA_HOME/osuconfig/update"
     git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
 
-    echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
+    echo "$LASTWINEVERSION" >>"$XDG_DATA_HOME/osuconfig/wineverupdate"
 }
 
 # Function configuring folders to install the game
@@ -387,7 +393,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
+            "$YAWL_PATH" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
         else
             tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
             mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
@@ -426,8 +432,6 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         fi
     fi
 
-    Check32
-
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
     exit 0
@@ -438,67 +442,6 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 #          POST-INSTALL FUNCTIONS
 #   =====================================
 #   =====================================
-
-# Sanity check to make sure we can run 32-bit GLX apps inside the steam runtime
-Check32() {
-    local temp_out
-    local tail_pid
-    local umu_pid
-    local _timeout
-    Info "Checking to make sure we can run 32-bit OpenGL apps..."
-    Info "If all is well, a window should pop up with some spinning gears. Just close it."
-    Info "(Window will automatically close after 15 seconds anyways)"
-
-    chmod +x "${SCRDIR}/stuff/glxgears32"
-    temp_out=$(mktemp)
-
-    tail -f "$temp_out" | grep -i --line-buffered "explicit\|X_GLXSwapBuffers" >"$temp_out.success" &
-    tail_pid=$!
-
-    UMU_NO_PROTON=1 "$UMU_RUN" "${SCRDIR}/stuff/glxgears32" >"$temp_out" 2>&1 &
-    umu_pid=$!
-
-    _timeout=15
-    while [ $_timeout -gt 0 ]; do
-        # Check for "explicit kill or shutdown" (Xwayland) or "GLXBadDrawable -> X_GLXSwapBuffers" (X11)
-        if [ -s "$temp_out.success" ]; then
-            kill $tail_pid 2>/dev/null
-            rm -f "$temp_out" "$temp_out.success"
-            Info "Success!" && return 0
-        fi
-        if ! ps -p $umu_pid >/dev/null 2>&1; then
-            break
-        fi
-        sleep 1
-        _timeout=$((_timeout - 1))
-    done
-
-    # Clean up and fall back to manual confirmation otherwise
-    kill $tail_pid 2>/dev/null
-    rm -f "$temp_out" "$temp_out.success"
-
-    if ps -p $umu_pid >/dev/null 2>&1; then
-        Info "Closing window for you now..."
-        pkill -f "glxgears32"
-        sleep 0.5
-        pkill -9 -f "glxgears32" 2>/dev/null
-        kill $umu_pid 2>/dev/null
-        sleep 0.5
-        kill -9 $umu_pid 2>/dev/null
-    fi
-
-    read -r -p "$(Info "Did you see a window with the spinning gears? (y/N) ")" glx32worked
-    if [ "$glx32worked" = 'y' ] || [ "$glx32worked" = 'Y' ]; then
-        Info "Success!" && return 0
-    fi
-
-    # Failed
-    Warning "It looks like we can't run 32-bit OpenGL apps, osu! WILL NOT work!"
-    Warning "Please read the documentation on how to install 32-bit graphics drivers for your distro."
-    Warning "Here is a good starting point: https://github.com/lutris/docs/blob/master/InstallingDrivers.md"
-    Warning "If you need to ask for help installing drivers, PLEASE mention that this part of the installation process failed!"
-    return 1
-}
 
 # Remember whether the user wants to overwrite their local files
 askConfirmTimeout() {
@@ -527,11 +470,11 @@ askConfirmTimeout() {
 
     if [[ "$prefchoice" =~ ^(n|N)(o|O)?$ ]]; then
         Info "Okay, won't update ${1}, saving this choice to ${rememberfile}."
-        echo "${1} n" >> "${rememberfile}"
+        echo "${1} n" >>"${rememberfile}"
         return 1
     fi
     Info "Will update ${1}, saving this choice to ${rememberfile}."
-    echo "${1} y" >> "${rememberfile}"
+    echo "${1} y" >>"${rememberfile}"
     echo ""
     return 0
 }
@@ -578,29 +521,27 @@ launcherUpdate() {
 # to see whether a new wine-osu version has been released.
 Update() {
     local launcher_path="${1:-}"
-    # Checking for old installs with Wine
-    if [ -d "$XDG_DATA_HOME/osuconfig/wine-osu" ]; then
-        Quit "wine-osu detected and already up-to-date; please reinstall Winello if you want to use proton-osu!"
-    fi
 
     # Reading the last version installed
-    LASTPROTONVERSION=$(</"$XDG_DATA_HOME/osuconfig/protonverupdate")
+    LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")
 
-    if [ "$LASTPROTONVERSION" \!= "$PROTONVERSION" ]; then
-        wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "${PROTONLINK}" && chk="$?"
-
+    if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
+        # Downloading Wine..
+        wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" && chk="$?"
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "${PROTONLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+            wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" || Error "Download failed, check your connection"
         fi
-        Info "Updating Proton-osu"...
 
-        rm -rf "$XDG_DATA_HOME/osuconfig/proton-osu"
-        tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
-        rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
-        LASTPROTONVERSION="$PROTONVERSION"
-        rm -f "$XDG_DATA_HOME/osuconfig/protonverupdate"
-        echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
+        # This will extract Wine-osu and set last version to the one downloaded
+        Info "Updating Wine-osu"...
+        rm -rf "$XDG_DATA_HOME/osuconfig/wine-osu"
+        tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" -C "$XDG_DATA_HOME/osuconfig"
+        rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
+
+        LASTWINEVERSION="$WINEVERSION"
+        rm -f "$XDG_DATA_HOME/osuconfig/wineverupdate"
+        echo "$LASTWINEVERSION" >>"$XDG_DATA_HOME/osuconfig/wineverupdate"
         Info "Update is completed!"
     else
         Info "Your Proton-osu is already up-to-date!"
@@ -650,8 +591,8 @@ Uninstall() {
     rm -f "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
     rm -f "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
 
-    Info "Uninstalling proton-osu:"
-    rm -rf "$XDG_DATA_HOME/osuconfig/proton-osu"
+    Info "Uninstalling wine-osu:"
+    rm -rf "$XDG_DATA_HOME/osuconfig/wine-osu"
 
     read -r -p "$(Info "Do you want to uninstall Wineprefix? (y/N)")" wineprch
 
@@ -716,7 +657,7 @@ discordRpc() {
     fi
 
     # try uninstalling the service first
-    UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 "$UMU_RUN" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
+    "$YAWL_PATH" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
     local chk
 
     wget -O "/tmp/bridge.zip" "${DISCRPCLINK}" && chk="$?"
@@ -728,7 +669,7 @@ discordRpc() {
 
     mkdir -p /tmp/rpc-bridge
     unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-    "$UMU_RUN" /tmp/rpc-bridge/bridge.exe --install
+    "$YAWL_PATH" /tmp/rpc-bridge/bridge.exe --install
     rm -f "/tmp/bridge.zip"
     rm -rf "/tmp/rpc-bridge"
 }
@@ -744,12 +685,12 @@ folderFixSetup() {
     local chk
     VBS_WINPATH="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || chk=1
 
-    PROTONFIXES_DISABLE=1 "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
-    PROTONFIXES_DISABLE=1 "$UMU_RUN" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    "$YAWL_PATH" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
+    "$YAWL_PATH" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     if [ -z "${chk:-}" ]; then
-        PROTONFIXES_DISABLE=1 "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\""
+        "$YAWL_PATH" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\""
     else
-        PROTONFIXES_DISABLE=1 "$UMU_RUN" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
+        "$YAWL_PATH" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
     fi
 }
 
@@ -759,32 +700,24 @@ osuHandlerSetup() {
     cp "${SCRDIR}/stuff/osu-handler.reg" "${REG_FILE}"
 
     # Adding the osu-handler.reg file to registry
-    PROTONFIXES_DISABLE=1 "$UMU_RUN" regedit /s "${REG_FILE}"
+    "$YAWL_PATH" regedit /s "${REG_FILE}"
 }
 
-FixUmu() {
+FixYawl() {
     if [ ! -f "$BINDIR/osu-wine" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
         return
-    elif [ ! -f "${UMU_RUN}" ]; then
-        Info "umu-launcher comes with Proton, so you should run ./osu-winello.sh first."
+    elif [ ! -f "$YAWL_PATH" ]; then
+        Info "yawl not found, you should run ./osu-winello.sh first."
         return
     fi
 
-    Info "Removing umu-launcher..."
-    # As of writing, umu-launcher still hardcodes $HOME/.local/share
-    # rather than respecting $XDG_DATA_HOME. To be safe, try cleaning
-    # under both directories.
-    for base in "$XDG_DATA_HOME" "$HOME/.local/share"; do
-        rm -rf "$base/umu" "$base/pybstrap"
-    done
-
-    Info "Reinstalling umu-launcher..."
-    UMU_RUNTIME_UPDATE=1 UMU_NO_PROTON=1 "$UMU_RUN" true && chk="$?"
+    Info "Fixing yawl..."
+    YAWL_VERBS="reinstall" "$YAWL_PATH" true && chk="$?"
     if [ "${chk}" != 0 ]; then
         Info "That didn't seem to work... try again?"
     else
-        Info "umu-launcher should be good to go now."
+        Info "yawl should be good to go now."
     fi
 }
 
@@ -805,7 +738,7 @@ Help() {
 case "$1" in
 '')
     InitialSetup
-    InstallProton
+    InstallWine
     ConfigurePath
     FullInstall
     ;;
@@ -838,8 +771,8 @@ case "$1" in
     Update "${2:-}" # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
     ;;
 
-*umu*)
-    FixUmu
+*yawl*)
+    FixYawl
     ;;
 
 *help* | '-h')
