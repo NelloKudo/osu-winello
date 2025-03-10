@@ -152,21 +152,10 @@ InitialSetup() {
         fi
     done
 
-    # Ubuntu/Debian Hotfix: Install Steam as it is apparently needed from drivers to work with Proton
-    if command -v apt >/dev/null 2>&1; then
-        Info "Ubuntu/Debian-based distro detected.."
-        Info "Please insert your password to install dependencies!"
-        (
-            $root_var apt update &&
-                $root_var dpkg --add-architecture i386 &&
-                $root_var apt install libgl1-mesa-dri libgl1-mesa-dri:i386 steam -y
-        ) || Warning "Dependencies install failed, check apt or your connection.."
-    fi
-
-    # Ubuntu 24.x hotfix: Workaround umu-run not working due to apparmor restrictions
+    # Ubuntu 24.x hotfix: Workaround yawl not working due to apparmor restrictions
     # for bwrap, you can read more at here: https://etbe.coker.com.au/2024/04/24/ubuntu-24-04-bubblewrap/
     if grep -q '^NAME="Ubuntu"$' /etc/os-release && grep -q '^VERSION_ID="24\.' /etc/os-release && [ ! -f /etc/apparmor.d/bwrap ]; then
-        Info "Ubuntu 24 detected: due to apparmor restrictions, osu! (umu-run) needs a workaround to launch properly.."
+        Info "Ubuntu 24 detected: due to apparmor restrictions, osu! (yawl) needs a workaround to launch properly.."
         Info "Please enter your password if prompted if you need to fix it!"
         read -r -p "$(Info "Do you want to enable it? (y/N): ")" apparmorx
 
@@ -183,7 +172,7 @@ profile bwrap /usr/bin/bwrap flags=(unconfined) {
 }" | $root_var tee /etc/apparmor.d/bwrap >/dev/null
 
             $root_var systemctl reload apparmor
-            Info "umu-run workaround now applied!"
+            Info "umu-run/yawl workaround now applied!"
         else
             Info "Skipping.."
         fi
@@ -683,7 +672,7 @@ folderFixSetup() {
 
     local VBS_WINPATH
     local chk
-    VBS_WINPATH="$(UMU_RUNTIME_UPDATE=0 PROTONFIXES_DISABLE=1 PROTON_LOG=0 WINEDEBUG=-all "$UMU_RUN" winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || chk=1
+    VBS_WINPATH="$(WINEDEBUG=-all "$YAWL_PATH" winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || chk=1
 
     "$YAWL_PATH" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
     "$YAWL_PATH" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
@@ -725,7 +714,7 @@ FixYawl() {
 Help() {
     Info "To install the game, run ./osu-winello.sh
           To uninstall the game, run ./osu-winello.sh uninstall
-          To retry installing umu-launcher-related files, run ./osu-winello.sh fixumu
+          To retry installing yawl-related files, run ./osu-winello.sh fixyawl
           You can read more at README.md or https://github.com/NelloKudo/osu-winello"
 }
 
