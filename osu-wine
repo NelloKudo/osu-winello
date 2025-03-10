@@ -88,9 +88,6 @@ deleteFolder() {
 }
 
 Update() {
-    Info "Checking for Steam Runtime updates first.."
-    $LAUNCH_ARGS "$YAWL_PATH" wineboot -u
-    $LAUNCH_ARGS "$WINESERVER_PATH" -k
     local self
     self="$(realpath "$0")"
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
@@ -158,25 +155,25 @@ EOF
 }
 
 LaunchGame() {
-    local PRE_COMMAND=("${LAUNCH_ARGS}")
-    local POST_COMMAND=("$YAWL_PATH")
+    local pre_command=()
+    local post_command=("$YAWL_PATH")
+
     if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
-        POST_COMMAND+=("$OSUPATH/launch_with_memory.bat")
+        post_command+=("$OSUPATH/launch_with_memory.bat")
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
-        POST_COMMAND+=("$OSUPATH"/'osu!.exe')
+        post_command+=("$OSUPATH/osu!.exe")
     fi
 
-    if [ -n "$1" ]; then POST_COMMAND+=("-devserver" "${1}"); fi
+    [[ -n "$1" ]] && post_command+=("-devserver" "$1")
+    [[ -n "$LAUNCH_ARGS" ]] && pre_command=($LAUNCH_ARGS)
 
-    #export PROTON_LOG=1 # only want to redirect to a file for the game
-    #export PROTON_LOG_DIR="$XDG_DATA_HOME/osuconfig/"
-    #export WINEDEBUG="+timestamp,+pid,+tid,+seh,+unwind,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
+    export WINEDEBUG="+timestamp,+pid,+tid,+unwind,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
+    export WINELLO_LOGS_PATH="$XDG_DATA_HOME/osuconfig/winello.log"
 
-    Info "Launching ${PRE_COMMAND[*]} ${POST_COMMAND[*]} !"
-    #Info "The log is located in ${PROTON_LOG_DIR}steam-${GAMEID:4}.log, should anything go wrong."
-
-    exec env "${PRE_COMMAND[@]}" "${POST_COMMAND[@]}"
+    Info "Launching: ${pre_command[*]} ${post_command[*]}"
+    Info "The log is located in ${WINELLO_LOGS_PATH}, should anything go wrong."
+    exec env "${pre_command[@]}" "${post_command[@]}" &> $WINELLO_LOGS_PATH
 }
 
 ###################################################################################################
