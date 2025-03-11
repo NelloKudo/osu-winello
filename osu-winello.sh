@@ -27,7 +27,7 @@ WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-st
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
-YAWLVERSION=0.5.1
+YAWLVERSION=0.5.2
 
 # Other download links
 PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
@@ -153,32 +153,6 @@ InitialSetup() {
             Error "Please install $dep before continuing!"
         fi
     done
-
-    # Ubuntu 24.x hotfix: Workaround yawl not working due to apparmor restrictions
-    # for bwrap, you can read more at here: https://etbe.coker.com.au/2024/04/24/ubuntu-24-04-bubblewrap/
-    if grep -q '^NAME="Ubuntu"$' /etc/os-release && grep -q '^VERSION_ID="24\.' /etc/os-release && [ ! -f /etc/apparmor.d/bwrap ]; then
-        Info "Ubuntu 24 detected: due to apparmor restrictions, osu! (yawl) needs a workaround to launch properly.."
-        Info "Please enter your password if prompted if you need to fix it!"
-        read -r -p "$(Info "Do you want to enable it? (y/N): ")" apparmorx
-
-        if [ "$apparmorx" = 'y' ] || [ "$apparmorx" = 'Y' ]; then
-
-            echo "abi <abi/4.0>,
-include <tunables/global>
-
-profile bwrap /usr/bin/bwrap flags=(unconfined) {
-  userns,
-
-  # Site-specific additions and overrides. See local/README for details.
-  include if exists <local/bwrap>
-}" | $root_var tee /etc/apparmor.d/bwrap >/dev/null
-
-            $root_var systemctl reload apparmor
-            Info "umu-run/yawl workaround now applied!"
-        else
-            Info "Skipping.."
-        fi
-    fi
 }
 
 # Function to install script files, umu-launcher and Wine-osu
@@ -524,6 +498,17 @@ launcherUpdate() {
 # to see whether a new wine-osu version has been released.
 Update() {
     local launcher_path="${1:-}"
+
+    # Always update this for now, will soon add a `YAWL_VERBS="version"` to yawl so we can compare against the script's version
+    # It's only 5mb anyways
+    Info "Updating yawl-winello:"
+    wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
+    if [ ! "$chk" = 0 ]; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
+    fi
+    mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
+    chmod +x "$XDG_DATA_HOME/osuconfig/yawl"
 
     # Reading the last version installed
     LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")
