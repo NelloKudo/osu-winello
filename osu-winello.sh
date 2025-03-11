@@ -597,6 +597,9 @@ Uninstall() {
     Info "Uninstalling wine-osu:"
     rm -rf "$XDG_DATA_HOME/osuconfig/wine-osu"
 
+    Info "Uninstalling yawl and the steam runtime:"
+    rm -rf "$XDG_DATA_HOME/yawl"
+
     read -r -p "$(Info "Do you want to uninstall Wineprefix? (y/N)")" wineprch
 
     if [ "$wineprch" = 'y' ] || [ "$wineprch" = 'Y' ]; then
