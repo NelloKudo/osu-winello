@@ -166,27 +166,27 @@ EOF
     Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
 }
 
-LaunchGame() {
+LaunchWine() {
     local EXE_ARG="${YAWL_PATH}"
-    declare -a POST_ARGS
+    declare -a POST_ARGS=("${@}")
 
     WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
+    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
+    Info "Launching: ${PRE_ARGS[*]} ${EXE_ARG} ${POST_ARGS[*]}"
+    echo ""
+    exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}"
+}
 
+LaunchOsu() {
     if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
-        POST_ARGS+=("${OSUPATH}/launch_with_memory.bat")
+        OSU_EXE="${OSUPATH}/launch_with_memory.bat"
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
-        POST_ARGS+=("${OSUPATH}/osu!.exe")
+        OSU_EXE="${OSUPATH}/osu!.exe"
     fi
 
-    [[ -n "$1" ]] && POST_ARGS+=("-devserver" "$1")
-
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-
-    Info "Launching: ${PRE_ARGS[*]} ${EXE_ARG} ${POST_ARGS[*]}"
-    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
-
-    exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}"
+    LaunchWine "${OSU_EXE}" "${@}"
 }
 
 ###################################################################################################
@@ -195,33 +195,32 @@ LaunchGame() {
 
 case "$1" in
 '')
-    LaunchGame
-    Checkshort
+    LaunchOsu
     ;;
 
     ###################################################################################################
 
 '--devserver')
     if [ -z "$2" ]; then Error "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
-    LaunchGame "$2"
+    LaunchOsu "-devserver" "$2"
     ;;
 
     ###################################################################################################
 
 '--regedit')
-    "${PRE_ARGS[@]}" "$YAWL_PATH" regedit
+    LaunchWine regedit
     ;;
 
     ###################################################################################################
 
 '--winecfg')
-    "${PRE_ARGS[@]}" "$YAWL_PATH" winecfg
+    LaunchWine winecfg
     ;;
 
     ###################################################################################################
 
 '--winetricks')
-    "${PRE_ARGS[@]}" "$YAWL_PATH" winetricks "${@:2}"
+    LaunchWine winetricks "${@:2}"
     ;;
 
     ###################################################################################################
@@ -401,7 +400,7 @@ case "$1" in
     Wineprefix location: $WINEPREFIX
     osu! folder: '$OSUPATH'
 
-    If you need to add more options to osu!, check the LaunchGame function of the script (ex. nano $BINDIR/osu-wine)
+    If you need to add more options to osu!, check the Launch function of the script (ex. nano $BINDIR/osu-wine)
     You can run 'osu-wine --help' to see all the script's functions (fix prefix, change dir etc.)
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1
 
