@@ -39,6 +39,10 @@ export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .des
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
 
+# Get the Windows-formatted paths to osu! and its install directory
+read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
+read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"
+
 ###################################################################################################
 # Helper functions for the launcher script
 ###################################################################################################
@@ -103,6 +107,7 @@ Update() {
     local self
     self="$(realpath "$0")"
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
     exec bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update "${self}"
 }
 
@@ -116,12 +121,14 @@ osuHandlerSetup() {
     # Fix to importing maps/skins/osu links after Stable update 20250122.1
     # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
     bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
 }
 
 folderFix() {
     # Applying fix for opening folders in the native file browser...
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
     bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixfolders
 }
 
@@ -129,6 +136,7 @@ fixRpc() {
     # reinstall discord rpc bridge
     if [ ! -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
         git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+        git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
     fi
     bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" discordrpc
 }
@@ -137,20 +145,19 @@ SetupReader() {
     local READER_NAME="${1}"
     if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
         git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+        git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
         bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "$READER_NAME"
     fi
 
     Info "Setting up $READER_NAME wrapper..."
     READER_PATH="$("$YAWL_PATH" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
-    OSU_PATH="$("$YAWL_PATH" winepath -w "$OSUPATH/osu!.exe")"
-    OSU_DIR="$("$YAWL_PATH" winepath -w "$OSUPATH")"
 
     # launcher batch file which monitors osu! and closes gosumemory when osu! exits
     cat >"$OSUPATH/launch_with_memory.bat" <<EOF
 @echo off
 set NODE_SKIP_PLATFORM_CHECK=1
-cd /d "$OSU_DIR"
-start "" "$OSU_PATH" %*
+cd /d "$OSU_WINEDIR"
+start "" "$OSU_WINEEXE" %*
 start /b "" "$READER_PATH"
 
 :loop
@@ -179,14 +186,14 @@ LaunchWine() {
 
 LaunchOsu() {
     if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
-        OSU_EXE="${OSUPATH}/launch_with_memory.bat"
+        OSU_EXE=("${OSU_WINEDIR}launch_with_memory.bat")
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
-        OSU_EXE="${OSUPATH}/osu!.exe"
+        OSU_EXE=("C:\\windows\\system32\\start.exe" "/b" "/wait" "${OSU_WINEEXE}")
     fi
 
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-    LaunchWine "${OSU_EXE}" "${@}"
+    LaunchWine "${OSU_EXE[@]}" "${@}"
 }
 
 ###################################################################################################
@@ -272,6 +279,13 @@ case "$1" in
     fi
 
     longPathsFix
+
+    {
+        temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
+            echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
+            echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
+    } ||
+        Warning "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
     ;;
 
     ###################################################################################################
@@ -308,6 +322,7 @@ case "$1" in
 
 *fix*umu*)
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
     bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixumu
     ;;
 

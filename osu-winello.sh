@@ -16,7 +16,7 @@ SCRDIR="$(realpath "$(dirname "$0")")"
 # Wine-osu current versions for update
 MAJOR=10
 MINOR=3
-PATCH=1
+PATCH=2
 WINEVERSION=$MAJOR.$MINOR.$PATCH
 LASTWINEVERSION=0
 
@@ -238,8 +238,10 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     Info "Installing script copy for updates.."
     mkdir -p "$XDG_DATA_HOME/osuconfig/update"
 
-    { git clone . "$XDG_DATA_HOME/osuconfig/update" || git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update" ; } || \
+    { git clone . "$XDG_DATA_HOME/osuconfig/update" || git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update"; } ||
         Error "Git failed, check your connection.."
+
+    git -C "$XDG_DATA_HOME/osuconfig/update" remote set-url origin "${WINELLOGIT}"
 
     echo "$LASTWINEVERSION" >>"$XDG_DATA_HOME/osuconfig/wineverupdate"
 }
@@ -424,6 +426,14 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
             wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
         fi
     fi
+
+    local temp_winepath
+    {
+        temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
+            echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
+            echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
+    } ||
+        Warning "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
