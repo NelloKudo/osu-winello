@@ -433,7 +433,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
             echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
             echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
     } ||
-        Warning "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+        Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."

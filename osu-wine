@@ -285,7 +285,7 @@ case "$1" in
             echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
             echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
     } ||
-        Warning "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+        Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
     ;;
 
     ###################################################################################################
