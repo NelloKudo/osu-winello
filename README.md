@@ -61,8 +61,8 @@ Otherwise, make sure to install it following the instructions at here:
 
 ## Installing osu!:
 ```
-git clone https://github.com/NelloKudo/kosu-winello.git
-cd kosu-winello
+git clone https://github.com/PhoenixAceVFX/Kawata-winello.git
+cd Kawata-winello
 chmod +x ./kosu-winello.sh
 ./kosu-winello.sh
 ```
