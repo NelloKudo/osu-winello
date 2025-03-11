@@ -133,7 +133,7 @@ CheckDependencies() {
         if ! command -v "$dep" >/dev/null 2>&1; then
             missing_deps+=("${pkg_names[$dep]}")
         fi
-    end
+    done
 
     # If there are missing dependencies, install them
     if [ ${#missing_deps[@]} -gt 0 ]; then
