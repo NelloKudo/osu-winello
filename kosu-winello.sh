@@ -343,7 +343,7 @@ Icon=$XDG_DATA_HOME/icons/kosu-wine.png" | tee "$XDG_DATA_HOME/applications/osuw
 
     echo "[Desktop Entry]
 Type=Application
-Name=osu!
+Name=Aeris (Kawata)
 MimeType=x-scheme-handler/osu;
 Exec=$BINDIR/kosu-wine --osuhandler %u
 NoDisplay=true
