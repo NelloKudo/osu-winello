@@ -100,7 +100,74 @@ Error() {
     exit 1
 }
 
-# Function looking for basic stuff needed for installation
+# Add this function after the initial variable declarations and before InitialSetup()
+CheckDependencies() {
+    Info "Checking dependencies..."
+    
+    # List of required packages with their package names for different package managers
+    declare -A pkg_names=(
+        ["wget"]="wget"
+        ["zenity"]="zenity"
+        ["unzip"]="unzip"
+        ["steam"]="steam"
+    )
+
+    # Detect package manager
+    if command -v apt >/dev/null 2>&1; then
+        pkg_manager="apt"
+        install_cmd="apt install -y"
+    elif command -v pacman >/dev/null 2>&1; then
+        pkg_manager="pacman"
+        install_cmd="pacman -S --noconfirm"
+    elif command -v dnf >/dev/null 2>&1; then
+        pkg_manager="dnf"
+        install_cmd="dnf install -y"
+    else
+        Warning "Unknown package manager. You may need to install dependencies manually."
+        return 1
+    fi
+
+    # Check for missing dependencies
+    missing_deps=()
+    for dep in "${!pkg_names[@]}"; do
+        if ! command -v "$dep" >/dev/null 2>&1; then
+            missing_deps+=("${pkg_names[$dep]}")
+        fi
+    end
+
+    # If there are missing dependencies, install them
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        Info "Installing missing dependencies: ${missing_deps[*]}"
+        if [ "$USER" = "root" ]; then
+            Error "Please don't run this script as root!"
+        fi
+
+        # Determine whether to use sudo or doas
+        root_var="sudo"
+        if command -v doas >/dev/null 2>&1; then
+            doascheck=$(doas id -u)
+            if [ "$doascheck" = "0" ]; then
+                root_var="doas"
+            fi
+        fi
+
+        # Ubuntu/Debian specific: Add i386 architecture if needed
+        if [ "$pkg_manager" = "apt" ]; then
+            $root_var dpkg --add-architecture i386
+            $root_var apt update
+            $root_var apt install -y libgl1-mesa-dri libgl1-mesa-dri:i386
+        fi
+
+        # Install missing packages
+        $root_var $install_cmd "${missing_deps[@]}" || {
+            Error "Failed to install dependencies. Please install them manually: ${missing_deps[*]}"
+        }
+    else
+        Info "All required dependencies are already installed!"
+    fi
+}
+
+# Modify InitialSetup() to use the new dependency check
 InitialSetup() {
     # Better to not run the script as root, right?
     if [ "$USER" = "root" ]; then Error "Please run the script without root"; fi
@@ -111,16 +178,10 @@ InitialSetup() {
 
     Info "Welcome to the script! Follow it to install osu! 8)"
 
-    # Setting root perms. to either 'sudo' or 'doas'
-    root_var="sudo"
-    if command -v doas >/dev/null 2>&1; then
-        doascheck=$(doas id -u)
-        if [ "$doascheck" = "0" ]; then
-            root_var="doas"
-        fi
-    fi
+    # Check dependencies first
+    CheckDependencies
 
-    # Checking if $BINDIR is in PATH:
+    # Setting $BINDIR in PATH if needed
     mkdir -p "$BINDIR"
     pathcheck=$(echo "$PATH" | grep -q "$BINDIR" && echo "y")
 
@@ -842,7 +903,7 @@ case "$1" in
     Update "${2:-}" # second argument is the path to the kosu-wine launcher, expected to be called by `kosu-wine --update`
     ;;
 
-*umu*)
+*umu*)s
     FixUmu
     ;;
 
