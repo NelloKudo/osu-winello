@@ -51,7 +51,8 @@ export WINE_PATH="${WINE_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
 # Other shell local variables
-YAWL_PATH="${YAWL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl-winello"}"
+YAWL_INSTALL_PATH="${YAWL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl"}"
+YAWL_PATH="${YAWL_INSTALL_PATH}-winello"
 
 #   =====================================
 #   =====================================
@@ -204,10 +205,12 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
         wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
     fi
     mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
-    chmod +x "$XDG_DATA_HOME/osuconfig/yawl"
+    chmod +x "$YAWL_INSTALL_PATH"
 
     # Install and verify yawl ASAP (--version), the wrapper mode does not download/install the runtime if no arguments are passed
-    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver;verify" "$XDG_DATA_HOME/osuconfig/yawl" "--version"
+    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
+
+    YAWL_VERBS="verify" "$YAWL_PATH"
 
     # The update function works under this folder: it compares variables from files stored in osuconfig
     # with latest values from GitHub and check whether to update or not
@@ -510,7 +513,7 @@ Update() {
         wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
     fi
     mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
-    chmod +x "$XDG_DATA_HOME/osuconfig/yawl"
+    chmod +x "$YAWL_INSTALL_PATH"
 
     # Reading the last version installed
     LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")

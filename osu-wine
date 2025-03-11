@@ -31,13 +31,14 @@ export YAWL_PATH="$XDG_DATA_HOME/osuconfig/yawl-winello"
 export WINESERVER_PATH="${YAWL_PATH}server"
 export WINE_PATH="$XDG_DATA_HOME/osuconfig/wine-osu"
 export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
-osuinstall=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-export OSUPATH="$osuinstall"
 
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
+
+[ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && osuinstall=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+export OSUPATH="$osuinstall"
 
 # Get the Windows-formatted paths to osu! and its install directory
 [ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
