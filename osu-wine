@@ -6,7 +6,7 @@
 
 ## If you ever need to change something to the osu! launcher besides args, just go to line ~68
 
-LAUNCH_ARGS="" # Use this for args like prime-run or gamemoderun!
+LAUNCH_ARGS="" # Use this for args like prime-run, gamemoderun, or mangohud!
 export WINEDEBUG=${WINEDEBUG:-}
 
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -28,8 +28,6 @@ export WINE_BLOCK_GET_VERSION=0                # Set this to 1 to enable Windows
 ###################################################################################################
 # Helper functions and variables for the launcher script
 ###################################################################################################
-
-OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 
 Info() {
     echo -e '\033[1;34m'"Winello:\033[0m $*"
@@ -67,6 +65,9 @@ Help() {
     osu-wine --tosu: Installs and runs tosu without any needed config!
     osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
+
+OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
+IFS=" " read -r -a PRE_ARGS <<< "env ${LAUNCH_ARGS}"
 
 deleteFolder() {
     Info "Do you want to delete the previous install?"
@@ -155,25 +156,26 @@ EOF
 }
 
 LaunchGame() {
-    local pre_command=()
-    local post_command=("$YAWL_PATH")
+    local EXE_ARG="${YAWL_PATH}"
+    declare -a POST_ARGS
 
-    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
-        post_command+=("$OSUPATH/launch_with_memory.bat")
+    WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
+
+    if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
+        POST_ARGS+=("${OSUPATH}/launch_with_memory.bat")
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
-        post_command+=("$OSUPATH/osu!.exe")
+        POST_ARGS+=("${OSUPATH}/osu!.exe")
     fi
 
-    [[ -n "$1" ]] && post_command+=("-devserver" "$1")
-    [[ -n "$LAUNCH_ARGS" ]] && pre_command=($LAUNCH_ARGS)
+    [[ -n "$1" ]] && POST_ARGS+=("-devserver" "$1")
 
-    export WINEDEBUG="+timestamp,+pid,+tid,+unwind,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-    export WINELLO_LOGS_PATH="$XDG_DATA_HOME/osuconfig/winello.log"
+    export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
 
-    Info "Launching: ${pre_command[*]} ${post_command[*]}"
-    Info "The log is located in ${WINELLO_LOGS_PATH}, should anything go wrong."
-    exec env "${pre_command[@]}" "${post_command[@]}" &> $WINELLO_LOGS_PATH
+    Info "Launching: ${PRE_ARGS[*]} ${EXE_ARG} ${POST_ARGS[*]}"
+    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
+
+    exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}"
 }
 
 ###################################################################################################
@@ -196,19 +198,19 @@ case "$1" in
     ###################################################################################################
 
 '--regedit')
-    $LAUNCH_ARGS "$YAWL_PATH" regedit
+    "${PRE_ARGS[@]}" "$YAWL_PATH" regedit
     ;;
 
     ###################################################################################################
 
 '--winecfg')
-    $LAUNCH_ARGS "$YAWL_PATH" winecfg
+    "${PRE_ARGS[@]}" "$YAWL_PATH" winecfg
     ;;
 
     ###################################################################################################
 
 '--winetricks')
-    $LAUNCH_ARGS "$YAWL_PATH" winetricks "${@:2}"
+    "${PRE_ARGS[@]}" "$YAWL_PATH" winetricks "${@:2}"
     ;;
 
     ###################################################################################################
@@ -333,15 +335,6 @@ case "$1" in
         ;;
     esac
 
-    ;;
-
-    ###################################################################################################
-
-'--runinprefix')
-
-    export PROTON_VERB=runinprefix
-    Info "Launching your custom executable: $2.."
-    $LAUNCH_ARGS "$YAWL_PATH" "$2"
     ;;
 
     ###################################################################################################

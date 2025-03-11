@@ -21,7 +21,7 @@ WINEVERSION=$MAJOR.$MINOR.$PATCH
 LASTWINEVERSION=0
 
 # Wine-osu mirror
-WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-$MAJOR.$MINOR-$PATCH-yawl-test/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
+WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-$MAJOR.$MINOR-$PATCH-yawl-test/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
 
 # Other versions for external downloads
 DISCRPCBRIDGEVERSION=1.2
@@ -79,7 +79,7 @@ Revert() {
     rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
     rm -f "$BINDIR/osu-wine"
     rm -rf "$XDG_DATA_HOME/osuconfig"
-    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
+    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
     rm -f "/tmp/osu-mime.tar.xz"
     rm -rf "/tmp/osu-mime"
     rm -f "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
@@ -209,16 +209,16 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
 
     Info "Installing Wine-osu:"
     # Downloading Wine..
-    wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" && chk="$?"
+    wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" || Error "Download failed, check your connection"
+        wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || Error "Download failed, check your connection"
     fi
 
     # This will extract Wine-osu and set last version to the one downloaded
-    tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" -C "$XDG_DATA_HOME/osuconfig"
+    tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
     LASTWINEVERSION="$WINEVERSION"
-    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
+    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
 
     Info "Installing yawl-winello:"
     # Downloading yawl and creating a wrapper for osu-winello!
@@ -516,17 +516,17 @@ Update() {
 
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
         # Downloading Wine..
-        wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" && chk="$?"
+        wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" "$WINELINK" || Error "Download failed, check your connection"
+            wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || Error "Download failed, check your connection"
         fi
 
         # This will extract Wine-osu and set last version to the one downloaded
         Info "Updating Wine-osu"...
         rm -rf "$XDG_DATA_HOME/osuconfig/wine-osu"
-        tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst" -C "$XDG_DATA_HOME/osuconfig"
-        rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.zst"
+        tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
+        rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
 
         LASTWINEVERSION="$WINEVERSION"
         rm -f "$XDG_DATA_HOME/osuconfig/wineverupdate"
