@@ -40,8 +40,8 @@ OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
 
 # Get the Windows-formatted paths to osu! and its install directory
-read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
-read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"
+[ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
+[ -r "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath" ] && read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"
 
 ###################################################################################################
 # Helper functions for the launcher script
