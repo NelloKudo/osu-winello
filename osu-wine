@@ -228,7 +228,7 @@ case "$1" in
     ###################################################################################################
 
 '--winetricks')
-    LaunchWine winetricks "${@:2}"
+    WINE="$YAWL_PATH" winetricks "${@:2}"
     ;;
 
     ###################################################################################################
@@ -372,8 +372,8 @@ case "$1" in
     Info "Deleting old Wineprefix..."
     rm -rf "$WINEPREFIX"
 
-    WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 "$YAWL_PATH" \
-        winetricks dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
+    WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 WINE="$YAWL_PATH" \
+        winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
 
     folderFix
 

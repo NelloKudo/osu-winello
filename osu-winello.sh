@@ -207,10 +207,10 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
     chmod +x "$YAWL_INSTALL_PATH"
 
-    # Install and verify yawl ASAP (--version), the wrapper mode does not download/install the runtime if no arguments are passed
+    # Install and verify yawl ASAP, the wrapper mode does not download/install the runtime if no arguments are passed
     YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
 
-    YAWL_VERBS="verify" "$YAWL_PATH"
+    YAWL_VERBS="verify" "$YAWL_PATH" "--version"
 
     # The update function works under this folder: it compares variables from files stored in osuconfig
     # with latest values from GitHub and check whether to update or not
@@ -367,7 +367,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 "$YAWL_PATH" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
+            WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 WINE="$YAWL_PATH" winetricks -q dotnet20 dotnet48 gdiplus_winxp win2k3
         else
             tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
             mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
