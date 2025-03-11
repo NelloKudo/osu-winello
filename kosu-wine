@@ -13,16 +13,16 @@ export WINEDEBUG=${WINEDEBUG:-}
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
-export PROTONPATH="$XDG_DATA_HOME/osuconfig/proton-osu"
+export PROTONPATH="$XDG_DATA_HOME/kawataconfig/proton-osu"
 export WINESERVER_PATH="$PROTONPATH/files/bin/wineserver"
 export WINE_PATH="$PROTONPATH/files/bin/wine"
 export WINETRICKS_PATH="$PROTONPATH/protontricks/winetricks"
 export GAMEID="umu-727"
 UMU_RUN="$PROTONPATH/umu-run"
 
-export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
-osuinstall=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-export OSUPATH="$osuinstall"
+export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/kosu-wineprefix"
+osuinstall=$(</"$XDG_DATA_HOME/kawataconfig/kawatapath")
+export kawatapath="$osuinstall"
 
 export vblank_mode=0                           # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0                   # Disables vsync for NVIDIA >=510
@@ -55,26 +55,26 @@ Error() {
 
 Help() {
     Info "Script features:
-    osu-wine: Runs osu!
-    osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
-    osu-wine --winetricks: Install packages on osu! Wineprefix
-    osu-wine --regedit: Opens regedit on osu! Wineprefix
-    osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
-    osu-wine --kill9: Kills osu! but with wineserver -k9
-    osu-wine --update: Updates proton-osu (and optionally, the osu-wine script) to upstream
-    osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
-    osu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
-    osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
-    osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
-    osu-wine --info: Troubleshooting and more info
-    osu-wine --remove: Uninstalls osu! and the script
-    osu-wine --changedir: Changes directory of the install according to the user
-    osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
-    osu-wine --runinprefix <file>: Launches a custom executable within osu!'s Wineprefix
-    osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
-    osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
-    osu-wine --tosu: Installs and runs tosu without any needed config!
-    osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
+    kosu-wine: Runs osu!
+    kosu-wine --winecfg : Runs winecfg on the osu! Wineprefix
+    kosu-wine --winetricks: Install packages on osu! Wineprefix
+    kosu-wine --regedit: Opens regedit on osu! Wineprefix
+    kosu-wine --kill: Kills osu! and related processes in osu! Wineprefix
+    kosu-wine --kill9: Kills osu! but with wineserver -k9
+    kosu-wine --update: Updates proton-osu (and optionally, the kosu-wine script) to upstream
+    kosu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
+    kosu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
+    kosu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+    kosu-wine --fixrpc: Reinstalls rpc-bridge if needed!
+    kosu-wine --info: Troubleshooting and more info
+    kosu-wine --remove: Uninstalls osu! and the script
+    kosu-wine --changedir: Changes directory of the install according to the user
+    kosu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
+    kosu-wine --runinprefix <file>: Launches a custom executable within osu!'s Wineprefix
+    kosu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
+    kosu-wine --gosumemory: Installs and runs gosumemory without any needed config!
+    kosu-wine --tosu: Installs and runs tosu without any needed config!
+    kosu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
 
 deleteFolder() {
@@ -85,7 +85,7 @@ deleteFolder() {
         read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" dirchoice2
 
         if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
-            lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+            lastdir=$(</"$XDG_DATA_HOME/kawataconfig/kawatapath")
             rm -rf "$lastdir/osu!" && Info "Cleaning done!"
         else
             Info "Skipping..."
@@ -102,51 +102,51 @@ Update() {
     $LAUNCH_ARGS "$WINESERVER_PATH" -k
     local self
     self="$(realpath "$0")"
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    exec bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update "${self}"
+    git -C "$XDG_DATA_HOME/kawataconfig/update" pull --quiet
+    exec bash "$XDG_DATA_HOME/kawataconfig/update/kosu-winello.sh" update "${self}"
 }
 
 longPathsFix() {
     # Applying fix for long names/paths...
     rm -rf "$WINEPREFIX/dosdevices/d:"
-    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+    ln -s "$kawatapath" "$WINEPREFIX/dosdevices/d:"
 }
 
 osuHandlerSetup() {
     # Fix to importing maps/skins/osu links after Stable update 20250122.1
     # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
+    git -C "$XDG_DATA_HOME/kawataconfig/update" pull --quiet
+    bash "$XDG_DATA_HOME/kawataconfig/update/kosu-winello.sh" osuhandler
 }
 
 folderFix() {
     # Applying fix for opening folders in the native file browser...
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixfolders
+    git -C "$XDG_DATA_HOME/kawataconfig/update" pull --quiet
+    bash "$XDG_DATA_HOME/kawataconfig/update/kosu-winello.sh" fixfolders
 }
 
 fixRpc() {
     # reinstall discord rpc bridge
     if [ ! -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
-        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+        git -C "$XDG_DATA_HOME/kawataconfig/update" pull --quiet
     fi
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" discordrpc
+    bash "$XDG_DATA_HOME/kawataconfig/update/kosu-winello.sh" discordrpc
 }
 
 SetupReader() {
     local READER_NAME="${1}"
-    if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
-        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-        bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "$READER_NAME"
+    if [ ! -d "$XDG_DATA_HOME/kawataconfig/$READER_NAME" ]; then
+        git -C "$XDG_DATA_HOME/kawataconfig/update" pull --quiet
+        bash "$XDG_DATA_HOME/kawataconfig/update/kosu-winello.sh" "$READER_NAME"
     fi
 
     Info "Setting up $READER_NAME wrapper..."
-    READER_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
-    OSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH/osu!.exe")"
-    OSU_DIR="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$OSUPATH")"
+    READER_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$XDG_DATA_HOME/kawataconfig/$READER_NAME/$READER_NAME.exe")"
+    OSU_PATH="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$kawatapath/osu!.exe")"
+    OSU_DIR="$($LAUNCH_ARGS PROTON_VERB=runinprefix "$UMU_RUN" winepath -w "$kawatapath")"
 
     # launcher batch file which monitors osu! and closes gosumemory when osu! exits
-    cat >"$OSUPATH/launch_with_memory.bat" <<EOF
+    cat >"$kawatapath/launch_with_memory.bat" <<EOF
 @echo off
 set NODE_SKIP_PLATFORM_CHECK=1
 cd /d "$OSU_DIR"
@@ -169,18 +169,18 @@ EOF
 LaunchGame() {
     local PRE_COMMAND=("${LAUNCH_ARGS//env /}" "UMU_RUNTIME_UPDATE=0")
     local POST_COMMAND=("$UMU_RUN")
-    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
+    if [ -f "$kawatapath/launch_with_memory.bat" ]; then
         PRE_COMMAND+=("PROTON_VERB=runinprefix")
-        POST_COMMAND+=("$OSUPATH/launch_with_memory.bat")
+        POST_COMMAND+=("$kawatapath/launch_with_memory.bat")
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
-        POST_COMMAND+=("$OSUPATH"/'osu!.exe')
+        POST_COMMAND+=("$kawatapath"/'osu!.exe')
     fi
 
     if [ -n "$1" ]; then POST_COMMAND+=("-devserver" "${1}"); fi
 
     export PROTON_LOG=1 # only want to redirect to a file for the game
-    export PROTON_LOG_DIR="$XDG_DATA_HOME/osuconfig/"
+    export PROTON_LOG_DIR="$XDG_DATA_HOME/kawataconfig/"
     export WINEDEBUG="+timestamp,+pid,+tid,+seh,+unwind,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
 
     Info "Launching ${PRE_COMMAND[*]} ${POST_COMMAND[*]} !"
@@ -230,42 +230,42 @@ case "$1" in
     Info "Please choose your new directory:"
 
     newdir="$(zenity --file-selection --directory)"
-    lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+    lastdir=$(</"$XDG_DATA_HOME/kawataconfig/kawatapath")
 
     if [ ! -d "$newdir" ]; then
         Error "No folder selected, please make sure zenity is installed.."
     fi
 
-    rm -f "$XDG_DATA_HOME/osuconfig/osupath"
+    rm -f "$XDG_DATA_HOME/kawataconfig/kawatapath"
     if [ -d "$newdir/osu!" ] || [ -s "$newdir/osu!.exe" ]; then
         Info "osu! folder/game already exists: skipping.."
 
         if [ -d "$newdir/osu!" ]; then
-            OSUPATH="$newdir/osu!"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+            kawatapath="$newdir/osu!"
+            echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
 
             Info "Change done from '$lastdir' to '$newdir'!"
             deleteFolder
         fi
 
         if [ -s "$newdir/osu!.exe" ]; then
-            OSUPATH="$newdir"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+            kawatapath="$newdir"
+            echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
 
             Info "Change done from '$lastdir' to '$newdir'!"
             deleteFolder
         fi
     else
         mkdir "$newdir/osu!"
-        OSUPATH="$newdir/osu!"
-        echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+        kawatapath="$newdir/osu!"
+        echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
 
         Info "Downloading osu! to your new install.."
-        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && wgetcheck6="$?"
+        wget -O "$kawatapath/osu!.exe" "${OSUDOWNLOADURL}" && wgetcheck6="$?"
 
         if [ ! "$wgetcheck6" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}"
+            wget --no-check-certificate -O "$kawatapath/osu!.exe" "${OSUDOWNLOADURL}"
         fi
 
         Info "Change done from '$lastdir' to '$newdir'!"
@@ -278,7 +278,7 @@ case "$1" in
     ###################################################################################################
 
 '--remove')
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" uninstall
+    bash "$XDG_DATA_HOME/kawataconfig/update/kosu-winello.sh" uninstall
     ;;
 
     ###################################################################################################
@@ -308,8 +308,8 @@ case "$1" in
     ###################################################################################################
 
 *fix*umu*)
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixumu
+    git -C "$XDG_DATA_HOME/kawataconfig/update" pull --quiet
+    bash "$XDG_DATA_HOME/kawataconfig/update/kosu-winello.sh" fixumu
     ;;
 
     ###################################################################################################
@@ -322,7 +322,7 @@ case "$1" in
 
 '--osuhandler')
 
-    OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/osu-handler-wine"
+    OSUHANDLERPATH="$XDG_DATA_HOME/kawataconfig/osu-handler-wine"
 
     Info "Trying to load your file/link.."
     case "$2" in
@@ -380,7 +380,7 @@ case "$1" in
     # Try fixing the rpc bridge
     fixRpc
 
-    Info "Wineprefix is now working; launch osu! with osu-wine"
+    Info "Wineprefix is now working; launch osu! with kosu-wine"
     ;;
 
     ###################################################################################################
@@ -395,8 +395,8 @@ case "$1" in
     ###################################################################################################
 
 '--disable-memory-reader')
-    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
-        rm "$OSUPATH/launch_with_memory.bat"
+    if [ -f "$kawatapath/launch_with_memory.bat" ]; then
+        rm "$kawatapath/launch_with_memory.bat"
         Info "Memory reader wrapper disabled."
     else
         Info "No memory reader wrapper was enabled."
@@ -408,13 +408,13 @@ case "$1" in
 '--info')
     Info "Need info?:
     Wineprefix location: $WINEPREFIX
-    osu! folder: '$OSUPATH'
+    osu! folder: '$kawatapath'
 
-    If you need to add more options to osu!, check the LaunchGame function of the script (ex. nano $BINDIR/osu-wine)
-    You can run 'osu-wine --help' to see all the script's functions (fix prefix, change dir etc.)
+    If you need to add more options to osu!, check the LaunchGame function of the script (ex. nano $BINDIR/kosu-wine)
+    You can run 'kosu-wine --help' to see all the script's functions (fix prefix, change dir etc.)
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1
 
-    If you get an error like 'Runtime Platform missing or download incomplete', try running 'osu-wine --fix-umu'."
+    If you get an error like 'Runtime Platform missing or download incomplete', try running 'kosu-wine --fix-umu'."
     ;;
 
     ###################################################################################################

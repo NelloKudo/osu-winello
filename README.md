@@ -1,4 +1,4 @@
-# osu-winello
+# kosu-winello
 osu! stable installer for Linux with patched Proton-osu and other features.
 
 ![ezgif com-video-to-gif(1)](https://user-images.githubusercontent.com/98063377/224407211-70fa648c-b96f-442b-b5f5-eaf28a84670a.gif)
@@ -57,19 +57,19 @@ pactl info | grep "Server Name"
 If it shows `Server Name: PulseAudio (on Pipewire)` , then you're good to go. 
 
 Otherwise, make sure to install it following the instructions at here: 
-- [Installing PipeWire](https://github.com/NelloKudo/osu-winello/wiki/Installing-PipeWire)
+- [Installing PipeWire](https://github.com/NelloKudo/kosu-winello/wiki/Installing-PipeWire)
 
 ## Installing osu!:
 ```
-git clone https://github.com/NelloKudo/osu-winello.git
-cd osu-winello
-chmod +x ./osu-winello.sh
-./osu-winello.sh
+git clone https://github.com/NelloKudo/kosu-winello.git
+cd kosu-winello
+chmod +x ./kosu-winello.sh
+./kosu-winello.sh
 ```
 
 You can now launch osu! with:
 ```
-osu-wine
+kosu-wine
 ```
 ### ⚠ **!! \o/ !!** ⚠ :
 - You might need to relaunch your terminal to launch the game.
@@ -81,12 +81,12 @@ osu-wine
 - Provides [osu-handler](https://aur.archlinux.org/packages/osu-handler) for importing maps and skins, Discord RPC with [rpc-bridge](https://github.com/EnderIce2/rpc-bridge) and support for native file managers!
 - Supports the latest [tosu](https://github.com/KotRikD/tosu) and legacy [gosumemory](https://github.com/l3lackShark/gosumemory) for streaming etc. with automatic install! (Check [flags](#flags)!)
 - Installs osu! on either default or custom path (using GUI), also working for already existing osu! installations from Windows!
-- Skips the pain of downloading Wineprefix thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
+- Skips the pain of downloading Wineprefix thanks to [my fork](https://gitlab.com/NelloKudo/kosu-winello-prefix) of [kosu-wineprefix](https://gitlab.com/kosu-wine/kosu-wineprefix)
 - Support for Windows fonts pre-installed in Proton (JP fonts, special characters etc.)
 
 # Troubleshooting
 
-Please refer to [osu-winello's wiki](https://github.com/NelloKudo/osu-winello/wiki) for troubleshooting of any type. 
+Please refer to [kosu-winello's wiki](https://github.com/NelloKudo/kosu-winello/wiki) for troubleshooting of any type. 
 
 If that doesn't help, either:
 - Join [ThePooN's Discord](https://discord.gg/bc4qaYjqyT) and ask in #osu-linux, they'll know how to help! <3
@@ -95,34 +95,34 @@ If that doesn't help, either:
 # Flags:
 **Installation script:** 
 ```
-./osu-winello.sh: Installs the game
-./osu-winello.sh --no-deps: Installs the game but skips installing dependencies
-./osu-winello.sh uninstall: Uninstalls the game
-./osu-winello.sh fix-umu: Tries to fix umu-launcher issues (partial downloads, corruption etc.)
+./kosu-winello.sh: Installs the game
+./kosu-winello.sh --no-deps: Installs the game but skips installing dependencies
+./kosu-winello.sh uninstall: Uninstalls the game
+./kosu-winello.sh fix-umu: Tries to fix umu-launcher issues (partial downloads, corruption etc.)
 ```
 
 **Game script:**
 ```
-osu-wine: Runs osu!
-osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
-osu-wine --winetricks: Install packages on osu! Wineprefix
-osu-wine --regedit: Opens regedit on osu! Wineprefix
-osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
-osu-wine --kill9: Kills osu! but with wineserver -k9
-osu-wine --update: Updates wine-osu to latest version
-osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
-osu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
-osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
-osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
-osu-wine --info: Troubleshooting and more info
-osu-wine --remove: Uninstalls osu! and the script
-osu-wine --changedir: Changes directory of the install according to the user
-osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
-osu-wine --runinprefix <file>: Launches a custom executable within osu!'s Wineprefix
-osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
-osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
-osu-wine --tosu: Installs and runs tosu without any needed config!
-osu-wine --disable-memory-reader: Turn off gosumemory and tosu
+kosu-wine: Runs osu!
+kosu-wine --winecfg : Runs winecfg on the osu! Wineprefix
+kosu-wine --winetricks: Install packages on osu! Wineprefix
+kosu-wine --regedit: Opens regedit on osu! Wineprefix
+kosu-wine --kill: Kills osu! and related processes in osu! Wineprefix
+kosu-wine --kill9: Kills osu! but with wineserver -k9
+kosu-wine --update: Updates wine-osu to latest version
+kosu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
+kosu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
+kosu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
+kosu-wine --fixrpc: Reinstalls rpc-bridge if needed!
+kosu-wine --info: Troubleshooting and more info
+kosu-wine --remove: Uninstalls osu! and the script
+kosu-wine --changedir: Changes directory of the install according to the user
+kosu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
+kosu-wine --runinprefix <file>: Launches a custom executable within osu!'s Wineprefix
+kosu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
+kosu-wine --gosumemory: Installs and runs gosumemory without any needed config!
+kosu-wine --tosu: Installs and runs tosu without any needed config!
+kosu-wine --disable-memory-reader: Turn off gosumemory and tosu
 ```
 
 # Steam Deck Support
@@ -142,7 +142,7 @@ Special thanks to:
 - [Integrating native file manager by Maot](https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2)
 - [KatouMegumi's guide](https://wiki.archlinux.org/title/User:Katoumegumi#osu!_(stable)_on_Arch_Linux)
 - [hwsnemo's wine-osu](https://software.opensuse.org//download.html?project=home%3Ahwsnemo%3Apackaged-wine-osu&package=wine-osu)
-- [diamondburned's osu-wine](https://gitlab.com/osu-wine/osu-wine)
+- [diamondburned's kosu-wine](https://gitlab.com/kosu-wine/kosu-wine)
 - [openglfreak's packages](https://github.com/openglfreak)
 - [EnderIce2's rpc-bridge](https://github.com/EnderIce2/rpc-bridge)
 - Last but not least, every contributor. Thanks for making Winello even better!

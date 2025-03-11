@@ -8,9 +8,9 @@
 #   =======================================
 
 # The URL for this git repo
-WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
+WINELLOGIT="https://github.com/PhoenixAceVFX/Kawata-winello.git"
 
-# The directory osu-winello.sh is in
+# The directory kosu-winello.sh is in
 SCRDIR="$(realpath "$(dirname "$0")")"
 
 # Proton-osu current versions for update
@@ -29,7 +29,7 @@ GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
 
 # Other download links
-PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
+PREFIXLINK="https://gitlab.com/NelloKudo/kosu-winello-prefix/-/raw/master/kosu-winello-prefix.tar.xz" # Default WINEPREFIX
 OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" # osu-mime (file associations)
 
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
@@ -43,15 +43,15 @@ TOSULINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
-export PROTONPATH="${PROTONPATH:-"$XDG_DATA_HOME/osuconfig/proton-osu"}"
-export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
+export PROTONPATH="${PROTONPATH:-"$XDG_DATA_HOME/kawataconfig/proton-osu"}"
+export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/kosu-wineprefix"}"
 
 # For umu-launcher
 export GAMEID="umu-727"
 
 # Other shell local variables
 
-UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/osuconfig/proton-osu/umu-run"}"
+UMU_RUN="${UMU_RUN:-"$XDG_DATA_HOME/kawataconfig/proton-osu/umu-run"}"
 
 
 #   =====================================
@@ -78,10 +78,10 @@ Quit() {
 # Function to revert the install in case of any type of fail
 Revert() {
     echo -e '\033[1;31m'"Reverting install...:\033[0m"
-    rm -f "$XDG_DATA_HOME/icons/osu-wine.png"
-    rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
-    rm -f "$BINDIR/osu-wine"
-    rm -rf "$XDG_DATA_HOME/osuconfig"
+    rm -f "$XDG_DATA_HOME/icons/kosu-wine.png"
+    rm -f "$XDG_DATA_HOME/applications/kosu-wine.desktop"
+    rm -f "$BINDIR/kosu-wine"
+    rm -rf "$XDG_DATA_HOME/kawataconfig"
     rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
     rm -f "/tmp/osu-mime.tar.xz"
     rm -rf "/tmp/osu-mime"
@@ -90,7 +90,7 @@ Revert() {
     rm -f "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.xz"
     rm -rf "/tmp/winestreamproxy"
-    echo -e '\033[1;31m'"Reverting done, try again with ./osu-winello.sh\033[0m"
+    echo -e '\033[1;31m'"Reverting done, try again with ./kosu-winello.sh\033[0m"
 }
 
 # Error function pointing at Revert(), but with an appropriate message
@@ -105,9 +105,9 @@ InitialSetup() {
     # Better to not run the script as root, right?
     if [ "$USER" = "root" ]; then Error "Please run the script without root"; fi
 
-    # Checking for previous versions of osu-wine (mine or DiamondBurned's)
-    if [ -e /usr/bin/osu-wine ]; then Quit "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!"; fi
-    if [ -e "$BINDIR/osu-wine" ]; then Quit "Please uninstall Winello (osu-wine --remove) before installing!"; fi
+    # Checking for previous versions of kosu-wine (mine or DiamondBurned's)
+    if [ -e /usr/bin/kosu-wine ]; then Quit "Please uninstall old kosu-wine (/usr/bin/kosu-wine) before installing!"; fi
+    if [ -e "$BINDIR/kosu-wine" ]; then Quit "Please uninstall Winello (kosu-wine --remove) before installing!"; fi
 
     Info "Welcome to the script! Follow it to install osu! 8)"
 
@@ -199,11 +199,11 @@ InstallProton() {
     Info "Setting up umu-launcher.."
 
     Info "Installing game script:"
-    cp "${SCRDIR}/osu-wine" "$BINDIR/osu-wine" && chmod +x "$BINDIR/osu-wine"
+    cp "${SCRDIR}/kosu-wine" "$BINDIR/kosu-wine" && chmod +x "$BINDIR/kosu-wine"
 
     Info "Installing icons:"
     mkdir -p "$XDG_DATA_HOME/icons"
-    cp "${SCRDIR}/stuff/osu-wine.png" "$XDG_DATA_HOME/icons/osu-wine.png" && chmod 644 "$XDG_DATA_HOME/icons/osu-wine.png"
+    cp "${SCRDIR}/stuff/kosu-wine.png" "$XDG_DATA_HOME/icons/kosu-wine.png" && chmod 644 "$XDG_DATA_HOME/icons/kosu-wine.png"
 
     Info "Installing .desktop:"
     mkdir -p "$XDG_DATA_HOME/applications"
@@ -211,16 +211,16 @@ InstallProton() {
 Name=osu!
 Comment=osu! - Rhythm is just a *click* away!
 Type=Application
-Exec=$BINDIR/osu-wine %U
-Icon=$XDG_DATA_HOME/icons/osu-wine.png
+Exec=$BINDIR/kosu-wine %U
+Icon=$XDG_DATA_HOME/icons/kosu-wine.png
 Terminal=false
-Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/dev/null
-    chmod +x "$XDG_DATA_HOME/applications/osu-wine.desktop"
+Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/kosu-wine.desktop" >/dev/null
+    chmod +x "$XDG_DATA_HOME/applications/kosu-wine.desktop"
 
-    if [ -d "$XDG_DATA_HOME/osuconfig" ]; then
-        Info "Skipping osuconfig.."
+    if [ -d "$XDG_DATA_HOME/kawataconfig" ]; then
+        Info "Skipping kawataconfig.."
     else
-        mkdir "$XDG_DATA_HOME/osuconfig"
+        mkdir "$XDG_DATA_HOME/kawataconfig"
     fi
 
     Info "Installing Proton-osu:"
@@ -232,40 +232,40 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     fi
 
     # This will extract Proton-osu and set last version to the one downloaded
-    tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
+    tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/kawataconfig"
     LASTPROTONVERSION="$PROTONVERSION"
     rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
 
-    # The update function works under this folder: it compares variables from files stored in osuconfig
+    # The update function works under this folder: it compares variables from files stored in kawataconfig
     # with latest values from GitHub and check whether to update or not
     Info "Installing script copy for updates.."
-    mkdir -p "$XDG_DATA_HOME/osuconfig/update"
-    git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
+    mkdir -p "$XDG_DATA_HOME/kawataconfig/update"
+    git clone "${WINELLOGIT}" "$XDG_DATA_HOME/kawataconfig/update" || Error "Git failed, check your connection.."
 
-    echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
+    echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/kawataconfig/protonverupdate"
 }
 
 # Function configuring folders to install the game
 ConfigurePath() {
     Info "Configuring osu! folder:"
     Info "Where do you want to install the game?: 
-          1 - Default path ($XDG_DATA_HOME/osu-wine)
+          1 - Default path ($XDG_DATA_HOME/kosu-wine)
           2 - Custom path"
     read -r -p "$(Info "Choose your option: ")" installpath
 
     if [ "$installpath" = 1 ] || [ "$installpath" = 2 ]; then
         case "$installpath" in
         '1')
-            mkdir -p "$XDG_DATA_HOME/osu-wine"
-            GAMEDIR="$XDG_DATA_HOME/osu-wine"
+            mkdir -p "$XDG_DATA_HOME/kosu-wine"
+            GAMEDIR="$XDG_DATA_HOME/kosu-wine"
 
             if [ -d "$GAMEDIR/OSU" ]; then
-                OSUPATH="$GAMEDIR/OSU"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+                kawatapath="$GAMEDIR/OSU"
+                echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
             else
                 mkdir -p "$GAMEDIR/osu!"
-                OSUPATH="$GAMEDIR/osu!"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+                kawatapath="$GAMEDIR/osu!"
+                echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
             fi
             ;;
 
@@ -274,28 +274,28 @@ ConfigurePath() {
             GAMEDIR="$(zenity --file-selection --directory)"
 
             if [ -e "$GAMEDIR/osu!.exe" ]; then
-                OSUPATH="$GAMEDIR"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+                kawatapath="$GAMEDIR"
+                echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
             else
                 mkdir -p "$GAMEDIR/osu!"
-                OSUPATH="$GAMEDIR/osu!"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+                kawatapath="$GAMEDIR/osu!"
+                echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
             fi
             ;;
         esac
     else
-        Info "No option chosen, installing to default.. ($XDG_DATA_HOME/osu-wine)"
+        Info "No option chosen, installing to default.. ($XDG_DATA_HOME/kosu-wine)"
 
-        mkdir -p "$XDG_DATA_HOME/osu-wine"
-        GAMEDIR="$XDG_DATA_HOME/osu-wine"
+        mkdir -p "$XDG_DATA_HOME/kosu-wine"
+        GAMEDIR="$XDG_DATA_HOME/kosu-wine"
 
         if [ -d "$GAMEDIR/OSU" ]; then
-            OSUPATH="$GAMEDIR/OSU"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+            kawatapath="$GAMEDIR/OSU"
+            echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
         else
             mkdir -p "$GAMEDIR/osu!"
-            OSUPATH="$GAMEDIR/osu!"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+            kawatapath="$GAMEDIR/osu!"
+            echo "$kawatapath" >"$XDG_DATA_HOME/kawataconfig/kawatapath"
         fi
     fi
 }
@@ -314,7 +314,7 @@ FullInstall() {
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/kosu-winello/issues"
     fi
 
     tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
@@ -326,34 +326,34 @@ FullInstall() {
 
     # Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
     # Binary was compiled from source on Ubuntu 18.04
-    cp "${SCRDIR}/stuff/osu-handler-wine" "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
+    cp "${SCRDIR}/stuff/osu-handler-wine" "$XDG_DATA_HOME/kawataconfig/osu-handler-wine"
 
-    chmod +x "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
+    chmod +x "$XDG_DATA_HOME/kawataconfig/osu-handler-wine"
 
     # Creating entries for those two
     echo "[Desktop Entry]
 Type=Application
 Name=osu!
 MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
-Exec=$BINDIR/osu-wine --osuhandler %f
+Exec=$BINDIR/kosu-wine --osuhandler %f
 NoDisplay=true
 StartupNotify=true
-Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
+Icon=$XDG_DATA_HOME/icons/kosu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
     chmod +x "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
 
     echo "[Desktop Entry]
 Type=Application
 Name=osu!
 MimeType=x-scheme-handler/osu;
-Exec=$BINDIR/osu-wine --osuhandler %u
+Exec=$BINDIR/kosu-wine --osuhandler %u
 NoDisplay=true
 StartupNotify=true
-Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
+Icon=$XDG_DATA_HOME/icons/kosu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
     chmod +x "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop" >/dev/null
     update-desktop-database "$XDG_DATA_HOME/applications"
 
     # Time to install my prepackaged Wineprefix, which works in most cases
-    # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
+    # The script is still bundled with kosu-wine --fixprefix, which should do the job for me as well
 
     Info "Configuring Wineprefix:"
 
@@ -361,36 +361,36 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
     failprefix="false"
 
     mkdir -p "$XDG_DATA_HOME/wineprefixes"
-    if [ -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix" ]; then
+    if [ -d "$XDG_DATA_HOME/wineprefixes/kosu-wineprefix" ]; then
 
         Info "Wineprefix already exists; do you want to reinstall it?"
         read -r -p "$(Info "Choose: (y/N)")" prefchoice
 
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
-            rm -rf "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+            rm -rf "$XDG_DATA_HOME/wineprefixes/kosu-wineprefix"
         fi
     fi
 
     # So if there's no prefix (or the user wants to reinstall):
-    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix" ]; then
+    if [ ! -d "$XDG_DATA_HOME/wineprefixes/kosu-wineprefix" ]; then
 
         # Downloading prefix in temporary ~/.winellotmp folder
-        # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
+        # to make up for this issue: https://github.com/NelloKudo/kosu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
+        wget -O "$HOME/.winellotmp/kosu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
 
         # If download failed:
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
+            wget --no-check-certificate -O "$HOME/.winellotmp/kosu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
         fi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
             "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
         else
-            tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
-            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+            tar -xf "$HOME/.winellotmp/kosu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
+            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/kosu-wineprefix"
         fi
 
         # Cleaning..
@@ -402,7 +402,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         mkdir -p "$WINEPREFIX/dosdevices"
         ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
         ln -s / "$WINEPREFIX/dosdevices/z:"
-        ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+        ln -s "$kawatapath" "$WINEPREFIX/dosdevices/d:"
 
         # Setup osu-handler for file integrations
         osuHandlerSetup
@@ -416,20 +416,24 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
     discordRpc
 
     # Well...
-    Info "Downloading osu!"
-    if [ ! -s "$OSUPATH/osu!.exe" ]; then
-        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && chk="$?"
+    Info "Downloading osu!Kawata..."
+    if [ ! -s "$kawatapath/osu!.exe" ]; then
+        wget -O "/tmp/osu!Kawata.zip" "https://storage.kawata.pw/get/osu!Kawata.zip" && chk="$?"
 
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+            wget --no-check-certificate -O "/tmp/osu!Kawata.zip" "https://storage.kawata.pw/get/osu!Kawata.zip" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/kosu-winello/issues"
         fi
+
+        Info "Extracting osu!Kawata..."
+        unzip -o "/tmp/osu!Kawata.zip" -d "$kawatapath"
+        rm -f "/tmp/osu!Kawata.zip"
     fi
 
     Check32
 
-    Info "Installation is completed! Run 'osu-wine' to play osu!"
-    Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    Info "Installation is completed! Run 'kosu-wine' to play osu!"
+    Warning "If 'kosu-wine' doesn't work, just close and relaunch your terminal."
     exit 0
 }
 
@@ -504,7 +508,7 @@ Check32() {
 askConfirmTimeout() {
     [ -z "${1:-}" ] && Info "Missing an argument for ${FUNCNAME[0]}!?" && exit 1
 
-    local rememberfile="${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
+    local rememberfile="${XDG_DATA_HOME}/kawataconfig/rememberupdatechoice"
     touch "${rememberfile}"
 
     local lastchoice
@@ -536,11 +540,11 @@ askConfirmTimeout() {
     return 0
 }
 
-# A helper for updating the osu-wine launcher itself
+# A helper for updating the kosu-wine launcher itself
 launcherUpdate() {
     local launcher="${1}"
-    local update_source="$XDG_DATA_HOME/osuconfig/update/osu-wine"
-    local backup_path="$XDG_DATA_HOME/osuconfig/osu-wine.bak"
+    local update_source="$XDG_DATA_HOME/kawataconfig/update/kosu-wine"
+    local backup_path="$XDG_DATA_HOME/kawataconfig/kosu-wine.bak"
 
     if [ ! -f "$update_source" ]; then
         Warning "Update source not found: $update_source"
@@ -574,33 +578,33 @@ launcherUpdate() {
     return 0
 }
 
-# This function reads files located in $XDG_DATA_HOME/osuconfig
+# This function reads files located in $XDG_DATA_HOME/kawataconfig
 # to see whether a new wine-osu version has been released.
 Update() {
     local launcher_path="${1:-}"
     # Checking for old installs with Wine
-    if [ -d "$XDG_DATA_HOME/osuconfig/wine-osu" ]; then
+    if [ -d "$XDG_DATA_HOME/kawataconfig/wine-osu" ]; then
         Quit "wine-osu detected and already up-to-date; please reinstall Winello if you want to use proton-osu!"
     fi
 
     # Reading the last version installed
-    LASTPROTONVERSION=$(</"$XDG_DATA_HOME/osuconfig/protonverupdate")
+    LASTPROTONVERSION=$(</"$XDG_DATA_HOME/kawataconfig/protonverupdate")
 
     if [ "$LASTPROTONVERSION" \!= "$PROTONVERSION" ]; then
         wget -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "${PROTONLINK}" && chk="$?"
 
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "${PROTONLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+            wget --no-check-certificate -O "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" "${PROTONLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/kosu-winello/issues"
         fi
         Info "Updating Proton-osu"...
 
-        rm -rf "$XDG_DATA_HOME/osuconfig/proton-osu"
-        tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
+        rm -rf "$XDG_DATA_HOME/kawataconfig/proton-osu"
+        tar -xf "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz" -C "$XDG_DATA_HOME/kawataconfig"
         rm -f "/tmp/proton-osu-${PROTONVERSION}-x86_64.pkg.tar.xz"
         LASTPROTONVERSION="$PROTONVERSION"
-        rm -f "$XDG_DATA_HOME/osuconfig/protonverupdate"
-        echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/osuconfig/protonverupdate"
+        rm -f "$XDG_DATA_HOME/kawataconfig/protonverupdate"
+        echo "$LASTPROTONVERSION" >>"$XDG_DATA_HOME/kawataconfig/protonverupdate"
         Info "Update is completed!"
     else
         Info "Your Proton-osu is already up-to-date!"
@@ -609,41 +613,41 @@ Update() {
     [ ! -x "${launcher_path}" ] && return
 
     if [ ! -w "${launcher_path}" ]; then
-        Warning "Note: ${launcher_path} is not writable - updating the osu-wine launcher will not be possible"
+        Warning "Note: ${launcher_path} is not writable - updating the kosu-wine launcher will not be possible"
         Warning "Try running the update with appropriate permissions if you want to update the launcher,"
         Warning "   or move it to a place like $BINDIR and then run it from there."
         return
     fi
 
-    Info "Do you want to update the 'osu-wine' launcher as well?"
+    Info "Do you want to update the 'kosu-wine' launcher as well?"
     Info "This is recommended, as there may be important fixes and updates."
     Warning "This will remove any customizations you might have made to ${launcher_path},"
-    Warning "   but a backup will be left in $XDG_DATA_HOME/osuconfig/osu-wine.bak ."
+    Warning "   but a backup will be left in $XDG_DATA_HOME/kawataconfig/kosu-wine.bak ."
 
     # use a really long timeout so the user can read everything and decide
-    askConfirmTimeout "the 'osu-wine' launcher" 60 && selfupdate=y
+    askConfirmTimeout "the 'kosu-wine' launcher" 60 && selfupdate=y
     if [ -n "${selfupdate}" ]; then
         if launcherUpdate "${launcher_path}"; then
             Info "Launcher update successful!"
-            Info "Backup saved to: $XDG_DATA_HOME/osuconfig/osu-wine.bak"
+            Info "Backup saved to: $XDG_DATA_HOME/kawataconfig/kosu-wine.bak"
         else
             Error "Launcher update failed"
         fi
     else
-        Info "Your osu-wine launcher will be left alone."
+        Info "Your kosu-wine launcher will be left alone."
     fi
 }
 
-# Well, simple function to install the game (also implement in osu-wine --remove)
+# Well, simple function to install the game (also implement in kosu-wine --remove)
 Uninstall() {
     Info "Uninstalling icons:"
-    rm -f "$XDG_DATA_HOME/icons/osu-wine.png"
+    rm -f "$XDG_DATA_HOME/icons/kosu-wine.png"
 
     Info "Uninstalling .desktop:"
-    rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
+    rm -f "$XDG_DATA_HOME/applications/kosu-wine.desktop"
 
     Info "Uninstalling game script, utilities & folderfix:"
-    rm -f "$BINDIR/osu-wine"
+    rm -f "$BINDIR/kosu-wine"
     rm -f "$BINDIR/folderfixosu"
     rm -f "$BINDIR/folderfixosu.vbs"
     rm -f "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
@@ -651,12 +655,12 @@ Uninstall() {
     rm -f "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
 
     Info "Uninstalling proton-osu:"
-    rm -rf "$XDG_DATA_HOME/osuconfig/proton-osu"
+    rm -rf "$XDG_DATA_HOME/kawataconfig/proton-osu"
 
     read -r -p "$(Info "Do you want to uninstall Wineprefix? (y/N)")" wineprch
 
     if [ "$wineprch" = 'y' ] || [ "$wineprch" = 'Y' ]; then
-        rm -rf "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+        rm -rf "$XDG_DATA_HOME/wineprefixes/kosu-wineprefix"
     else
         Info "Skipping.."
     fi
@@ -668,19 +672,19 @@ Uninstall() {
 
         if [ "$choice2" = 'y' ] || [ "$choice2" = 'Y' ]; then
             Info "Uninstalling game:"
-            if [ -e "$XDG_DATA_HOME/osuconfig/osupath" ]; then
-                OSUUNINSTALLPATH=$(<"$XDG_DATA_HOME/osuconfig/osupath")
+            if [ -e "$XDG_DATA_HOME/kawataconfig/kawatapath" ]; then
+                OSUUNINSTALLPATH=$(<"$XDG_DATA_HOME/kawataconfig/kawatapath")
                 rm -rf "$OSUUNINSTALLPATH"
-                rm -rf "$XDG_DATA_HOME/osuconfig"
+                rm -rf "$XDG_DATA_HOME/kawataconfig"
             else
-                rm -rf "$XDG_DATA_HOME/osuconfig"
+                rm -rf "$XDG_DATA_HOME/kawataconfig"
             fi
         else
-            rm -rf "$XDG_DATA_HOME/osuconfig"
+            rm -rf "$XDG_DATA_HOME/kawataconfig"
             Info "Exiting.."
         fi
     else
-        rm -rf "$XDG_DATA_HOME/osuconfig"
+        rm -rf "$XDG_DATA_HOME/kawataconfig"
     fi
 
     Info "Uninstallation completed!"
@@ -688,21 +692,21 @@ Uninstall() {
 
 # Simple function that downloads Gosumemory!
 Gosumemory() {
-    if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
+    if [ ! -d "$XDG_DATA_HOME/kawataconfig/gosumemory" ]; then
         Info "Installing gosumemory.."
-        mkdir -p "$XDG_DATA_HOME/osuconfig/gosumemory"
+        mkdir -p "$XDG_DATA_HOME/kawataconfig/gosumemory"
         wget -O "/tmp/gosumemory.zip" "${GOSUMEMORYLINK}" || Error "Download failed, check your connection.."
-        unzip -d "$XDG_DATA_HOME/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
+        unzip -d "$XDG_DATA_HOME/kawataconfig/gosumemory" -q "/tmp/gosumemory.zip"
         rm "/tmp/gosumemory.zip"
     fi
 }
 
 tosu() {
-    if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
+    if [ ! -d "$XDG_DATA_HOME/kawataconfig/tosu" ]; then
         Info "Installing tosu.."
-        mkdir -p "$XDG_DATA_HOME/osuconfig/tosu"
+        mkdir -p "$XDG_DATA_HOME/kawataconfig/tosu"
         wget -O "/tmp/tosu.zip" "${TOSULINK}" || Error "Download failed, check your connection.."
-        unzip -d "$XDG_DATA_HOME/osuconfig/tosu" -q "/tmp/tosu.zip"
+        unzip -d "$XDG_DATA_HOME/kawataconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
 }
@@ -723,7 +727,7 @@ discordRpc() {
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/bridge.zip" "${DISCRPCLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget --no-check-certificate -O "/tmp/bridge.zip" "${DISCRPCLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/kosu-winello/issues"
     fi
 
     mkdir -p /tmp/rpc-bridge
@@ -735,8 +739,8 @@ discordRpc() {
 
 folderFixSetup() {
     # Applying fix for opening folders in the native file browser...
-    local VBS_PATH="$XDG_DATA_HOME/osuconfig/folderfixosu.vbs"
-    local FALLBACK_PATH="$XDG_DATA_HOME/osuconfig/folderfixosu"
+    local VBS_PATH="$XDG_DATA_HOME/kawataconfig/folderfixosu.vbs"
+    local FALLBACK_PATH="$XDG_DATA_HOME/kawataconfig/folderfixosu"
     cp "${SCRDIR}/stuff/folderfixosu.vbs" "${VBS_PATH}"
     cp "${SCRDIR}/stuff/folderfixosu" "${FALLBACK_PATH}"
 
@@ -755,7 +759,7 @@ folderFixSetup() {
 
 osuHandlerSetup() {
     # Fix to importing maps/skins/osu links after Stable update 20250122.1: https://osu.ppy.sh/home/changelog/stable40/20250122.1
-    local REG_FILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
+    local REG_FILE="$XDG_DATA_HOME/kawataconfig/osu-handler.reg"
     cp "${SCRDIR}/stuff/osu-handler.reg" "${REG_FILE}"
 
     # Adding the osu-handler.reg file to registry
@@ -763,11 +767,11 @@ osuHandlerSetup() {
 }
 
 FixUmu() {
-    if [ ! -f "$BINDIR/osu-wine" ]; then
-        Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
+    if [ ! -f "$BINDIR/kosu-wine" ]; then
+        Info "Looks like you haven't installed kosu-winello yet, so you should run ./kosu-winello.sh first."
         return
     elif [ ! -f "${UMU_RUN}" ]; then
-        Info "umu-launcher comes with Proton, so you should run ./osu-winello.sh first."
+        Info "umu-launcher comes with Proton, so you should run ./kosu-winello.sh first."
         return
     fi
 
@@ -790,10 +794,10 @@ FixUmu() {
 
 # Help!
 Help() {
-    Info "To install the game, run ./osu-winello.sh
-          To uninstall the game, run ./osu-winello.sh uninstall
-          To retry installing umu-launcher-related files, run ./osu-winello.sh fixumu
-          You can read more at README.md or https://github.com/NelloKudo/osu-winello"
+    Info "To install the game, run ./kosu-winello.sh
+          To uninstall the game, run ./kosu-winello.sh uninstall
+          To retry installing umu-launcher-related files, run ./kosu-winello.sh fixumu
+          You can read more at README.md or https://github.com/NelloKudo/kosu-winello"
 }
 
 #   =====================================
@@ -835,7 +839,7 @@ case "$1" in
     ;;
 
 'update')
-    Update "${2:-}" # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
+    Update "${2:-}" # second argument is the path to the kosu-wine launcher, expected to be called by `kosu-wine --update`
     ;;
 
 *umu*)
@@ -847,7 +851,7 @@ case "$1" in
     ;;
 
 *)
-    Info "Unknown argument, see ./osu-winello.sh help or ./osu-winello.sh -h"
+    Info "Unknown argument, see ./kosu-winello.sh help or ./kosu-winello.sh -h"
     ;;
 esac
 
