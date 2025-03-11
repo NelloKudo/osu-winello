@@ -207,7 +207,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     chmod +x "$XDG_DATA_HOME/osuconfig/yawl"
 
     # Install and verify yawl ASAP (--version), the wrapper mode does not download/install the runtime if no arguments are passed
-    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$XDG_DATA_HOME/osuconfig/yawl" "--version"
+    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver;verify" "$XDG_DATA_HOME/osuconfig/yawl" "--version"
 
     # The update function works under this folder: it compares variables from files stored in osuconfig
     # with latest values from GitHub and check whether to update or not
