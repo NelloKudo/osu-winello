@@ -235,7 +235,9 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     # with latest values from GitHub and check whether to update or not
     Info "Installing script copy for updates.."
     mkdir -p "$XDG_DATA_HOME/osuconfig/update"
-    git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update" || Error "Git failed, check your connection.."
+
+    { git clone . "$XDG_DATA_HOME/osuconfig/update" || git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update" ; } || \
+        Error "Git failed, check your connection.."
 
     echo "$LASTWINEVERSION" >>"$XDG_DATA_HOME/osuconfig/wineverupdate"
 }
