@@ -4,10 +4,25 @@
 ## Most stuff here is explained with comments, but if you just need to add
 ## any argument to osu!, use #LAUNCH_ARGS!
 
-## If you ever need to change something to the osu! launcher besides args, just go to line ~68
+# Customization and and performance configuration options are here:
 
 LAUNCH_ARGS="" # Use this for args like prime-run, gamemoderun, or mangohud!
-export WINEDEBUG=${WINEDEBUG:-}
+
+export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
+export WINE_BLOCK_GET_VERSION=0      # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
+
+export WINENTSYNC="${WINENTSYNC:-1}" # Enables NTsync (when possible, requires Linux >=6.14 or the DKMS module installed)
+export WINEFSYNC="${WINEFSYNC:-1}"   # Enables fsync (when possible)
+export WINEESYNC="${WINEESYNC:-1}"   # Enables esync (when possible)
+
+export vblank_mode=0                 # Disables vsync for mesa
+export __GL_SYNC_TO_VBLANK=0         # Disables vsync for NVIDIA >=510
+
+export WINEDEBUG=${WINEDEBUG:-}      # Sets wine's logging verbosity
+
+###################################################################################################
+# osu-winello internal variables, you probably don't have to touch these!
+###################################################################################################
 
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
@@ -19,14 +34,13 @@ export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 osuinstall=$(</"$XDG_DATA_HOME/osuconfig/osupath")
 export OSUPATH="$osuinstall"
 
-export vblank_mode=0                           # Disables vsync for mesa
-export __GL_SYNC_TO_VBLANK=0                   # Disables vsync for NVIDIA >=510
-export WINEDLLOVERRIDES=winemenubuilder.exe=d# # Blocks wine from creating .desktop files
-export WINE_ENABLE_ABS_TABLET_HACK=0           # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
-export WINE_BLOCK_GET_VERSION=0                # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
+export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
+
+OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
+IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
 
 ###################################################################################################
-# Helper functions and variables for the launcher script
+# Helper functions for the launcher script
 ###################################################################################################
 
 Info() {
@@ -65,9 +79,6 @@ Help() {
     osu-wine --tosu: Installs and runs tosu without any needed config!
     osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
-
-OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
-IFS=" " read -r -a PRE_ARGS <<< "env ${LAUNCH_ARGS}"
 
 deleteFolder() {
     Info "Do you want to delete the previous install?"
@@ -346,7 +357,7 @@ case "$1" in
     Info "Deleting old Wineprefix..."
     rm -rf "$WINEPREFIX"
 
-    WINEESYNC=0 WINEFSYNC=0 PROTON_NO_ESYNC=1 PROTON_NO_FSYNC=1 "$YAWL_PATH" \
+    WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 "$YAWL_PATH" \
         winetricks dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
 
     folderFix
