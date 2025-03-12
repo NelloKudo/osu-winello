@@ -191,6 +191,7 @@ LaunchOsu() {
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
         OSU_EXE=("C:\\windows\\system32\\start.exe" "/b" "/wait" "${OSU_WINEEXE}")
+        Info "Opening: $OSUPATH/osu!.exe"
     fi
 
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
