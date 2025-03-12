@@ -515,10 +515,14 @@ Update() {
         fi
         mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
         chmod +x "$YAWL_INSTALL_PATH"
+
+        # Also re-set-up yawl here, this will be required anyways when updating from umu-based osu-wine versions
+        YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
+        YAWL_VERBS="verify" "$YAWL_PATH" "--version" || Error "There was an error setting up yawl!"
     fi
 
     # Reading the last version installed
-    LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")
+    [ -r "$XDG_DATA_HOME/osuconfig/wineverupdate" ] && LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")
 
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
         # Downloading Wine..
