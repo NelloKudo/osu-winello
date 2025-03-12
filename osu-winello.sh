@@ -94,16 +94,22 @@ Revert() {
 }
 
 # Error function pointing at Revert(), but with an appropriate message
-Error() {
+InstallError() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
     Revert
+    exit 1
+}
+
+# Error function for other features besides install
+Error() {
+    echo -e '\033[1;31m'"Script failed:\033[0m $*"
     exit 1
 }
 
 # Function looking for basic stuff needed for installation
 InitialSetup() {
     # Better to not run the script as root, right?
-    if [ "$USER" = "root" ]; then Error "Please run the script without root"; fi
+    if [ "$USER" = "root" ]; then InstallError "Please run the script without root"; fi
 
     # Checking for previous versions of osu-wine (mine or DiamondBurned's)
     if [ -e /usr/bin/osu-wine ]; then Quit "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!"; fi
@@ -145,13 +151,13 @@ InitialSetup() {
 
     # Well, we do need internet ig...
     Info "Checking for internet connection.."
-    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && ! ping -c 1 google.com >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
+    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && ! ping -c 1 google.com >/dev/null 2>&1 && InstallError "Please connect to internet before continuing xd. Run the script again"
 
     # Looking for dependencies..
     deps=(wget zenity unzip)
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" >/dev/null 2>&1; then
-            Error "Please install $dep before continuing!"
+            InstallError "Please install $dep before continuing!"
         fi
     done
 }
@@ -189,7 +195,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || Error "Download failed, check your connection"
+        wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || InstallError "Download failed, check your connection"
     fi
 
     # This will extract Wine-osu and set last version to the one downloaded
@@ -202,7 +208,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
+        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || InstallError "Download failed, check your connection"
     fi
     mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
     chmod +x "$YAWL_INSTALL_PATH"
@@ -210,7 +216,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     # Install and verify yawl ASAP, the wrapper mode does not download/install the runtime if no arguments are passed
     YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
 
-    YAWL_VERBS="verify" "$YAWL_PATH" "--version" || Error "There was an error setting up yawl!"
+    YAWL_VERBS="verify" "$YAWL_PATH" "--version" || InstallError "There was an error setting up yawl!"
 
     # The update function works under this folder: it compares variables from files stored in osuconfig
     # with latest values from GitHub and check whether to update or not
@@ -218,7 +224,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     mkdir -p "$XDG_DATA_HOME/osuconfig/update"
 
     { git clone . "$XDG_DATA_HOME/osuconfig/update" || git clone "${WINELLOGIT}" "$XDG_DATA_HOME/osuconfig/update"; } ||
-        Error "Git failed, check your connection.."
+        InstallError "Git failed, check your connection.."
 
     git -C "$XDG_DATA_HOME/osuconfig/update" remote set-url origin "${WINELLOGIT}"
 
@@ -294,7 +300,7 @@ FullInstall() {
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || InstallError "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
     fi
 
     tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
@@ -402,7 +408,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" || InstallError "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
         fi
     fi
 
@@ -412,7 +418,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
             echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
             echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
     } ||
-        Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+        InstallError "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
