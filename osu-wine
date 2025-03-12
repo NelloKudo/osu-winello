@@ -10,6 +10,7 @@ LAUNCH_ARGS="" # Use this for args like prime-run, gamemoderun, or mangohud!
 
 export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
 export WINE_BLOCK_GET_VERSION=0      # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
+export WINE_ENABLE_OSU_FOCUS_FIX=0   # Set this to 1 to force fixes for alt-tab (only if needed!)
 
 export WINENTSYNC="${WINENTSYNC:-1}" # Enables NTsync (when possible, requires Linux >=6.14 or the DKMS module installed)
 export WINEFSYNC="${WINEFSYNC:-1}"   # Enables fsync (when possible)
