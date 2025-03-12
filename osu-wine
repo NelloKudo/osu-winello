@@ -18,7 +18,8 @@ export WINEESYNC="${WINEESYNC:-1}"   # Enables esync (when possible)
 export vblank_mode=0                 # Disables vsync for mesa
 export __GL_SYNC_TO_VBLANK=0         # Disables vsync for NVIDIA >=510
 
-export WINEDEBUG=${WINEDEBUG:-}      # Sets wine's logging verbosity
+export WINEDEBUG=${WINEDEBUG:-}                                           # Sets wine's logging verbosity
+export PRESSURE_VESSEL_FILESYSTEMS_RW=${PRESSURE_VESSEL_FILESYSTEMS_RW:-} # Set this to your external disk paths if you use symlinks!
 
 ###################################################################################################
 # osu-winello internal variables, you probably don't have to touch these!
