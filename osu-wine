@@ -38,8 +38,8 @@ export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .des
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
 
-[ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && osuinstall=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-export OSUPATH="$osuinstall"
+[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+export OSUPATH
 
 # Get the Windows-formatted paths to osu! and its install directory
 [ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
