@@ -71,7 +71,7 @@ Help() {
     osu-wine --kill9: Kills osu! but with wineserver -k9
     osu-wine --update: Updates proton-osu (and optionally, the osu-wine script) to upstream
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
-    osu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
+    osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
     osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
     osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
     osu-wine --info: Troubleshooting and more info
@@ -321,10 +321,10 @@ case "$1" in
 
     ###################################################################################################
 
-*fix*umu*)
+*fix*yawl*)
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
     git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixumu
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixyawl
     ;;
 
     ###################################################################################################
@@ -420,7 +420,7 @@ case "$1" in
     You can run 'osu-wine --help' to see all the script's functions (fix prefix, change dir etc.)
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1
 
-    If you get an error like 'Runtime Platform missing or download incomplete', try running 'osu-wine --fix-umu'."
+    If you get an error like 'Runtime Platform missing or download incomplete', try running 'osu-wine --fix-yawl'."
     ;;
 
     ###################################################################################################

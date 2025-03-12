@@ -156,7 +156,7 @@ InitialSetup() {
     done
 }
 
-# Function to install script files, umu-launcher and Wine-osu
+# Function to install script files, yawl and Wine-osu
 InstallWine() {
     # Installing game launcher and related...
     Info "Installing game script:"
