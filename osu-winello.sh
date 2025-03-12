@@ -16,7 +16,7 @@ SCRDIR="$(realpath "$(dirname "$0")")"
 # Wine-osu current versions for update
 MAJOR=10
 MINOR=3
-PATCH=3
+PATCH=4
 WINEVERSION=$MAJOR.$MINOR.$PATCH
 LASTWINEVERSION=0
 
