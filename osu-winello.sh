@@ -509,11 +509,8 @@ launcherUpdate() {
     return 0
 }
 
-# This function reads files located in $XDG_DATA_HOME/osuconfig
-# to see whether a new wine-osu version has been released.
-Update() {
-    local launcher_path="${1:-}"
-
+# will be removed when auto-updates are implemented in yawl
+updateYawl() {
     local INSTALLED_YAWL_VERSION="0"
     INSTALLED_YAWL_VERSION="$(env "YAWL_VERBS=version" "$YAWL_PATH" 2>/dev/null)"
     if [ "$INSTALLED_YAWL_VERSION" != "$YAWLVERSION" ]; then
@@ -530,6 +527,15 @@ Update() {
         YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
         YAWL_VERBS="verify" "$YAWL_PATH" "--version" || Error "There was an error setting up yawl!"
     fi
+}
+
+# This function reads files located in $XDG_DATA_HOME/osuconfig
+# to see whether a new wine-osu version has been released.
+Update() {
+    local launcher_path="${1:-}"
+    [ ! -r "$YAWL_PATH" ] && rm -f "${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
+
+    updateYawl
 
     # Reading the last version installed
     [ -r "$XDG_DATA_HOME/osuconfig/wineverupdate" ] && LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")
@@ -715,6 +721,22 @@ osuHandlerSetup() {
     "$YAWL_PATH" regedit /s "${REG_FILE}"
 }
 
+FixUmu() {
+    if [ ! -f "$BINDIR/osu-wine" ]; then
+        Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
+        return
+    fi
+    Info "Looks like you're updating from the umu-launcher based osu-wine, so we'll try to run a full update now..."
+    Info "Please answer 'yes' when asked to update the 'osu-wine' launcher"
+
+    local parentscript
+    parentscript="$(realpath /proc/$PPID/exe)" || parentscript="$(readlink /proc/$PPID/exe)"
+    [[ ! "${parentscript}" =~ .*osu-wine ]] && Error "Please re-download and re-install osu-winello."
+
+    Update "${parentscript}"
+    Info "Done!"
+}
+
 FixYawl() {
     if [ ! -f "$BINDIR/osu-wine" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
@@ -781,6 +803,11 @@ case "$1" in
 
 'update')
     Update "${2:-}" # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
+    ;;
+
+# "umu" kept for backwards compatibility when updating from umu-launcher based osu-wine
+*umu*)
+    FixUmu
     ;;
 
 *yawl*)
