@@ -50,6 +50,10 @@ export WINE_PATH="${WINE_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
 
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
+export WINENTSYNC="0" # Don't use these for setup-related stuff to be safe
+export WINEFSYNC="0"
+export WINEESYNC="0"
+
 # Other shell local variables
 YAWL_INSTALL_PATH="${YAWL_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl"}"
 YAWL_PATH="${YAWL_INSTALL_PATH}-winello"
@@ -373,7 +377,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 WINE="$YAWL_PATH" winetricks -q dotnet20 dotnet48 gdiplus_winxp win2k3
+            WINE="$YAWL_PATH" winetricks -q dotnet20 dotnet48 gdiplus_winxp win2k3
         else
             tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
             mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"

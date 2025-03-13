@@ -12,7 +12,7 @@ export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode 
 export WINE_BLOCK_GET_VERSION=0      # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
 export WINE_ENABLE_OSU_FOCUS_FIX=0   # Set this to 1 to force fixes for alt-tab (only if needed!)
 
-export WINENTSYNC="${WINENTSYNC:-1}" # Enables NTsync (when possible, requires Linux >=6.14 or the DKMS module installed)
+export WINENTSYNC="${WINENTSYNC:-0}" # Enables NTsync (when possible, requires Linux >=6.14 or the DKMS module installed)
 export WINEFSYNC="${WINEFSYNC:-1}"   # Enables fsync (when possible)
 export WINEESYNC="${WINEESYNC:-1}"   # Enables esync (when possible)
 
