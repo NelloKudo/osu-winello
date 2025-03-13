@@ -400,6 +400,9 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
         folderFixSetup
+
+        # Installing dxvk-osu into Wineprefix
+        InstallDxvk
     fi
 
     # Set up the discord rpc bridge
@@ -721,6 +724,19 @@ osuHandlerSetup() {
     "$YAWL_PATH" regedit /s "${REG_FILE}"
 }
 
+InstallDxvk() {
+    # Installing patched dxvk-osu binaries, read more in stuff/dxvk-osu.
+    # Copying dlls from stuff/dxvk-osu into Wineprefix
+    Info "Installing dxvk-osu in Wineprefix.."
+    cp "${SCRDIR}"/stuff/dxvk-osu/x64/*.dll "$WINEPREFIX/drive_c/windows/system32"
+    cp "${SCRDIR}"/stuff/dxvk-osu/x32/*.dll "$WINEPREFIX/drive_c/windows/syswow64"
+
+    # Setting DllOverrides for those to Native
+    for dll in dxgi d3d8 d3d9 d3d10core d3d11; do
+        "$YAWL_PATH" reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v "$dll" /d native /f
+    done
+}
+
 FixUmu() {
     if [ ! -f "$BINDIR/osu-wine" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
@@ -799,6 +815,10 @@ case "$1" in
 
 'osuhandler')
     osuHandlerSetup
+    ;;
+
+'installdxvk')
+    InstallDxvk
     ;;
 
 'update')

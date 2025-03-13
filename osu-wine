@@ -156,6 +156,13 @@ osuHandlerSetup() {
     bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
 }
 
+InstallDxvk() {
+    # Installing patched dxvk-osu binaries in Wineprefix
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" installdxvk
+}
+
 folderFix() {
     # Applying fix for opening folders in the native file browser...
     git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
@@ -413,6 +420,9 @@ case "$1" in
 
     # Re-set-up osu-handler
     osuHandlerSetup
+
+    # Install dxvk-osu
+    InstallDxvk
 
     # Try fixing the rpc bridge
     fixRpc
