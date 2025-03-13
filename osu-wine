@@ -16,8 +16,12 @@ export WINENTSYNC="${WINENTSYNC:-1}" # Enables NTsync (when possible, requires L
 export WINEFSYNC="${WINEFSYNC:-1}"   # Enables fsync (when possible)
 export WINEESYNC="${WINEESYNC:-1}"   # Enables esync (when possible)
 
-export vblank_mode=0                 # Disables vsync for mesa
-export __GL_SYNC_TO_VBLANK=0         # Disables vsync for NVIDIA >=510
+export vblank_mode=0         # Disables vsync for mesa
+export __GL_SYNC_TO_VBLANK=0 # Disables vsync for NVIDIA >=510
+
+# NVIDIA optimizations. I didn't test them, but Vudek gave me this and said it works
+export __GL_MaxFramesAllowed=0       #off prerendered frames like in windows
+export __GL_THREADED_OPTIMIZATIONS=1 #threading goes brrr
 
 export WINEDEBUG=${WINEDEBUG:-}                                           # Sets wine's logging verbosity
 export PRESSURE_VESSEL_FILESYSTEMS_RW=${PRESSURE_VESSEL_FILESYSTEMS_RW:-} # Set this to your external disk paths if you use symlinks!
@@ -51,20 +55,20 @@ export OSUPATH
 ###################################################################################################
 
 Info() {
-    echo -e '\033[1;34m'"Winello:\033[0m $*"
+  echo -e '\033[1;34m'"Winello:\033[0m $*"
 }
 
 Warning() {
-    echo -e '\033[0;33m'"Winello:\033[0m $*"
+  echo -e '\033[0;33m'"Winello:\033[0m $*"
 }
 
 Error() {
-    echo -e '\033[1;31m'"Script failed:\033[0m $*"
-    exit 1
+  echo -e '\033[1;31m'"Script failed:\033[0m $*"
+  exit 1
 }
 
 Help() {
-    Info "Script features:
+  Info "Script features:
     osu-wine: Runs osu!
     osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
     osu-wine --winetricks: Install packages on osu! Wineprefix
@@ -88,75 +92,75 @@ Help() {
 }
 
 deleteFolder() {
-    Info "Do you want to delete the previous install?"
-    read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
+  Info "Do you want to delete the previous install?"
+  read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
 
-    if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
-        read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" dirchoice2
+  if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
+    read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" dirchoice2
 
-        if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
-            lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-            rm -rf "$lastdir/osu!" && Info "Cleaning done!"
-        else
-            Info "Skipping..."
-        fi
-
+    if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
+      lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+      rm -rf "$lastdir/osu!" && Info "Cleaning done!"
     else
-        Info "Skipping.."
+      Info "Skipping..."
     fi
+
+  else
+    Info "Skipping.."
+  fi
 }
 
 Update() {
-    local self
-    self="$(realpath "$0")"
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    exec bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update "${self}"
+  local self
+  self="$(realpath "$0")"
+  git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+  git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
+  exec bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update "${self}"
 }
 
 longPathsFix() {
-    # Applying fix for long names/paths...
-    rm -rf "$WINEPREFIX/dosdevices/d:"
-    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+  # Applying fix for long names/paths...
+  rm -rf "$WINEPREFIX/dosdevices/d:"
+  ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
 osuHandlerSetup() {
-    # Fix to importing maps/skins/osu links after Stable update 20250122.1
-    # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
+  # Fix to importing maps/skins/osu links after Stable update 20250122.1
+  # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
+  git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+  git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
+  bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
 }
 
 folderFix() {
-    # Applying fix for opening folders in the native file browser...
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixfolders
+  # Applying fix for opening folders in the native file browser...
+  git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+  git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
+  bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixfolders
 }
 
 fixRpc() {
-    # reinstall discord rpc bridge
-    if [ ! -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
-        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-        git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    fi
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" discordrpc
+  # reinstall discord rpc bridge
+  if [ ! -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
+  fi
+  bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" discordrpc
 }
 
 SetupReader() {
-    local READER_NAME="${1}"
-    if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
-        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-        git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-        bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "$READER_NAME"
-    fi
+  local READER_NAME="${1}"
+  if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
+    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
+    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "$READER_NAME"
+  fi
 
-    Info "Setting up $READER_NAME wrapper..."
-    READER_PATH="$("$YAWL_PATH" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
+  Info "Setting up $READER_NAME wrapper..."
+  READER_PATH="$("$YAWL_PATH" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
 
-    # launcher batch file which monitors osu! and closes gosumemory when osu! exits
-    cat >"$OSUPATH/launch_with_memory.bat" <<EOF
+  # launcher batch file which monitors osu! and closes gosumemory when osu! exits
+  cat >"$OSUPATH/launch_with_memory.bat" <<EOF
 @echo off
 set NODE_SKIP_PLATFORM_CHECK=1
 cd /d "$OSU_WINEDIR"
@@ -173,31 +177,31 @@ ping -n 5 127.0.0.1 >nul
 goto loop
 EOF
 
-    Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
+  Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
 }
 
 LaunchWine() {
-    local EXE_ARG="${YAWL_PATH}"
-    declare -a POST_ARGS=("${@}")
+  local EXE_ARG="${YAWL_PATH}"
+  declare -a POST_ARGS=("${@}")
 
-    WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
-    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
-    Info "Launching: ${PRE_ARGS[*]} ${EXE_ARG} ${POST_ARGS[*]}"
-    echo ""
-    exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}"
+  WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
+  Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
+  Info "Launching: ${PRE_ARGS[*]} ${EXE_ARG} ${POST_ARGS[*]}"
+  echo ""
+  exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}"
 }
 
 LaunchOsu() {
-    Info "Opening: $OSUPATH/osu!.exe"
-    if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
-        OSU_EXE=("${OSU_WINEDIR}launch_with_memory.bat")
-        Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
-    else
-        OSU_EXE=("C:\\windows\\system32\\start.exe" "/b" "/wait" "${OSU_WINEEXE}")
-    fi
+  Info "Opening: $OSUPATH/osu!.exe"
+  if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
+    OSU_EXE=("${OSU_WINEDIR}launch_with_memory.bat")
+    Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
+  else
+    OSU_EXE=("C:\\windows\\system32\\start.exe" "/b" "/wait" "${OSU_WINEEXE}")
+  fi
 
-    export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-    LaunchWine "${OSU_EXE[@]}" "${@}"
+  export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
+  LaunchWine "${OSU_EXE[@]}" "${@}"
 }
 
 ###################################################################################################
@@ -206,216 +210,216 @@ LaunchOsu() {
 
 case "$1" in
 '')
-    LaunchOsu
-    ;;
+  LaunchOsu
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--devserver')
-    if [ -z "$2" ]; then Error "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
-    LaunchOsu "-devserver" "$2"
-    ;;
+  if [ -z "$2" ]; then Error "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
+  LaunchOsu "-devserver" "$2"
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--regedit')
-    LaunchWine regedit
-    ;;
+  LaunchWine regedit
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--winecfg')
-    LaunchWine winecfg
-    ;;
+  LaunchWine winecfg
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--winetricks')
-    WINE="$YAWL_PATH" winetricks "${@:2}"
-    ;;
+  WINE="$YAWL_PATH" winetricks "${@:2}"
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--changedir')
-    Info "Please choose your new directory:"
+  Info "Please choose your new directory:"
 
-    newdir="$(zenity --file-selection --directory)"
-    lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+  newdir="$(zenity --file-selection --directory)"
+  lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
 
-    if [ ! -d "$newdir" ]; then
-        Error "No folder selected, please make sure zenity is installed.."
+  if [ ! -d "$newdir" ]; then
+    Error "No folder selected, please make sure zenity is installed.."
+  fi
+
+  rm -f "$XDG_DATA_HOME/osuconfig/osupath"
+  if [ -d "$newdir/osu!" ] || [ -s "$newdir/osu!.exe" ]; then
+    Info "osu! folder/game already exists: skipping.."
+
+    if [ -d "$newdir/osu!" ]; then
+      OSUPATH="$newdir/osu!"
+      echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+
+      Info "Change done from '$lastdir' to '$newdir'!"
+      deleteFolder
     fi
 
-    rm -f "$XDG_DATA_HOME/osuconfig/osupath"
-    if [ -d "$newdir/osu!" ] || [ -s "$newdir/osu!.exe" ]; then
-        Info "osu! folder/game already exists: skipping.."
+    if [ -s "$newdir/osu!.exe" ]; then
+      OSUPATH="$newdir"
+      echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
 
-        if [ -d "$newdir/osu!" ]; then
-            OSUPATH="$newdir/osu!"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
+      Info "Change done from '$lastdir' to '$newdir'!"
+      deleteFolder
+    fi
+  else
+    mkdir "$newdir/osu!"
+    OSUPATH="$newdir/osu!"
+    echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
 
-            Info "Change done from '$lastdir' to '$newdir'!"
-            deleteFolder
-        fi
+    Info "Downloading osu! to your new install.."
+    wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && wgetcheck6="$?"
 
-        if [ -s "$newdir/osu!.exe" ]; then
-            OSUPATH="$newdir"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-
-            Info "Change done from '$lastdir' to '$newdir'!"
-            deleteFolder
-        fi
-    else
-        mkdir "$newdir/osu!"
-        OSUPATH="$newdir/osu!"
-        echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-
-        Info "Downloading osu! to your new install.."
-        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && wgetcheck6="$?"
-
-        if [ ! "$wgetcheck6" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}"
-        fi
-
-        Info "Change done from '$lastdir' to '$newdir'!"
-        deleteFolder
+    if [ ! "$wgetcheck6" = 0 ]; then
+      Info "wget failed; trying with --no-check-certificate.."
+      wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}"
     fi
 
-    longPathsFix
+    Info "Change done from '$lastdir' to '$newdir'!"
+    deleteFolder
+  fi
 
-    {
-        temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
-            echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
-            echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
-    } ||
-        Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
-    ;;
+  longPathsFix
 
-    ###################################################################################################
+  {
+    temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
+      echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
+      echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
+  } ||
+    Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+  ;;
+
+  ###################################################################################################
 
 '--remove')
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" uninstall
-    ;;
+  bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" uninstall
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--kill')
-    "$WINESERVER_PATH" -k
-    ;;
+  "$WINESERVER_PATH" -k
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--kill9')
-    "$WINESERVER_PATH" -k9
-    ;;
+  "$WINESERVER_PATH" -k9
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--update')
-    Update
-    ;;
+  Update
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--fixfolders')
-    folderFix
-    ;;
+  folderFix
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 *fix*yawl*)
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixyawl
-    ;;
+  git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
+  git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
+  bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixyawl
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--fixrpc')
-    fixRpc
-    ;;
+  fixRpc
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--osuhandler')
 
-    OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/osu-handler-wine"
+  OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/osu-handler-wine"
 
-    Info "Trying to load your file/link.."
-    case "$2" in
-    *.osr)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osr "$2"
-        ;;
-    *.osz)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osz "$2"
-        ;;
-    *.osk)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osk "$2"
-        ;;
-    *.osz2)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osz2 "$2"
-        ;;
-    osu://*)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$2"
-        ;;
-    *)
-        Info "Unsupported osu! file.."
-        ;;
-    esac
-
+  Info "Trying to load your file/link.."
+  case "$2" in
+  *.osr)
+    "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osr "$2"
     ;;
+  *.osz)
+    "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osz "$2"
+    ;;
+  *.osk)
+    "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osk "$2"
+    ;;
+  *.osz2)
+    "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osz2 "$2"
+    ;;
+  osu://*)
+    "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$2"
+    ;;
+  *)
+    Info "Unsupported osu! file.."
+    ;;
+  esac
 
-    ###################################################################################################
+  ;;
+
+  ###################################################################################################
 
 '--fixprefix')
-    Info "Checking for internet connection.."
-    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
+  Info "Checking for internet connection.."
+  ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
 
-    Info "Deleting old Wineprefix..."
-    rm -rf "$WINEPREFIX"
+  Info "Deleting old Wineprefix..."
+  rm -rf "$WINEPREFIX"
 
-    WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 WINE="$YAWL_PATH" \
-        winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
+  WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 WINE="$YAWL_PATH" \
+    winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
 
-    folderFix
+  folderFix
 
-    # Applying fix for long names/paths...
-    longPathsFix
+  # Applying fix for long names/paths...
+  longPathsFix
 
-    # Re-set-up osu-handler
-    osuHandlerSetup
+  # Re-set-up osu-handler
+  osuHandlerSetup
 
-    # Try fixing the rpc bridge
-    fixRpc
+  # Try fixing the rpc bridge
+  fixRpc
 
-    Info "Wineprefix is now working; launch osu! with osu-wine"
-    ;;
+  Info "Wineprefix is now working; launch osu! with osu-wine"
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--tosu')
-    SetupReader 'tosu'
-    ;;
+  SetupReader 'tosu'
+  ;;
 '--gosumemory')
-    SetupReader 'gosumemory'
-    ;;
+  SetupReader 'gosumemory'
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--disable-memory-reader')
-    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
-        rm "$OSUPATH/launch_with_memory.bat"
-        Info "Memory reader wrapper disabled."
-    else
-        Info "No memory reader wrapper was enabled."
-    fi
-    ;;
+  if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
+    rm "$OSUPATH/launch_with_memory.bat"
+    Info "Memory reader wrapper disabled."
+  else
+    Info "No memory reader wrapper was enabled."
+  fi
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 '--info')
-    Info "Need info?:
+  Info "Need info?:
     Wineprefix location: $WINEPREFIX
     osu! folder: '$OSUPATH'
 
@@ -424,15 +428,15 @@ case "$1" in
     You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1
 
     If you get an error like 'Runtime Platform missing or download incomplete', try running 'osu-wine --fix-yawl'."
-    ;;
+  ;;
 
-    ###################################################################################################
+  ###################################################################################################
 
 *help*)
-    Help
-    ;;
+  Help
+  ;;
 *)
-    Info "Unknown argument: ${1}"
-    Help
-    ;;
+  Info "Unknown argument: ${1}"
+  Help
+  ;;
 esac
