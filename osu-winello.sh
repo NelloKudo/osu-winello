@@ -51,7 +51,7 @@ export WINE_PATH="${WINE_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
 # Other shell local variables
-YAWL_INSTALL_PATH="${YAWL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl"}"
+YAWL_INSTALL_PATH="${YAWL_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl"}"
 YAWL_PATH="${YAWL_INSTALL_PATH}-winello"
 
 #   =====================================
