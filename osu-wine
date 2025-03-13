@@ -2,25 +2,53 @@
 
 ## Welcome to your osu! launch script!
 ## Most stuff here is explained with comments, but if you just need to add
-## any argument to osu!, use #LAUNCH_ARGS!
+## any argument before osu!, use #LAUNCH_ARGS!
+
+# For reference: export A="${A:-}" means use "A" if already set, otherwise use the value after ":-" for the variable
+# Example: enable WINENTSYNC by running `WINENTSYNC=1 osu-wine` in a terminal, 
+#                            or by changing the line to `export WINENTSYNC="${WINENTSYNC:-1}"`
 
 # Customization and and performance configuration options are here:
 
-LAUNCH_ARGS="" # Use this for args like prime-run, gamemoderun, or mangohud!
+LAUNCH_ARGS="" # Put arguments like prime-run, gamemoderun, or mangohud in between the quotes here!
 
-export WINE_ENABLE_ABS_TABLET_HACK=0 # Set this to 1 to play with absolute mode in OTD on Wayland (might cause issues with cursor, but feel free to try!)
-export WINE_BLOCK_GET_VERSION=0      # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
-export WINE_ENABLE_OSU_FOCUS_FIX=0   # Set this to 1 to force fixes for alt-tab (only if needed!)
+ # Set this to your external disk paths if you use symlinks!
+export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW:-}"
 
-export WINENTSYNC="${WINENTSYNC:-0}" # Enables NTsync (when possible, requires Linux >=6.14 or the DKMS module installed)
-export WINEFSYNC="${WINEFSYNC:-1}"   # Enables fsync (when possible)
-export WINEESYNC="${WINEESYNC:-1}"   # Enables esync (when possible)
+# Set this to 1 or 2 to play with absolute mode in OTD on Wayland (if this doesn't work, check the "Tablet issues" page in the osu-winello wiki)
+export WINE_ENABLE_ABS_TABLET_HACK="${WINE_ENABLE_ABS_TABLET_HACK:-0}" 
+# Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
+export WINE_BLOCK_GET_VERSION="${WINE_BLOCK_GET_VERSION:-0}"
+# Set this to 1 to force fixes for alt-tab (only if needed!)
+export WINE_ENABLE_OSU_FOCUS_FIX="${WINE_ENABLE_OSU_FOCUS_FIX:-0}"
 
-export vblank_mode=0                 # Disables vsync for mesa
-export __GL_SYNC_TO_VBLANK=0         # Disables vsync for NVIDIA >=510
+# Enables NTsync (when possible, requires Linux >=6.14 or the DKMS module installed)
+export WINENTSYNC="${WINENTSYNC:-0}"
+# Enables Fsync (when possible)
+export WINEFSYNC="${WINEFSYNC:-1}"
+# Enables Esync (when possible)
+export WINEESYNC="${WINEESYNC:-1}"
 
-export WINEDEBUG=${WINEDEBUG:-}                                           # Sets wine's logging verbosity
-export PRESSURE_VESSEL_FILESYSTEMS_RW=${PRESSURE_VESSEL_FILESYSTEMS_RW:-} # Set this to your external disk paths if you use symlinks!
+# Uncomment the line below to try the native winewayland.drv driver (unsupported, but feel free to experiment if you're on Wayland)
+# export DISPLAY=
+
+# Set custom logging channels for Wine
+export WINEDEBUG="${WINEDEBUG:-}"
+
+# Disables vsync for mesa
+export vblank_mode="${vblank_mode:-0}"
+# Put true after :- to enable threaded OpenGL optimizations for AMD/Intel
+# (unsupported, use at your own risk! May INCREASE FPS, but may also INCREASE input latency due to multithreading overhead)
+export mesa_glthread="${mesa_glthread:-}"
+
+# Disables vsync for NVIDIA >=510
+export __GL_SYNC_TO_VBLANK="${__GL_SYNC_TO_VBLANK:-0}"
+# Put 1 after :- to enable threaded OpenGL optimizations for NVIDIA
+# (unsupported, use at your own risk! May INCREASE FPS, but may also INCREASE input latency due to multithreading overhead)
+export __GL_THREADED_OPTIMIZATIONS="${__GL_THREADED_OPTIMIZATIONS:-}"
+# Put 1 after :- to minimize the pre-rendered frames for NVIDIA (driver default is 2, 0 does nothing)
+# (unsupported, use at your own risk! Will LOWER FPS for a slightly LOWER input latency)
+export __GL_MaxFramesAllowed="${__GL_MaxFramesAllowed:-}"
 
 ###################################################################################################
 # osu-winello internal variables, you probably don't have to touch these!
