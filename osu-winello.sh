@@ -549,7 +549,7 @@ Update() {
         echo "$LASTWINEVERSION" >>"$XDG_DATA_HOME/osuconfig/wineverupdate"
         Info "Update is completed!"
     else
-        Info "Your Proton-osu is already up-to-date!"
+        Info "Your Wine-osu is already up-to-date!"
     fi
 
     [ ! -x "${launcher_path}" ] && return
