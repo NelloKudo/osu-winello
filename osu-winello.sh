@@ -27,7 +27,7 @@ WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-st
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
-YAWLVERSION=0.5.5
+YAWLVERSION=0.6.0
 
 # Other download links
 PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
@@ -220,7 +220,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     # Install and verify yawl ASAP, the wrapper mode does not download/install the runtime if no arguments are passed
     YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
 
-    YAWL_VERBS="verify" "$YAWL_PATH" "--version" || InstallError "There was an error setting up yawl!"
+    YAWL_VERBS="update;verify" "$YAWL_PATH" "--version" || InstallError "There was an error setting up yawl!"
 
     # The update function works under this folder: it compares variables from files stored in osuconfig
     # with latest values from GitHub and check whether to update or not
@@ -512,33 +512,39 @@ launcherUpdate() {
     return 0
 }
 
-# will be removed when auto-updates are implemented in yawl
-updateYawl() {
-    local INSTALLED_YAWL_VERSION="0"
-    INSTALLED_YAWL_VERSION="$(env "YAWL_VERBS=version" "$YAWL_PATH" 2>/dev/null)"
-    if [ "$INSTALLED_YAWL_VERSION" != "$YAWLVERSION" ]; then
-        Info "Updating yawl-winello:"
-        wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
-        if [ ! "$chk" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
-        fi
-        mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
-        chmod +x "$YAWL_INSTALL_PATH"
+installYawl() {
+    rm -f "${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
+    Info "Installing yawl..."
 
-        # Also re-set-up yawl here, this will be required anyways when updating from umu-based osu-wine versions
-        YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
-        YAWL_VERBS="verify" "$YAWL_PATH" "--version" || Error "There was an error setting up yawl!"
+    wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
+    if [ ! "$chk" = 0 ]; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
     fi
+    mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
+    chmod +x "$YAWL_INSTALL_PATH"
+
+    # Also setup yawl here, this will be required anyways when updating from umu-based osu-wine versions
+    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
+    YAWL_VERBS="update;verify" "$YAWL_PATH" "--version" || Warning "There was an error setting up yawl! Continuing, but things might be broken..."
 }
 
 # This function reads files located in $XDG_DATA_HOME/osuconfig
 # to see whether a new wine-osu version has been released.
 Update() {
     local launcher_path="${1:-}"
-    [ ! -r "$YAWL_PATH" ] && rm -f "${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
-
-    updateYawl
+    if [ ! -x "$YAWL_PATH" ]; then
+        installYawl
+    else
+        local INSTALLED_YAWL_VERSION
+        INSTALLED_YAWL_VERSION="$(env "YAWL_VERBS=version" "$YAWL_PATH" 2>/dev/null)"
+        if [[ "$INSTALLED_YAWL_VERSION" =~ 0\.5\.* ]]; then
+            installYawl
+        else
+            Info "Checking for yawl updates..."
+            YAWL_VERBS="update" "$YAWL_PATH" "--version"
+        fi
+    fi
 
     # Reading the last version installed
     [ -r "$XDG_DATA_HOME/osuconfig/wineverupdate" ] && LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")
@@ -763,7 +769,7 @@ FixYawl() {
     fi
 
     Info "Fixing yawl..."
-    YAWL_VERBS="reinstall" "$YAWL_PATH" true && chk="$?"
+    YAWL_VERBS="update;reinstall" "$YAWL_PATH" true && chk="$?"
     if [ "${chk}" != 0 ]; then
         Info "That didn't seem to work... try again?"
     else
