@@ -21,7 +21,7 @@ WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-st
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
-YAWLVERSION=0.6.0
+YAWLVERSION=0.6.1
 
 # Other download links
 PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
@@ -42,8 +42,8 @@ SCRDIR="$(realpath "$(dirname "$0")")"
 # The full path to osu-winello.sh
 # SCRPATH="$(realpath "$0")"
 
-[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
 OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, from the osuconfig/osupath, or empty at first install (will set up in installOrChangeDir)
+[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
 
 # Don't rely on this! We should get the launcher path from `osu-wine --update`, this is a "hack" to support updating from umu
 if [ -z "${LAUNCHERPATH}" ]; then
@@ -57,7 +57,7 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
-export WINEDEBUG="-wineboot,${WINEDEBUG:-}" # Don't show "failed to start winemenubuilder"
+export WINEDEBUG="-wineboot,${WINEDEBUG:-}"     # Don't show "failed to start winemenubuilder"
 
 export WINENTSYNC="0" # Don't use these for setup-related stuff to be safe
 export WINEFSYNC="0"
@@ -108,19 +108,25 @@ Revert() {
     rm -f "/tmp/winestreamproxy-2.0.3-amd64.tar.xz"
     rm -rf "/tmp/winestreamproxy"
     echo -e '\033[1;31m'"Reverting done, try again with ./osu-winello.sh\033[0m"
+    exit 1
 }
 
 # Error function pointing at Revert(), but with an appropriate message
 InstallError() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
     Revert
-    exit 1
 }
 
 # Error function for other features besides install
 Error() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
-    return 1 # don't exit, handle errors ourselves
+    return 0 # don't exit, handle errors ourselves, propagate result to launcher if needed
+}
+
+# Shorthand for a lot of functions suceeding
+_Done() {
+    Info "Done!"
+    return 0
 }
 
 # Function looking for basic stuff needed for installation
@@ -171,7 +177,14 @@ InitialSetup() {
 }
 
 # Helper to wait for wineserver to close before continuing to a next step, reduces the chance of flakiness
-waitWine() { "$WINESERVER" -w && "$WINE" "$@"; }
+# Don't return failure, it's probably harmless, unrelated, or unreliable to use as a success indicator (besides specific cases)
+waitWine() {
+    {
+        "$WINESERVER" -w
+        "$WINE" "${@:-"--version"}"
+    }
+    return 0
+}
 
 # Function to install script files, yawl and Wine-osu
 InstallWine() {
@@ -214,16 +227,6 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     LASTWINEVERSION="$WINEVERSION"
     rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
 
-    Info "Installing yawl-winello:"
-    # Downloading yawl and creating a wrapper for osu-winello!
-    wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
-    if [ ! "$chk" = 0 ]; then
-        Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || InstallError "Download failed, check your connection"
-    fi
-    mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
-    chmod +x "$YAWL_INSTALL_PATH"
-
     # Install and verify yawl ASAP, the wrapper mode does not download/install the runtime if no arguments are passed
     installYawl || Revert
 
@@ -257,28 +260,38 @@ InitialOsuInstall() {
         installOrChangeDir "$XDG_DATA_HOME/osu-wine" || return 1
         ;;
     esac
-    return 0
-}
-
-saveOsuWinepath() {
-    Info "Saving a copy of the osu! path..."
-    local temp_winepath
-    {
-        temp_winepath="$(waitWine winepath -w "$OSUPATH/")" &&
-            echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
-            echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
-    } || return 1
-    return 0
+    _Done
 }
 
 longPathsFix() {
-    # Applying fix for long names/paths...
+    Info "Applying fix for long song names (e.g. because of deeply nested osu! folder)..."
+
     rm -rf "$WINEPREFIX/dosdevices"
     rm -rf "$WINEPREFIX/drive_c/users/nellokudo"
     mkdir -p "$WINEPREFIX/dosdevices"
     ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
     ln -s / "$WINEPREFIX/dosdevices/z:"
-    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:" 2>/dev/null # it's fine if this fails on a fresh install
+    return 0
+}
+
+saveOsuWinepath() {
+    local osupath="${OSUPATH}"
+    if [ -z "${osupath}" ]; then
+        { [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && osupath=$(<"$XDG_DATA_HOME/osuconfig/osupath"); } || {
+            Error "Can't find the osu! path!" && return 1
+        }
+    fi
+
+    Info "Saving a copy of the osu! path..."
+
+    local temp_winepath
+    temp_winepath="$(waitWine winepath -w "$osupath")"
+    [ -z "${temp_winepath}" ] && Error "Couldn't get the osu! path from winepath... Check $osupath/osu!.exe ?" && return 1
+
+    echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath"
+    echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
+    _Done
 }
 
 deleteFolder() {
@@ -289,7 +302,7 @@ deleteFolder() {
     if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
         read -r -p "$(Info "Are you sure? This will delete your osu! files! (y/N)")" dirchoice2
         if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
-            rm -rf "${folder}" && Error "Couldn't remove folder!"
+            rm -rf "${folder}" || { Error "Couldn't remove folder!" && return 1; }
             return 0
         fi
     fi
@@ -300,17 +313,14 @@ deleteFolder() {
 # Handle `osu-wine --changedir` and installation setup
 installOrChangeDir() {
     local newdir="${1:-}"
-    local lastdir="$OSUPATH"
+    local lastdir="${OSUPATH:-}"
     if [ -z "${newdir}" ]; then
         Info "Please choose your osu! directory:"
         newdir="$(zenity --file-selection --directory)"
-
-        [ ! -d "$newdir" ] && Error "No folder selected, please make sure zenity is installed.."
+        [ ! -d "$newdir" ] && { Error "No folder selected, please make sure zenity is installed.." && return 1; }
     fi
 
-    [ -s "$newdir/osu!.exe" ] || newdir="$newdir/osu!" # Make it a subdirectory unless osu!.exe is already there
-    OSUPATH="$newdir" # Set the global OSUPATH var
-
+    [ ! -s "$newdir/osu!.exe" ] && newdir="$newdir/osu!" # Make it a subdirectory unless osu!.exe is already there
     if [ -s "$newdir/osu!.exe" ] || [ "$newdir" = "$lastdir" ]; then
         Info "The osu! installation already exists..."
     else
@@ -319,19 +329,56 @@ installOrChangeDir() {
         Info "Downloading osu!..."
         wget -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || {
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || Error "Failed to download osu!"
+            wget --no-check-certificate -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || { Error "Failed to download osu!" && return 1; }
         }
 
-        [ -n "${lastdir}" ] && deleteFolder "$lastdir"
+        [ -n "${lastdir}" ] && { deleteFolder "$lastdir" || return 1; }
     fi
 
-    echo "$newdir" >"$XDG_DATA_HOME/osuconfig/osupath" # Save it for later
-    longPathsFix
+    echo "${newdir}" >"$XDG_DATA_HOME/osuconfig/osupath" # Save it for later
+    export OSUPATH="${newdir}"
 
-    # save the osu winepath with the new folder
-    saveOsuWinepath || Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+    saveOsuWinepath || return 1
     Info "osu! installed to '$newdir'!"
     return 0
+}
+
+reconfigurePrefix() {
+    local freshprefix=''
+    local nowinepath=''
+    while [[ $# -gt 0 ]]; do
+        case "${1}" in
+        'nowinepath')
+            nowinepath=1
+            ;;
+        'fresh')
+            freshprefix=1
+            ;;
+        *) ;;
+        esac
+        shift
+    done
+
+    [ -n "${freshprefix}" ] && {
+        Info "Checking for internet connection.." # The bundled prefix install already checks for internet, so no point checking again
+        ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && { Error "Please connect to internet before continuing xd. Run the script again" && return 1; }
+
+        rm -rf "${WINEPREFIX}"
+
+        Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
+        WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3 || return 1
+    }
+
+    longPathsFix || return 1
+    folderFixSetup || return 1
+    osuHandlerSetup || return 1
+    InstallDxvk || return 1
+    discordRpc || return 1
+
+    # save the osu winepath with the new folder, unless its a first-time install (need to install osu first)
+    [ -z "${nowinepath}" ] && { saveOsuWinepath || return 1; }
+
+    _Done
 }
 
 # Here comes the real Winello 8)
@@ -392,22 +439,19 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
     Info "Configuring Wineprefix:"
 
     # Variable to check if download finished properly
-    failprefix="false"
-
+    local failprefix="false"
     mkdir -p "$XDG_DATA_HOME/wineprefixes"
-    if [ -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix" ]; then
-
+    if [ -r "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/system.reg" ]; then
         Info "Wineprefix already exists; do you want to reinstall it?"
-        read -r -p "$(Info "Choose: (y/N)")" prefchoice
-
+        Warning "HIGHLY RECOMMENDED UNLESS YOU KNOW WHAT YOU'RE DOING!"
+        read -r -p "$(Info "Choose (y/N): ")" prefchoice
         if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
             rm -rf "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
         fi
     fi
 
     # So if there's no prefix (or the user wants to reinstall):
-    if [ ! -d "$XDG_DATA_HOME/wineprefixes/osu-wineprefix" ]; then
-
+    if [ ! -r "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/system.reg" ]; then
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
@@ -421,32 +465,15 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            winetricks -q dotnet20 dotnet48 gdiplus_winxp win2k3
+            reconfigurePrefix nowinepath fresh || Revert
         else
             tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
             mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+            reconfigurePrefix nowinepath || Revert
         fi
-
         # Cleaning..
         rm -rf "$HOME/.winellotmp"
-
-        Info "Setting up file (.osz/.osk) and url associations..."
-        # Setup osu-handler for file integrations
-        osuHandlerSetup || Revert
-
-        # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
-        # This only involves regedit keys.
-        Info "Setting up native file explorer integration..."
-        folderFixSetup || Revert
-
-        # Installing dxvk-osu into Wineprefix
-        Info "Installing DXVK for improved osu! compatibility mode performance..."
-        InstallDxvk || Revert
     fi
-
-    # Set up the discord rpc bridge
-    Info "Setting up Discord RPC integration..."
-    discordRpc || Revert
 
     Info "Configure and install osu!"
     InitialOsuInstall || Revert
@@ -532,24 +559,23 @@ launcherUpdate() {
             return 1
         }
     fi
-
-    return 0
+    _Done
 }
 
 installYawl() {
     Info "Installing yawl..."
-
     wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || Error "Download failed, check your connection"
+        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || { Error "Download failed, check your connection" && return 1; }
     fi
     mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
     chmod +x "$YAWL_INSTALL_PATH"
 
     # Also setup yawl here, this will be required anyways when updating from umu-based osu-wine versions
     YAWL_VERBS="make_wrapper=winello;exec=$WINE_INSTALL_PATH/bin/wine;wineserver=$WINE_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
-    YAWL_VERBS="update;verify" "$WINE" "--version" || Error "There was an error setting up yawl!"
+    YAWL_VERBS="update;verify" "$WINE" "--version" || { Error "There was an error setting up yawl!" && return 1; }
+    _Done
 }
 
 # This function reads files located in $XDG_DATA_HOME/osuconfig
@@ -578,7 +604,7 @@ Update() {
         wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || Error "Download failed, check your connection"
+            wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || { Error "Download failed, check your connection" && return 1; }
         fi
 
         # This will extract Wine-osu and set last version to the one downloaded
@@ -596,15 +622,15 @@ Update() {
     fi
 
     # Will be required when updating from umu-launcher
-    [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"; }
+    [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || return 1; }
 
-    [ ! -x "${launcher_path}" ] && return
+    [ ! -x "${launcher_path}" ] && { Error "The osu-wine launcher doesn't exist??" && return 1; }
 
     if [ ! -w "${launcher_path}" ]; then
         Warning "Note: ${launcher_path} is not writable - updating the osu-wine launcher will not be possible"
         Warning "Try running the update with appropriate permissions if you want to update the launcher,"
         Warning "   or move it to a place like $BINDIR and then run it from there."
-        return
+        return 0
     fi
 
     Info "Do you want to update the 'osu-wine' launcher as well?"
@@ -619,11 +645,12 @@ Update() {
             Info "Launcher update successful!"
             Info "Backup saved to: $XDG_DATA_HOME/osuconfig/osu-wine.bak"
         else
-            Error "Launcher update failed"
+            Error "Launcher update failed" && return 1
         fi
     else
         Info "Your osu-wine launcher will be left alone."
     fi
+    _Done
 }
 
 # Well, simple function to install the game (also implement in osu-wine --remove)
@@ -679,6 +706,7 @@ Uninstall() {
     fi
 
     Info "Uninstallation completed!"
+    return 0
 }
 
 # Simple function that downloads Gosumemory!
@@ -686,25 +714,27 @@ Gosumemory() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
         Info "Installing gosumemory.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/gosumemory"
-        wget -O "/tmp/gosumemory.zip" "${GOSUMEMORYLINK}" || Error "Download failed, check your connection.."
+        wget -O "/tmp/gosumemory.zip" "${GOSUMEMORYLINK}" || { Error "Download failed, check your connection.." && return 1; }
         unzip -d "$XDG_DATA_HOME/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
         rm "/tmp/gosumemory.zip"
     fi
+    _Done
 }
 
 tosu() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
         Info "Installing tosu.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/tosu"
-        wget -O "/tmp/tosu.zip" "${TOSULINK}" || Error "Download failed, check your connection.."
+        wget -O "/tmp/tosu.zip" "${TOSULINK}" || { Error "Download failed, check your connection.." && return 1; }
         unzip -d "$XDG_DATA_HOME/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
+    _Done
 }
 
 # Installs rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
 discordRpc() {
-    Info "Configuring rpc-bridge (Discord RPC)"
+    Info "Setting up Discord RPC integration..."
     if [ -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
         Info "rpc-bridge (Discord RPC) is already installed, do you want to reinstall it?"
         askConfirmTimeout "rpc-bridge (Discord RPC)" || return 0
@@ -718,91 +748,92 @@ discordRpc() {
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/bridge.zip" "${DISCRPCLINK}" || Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget --no-check-certificate -O "/tmp/bridge.zip" "${DISCRPCLINK}" || { Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" && return 1; }
     fi
 
     mkdir -p /tmp/rpc-bridge
     unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-    waitWine /tmp/rpc-bridge/bridge.exe --install || Error "Error setting up the Discord RPC bridge"
+    waitWine /tmp/rpc-bridge/bridge.exe --install
     rm -f "/tmp/bridge.zip"
     rm -rf "/tmp/rpc-bridge"
-    return 0
+    _Done
 }
 
 folderFixSetup() {
-    # Applying fix for opening folders in the native file browser...
+    # Integrating native file explorer (inspired by) Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
+    # This only involves regedit keys.
+    Info "Setting up native file explorer integration..."
+
     local VBS_PATH="$XDG_DATA_HOME/osuconfig/folderfixosu.vbs"
     local FALLBACK_PATH="$XDG_DATA_HOME/osuconfig/folderfixosu"
     cp "${SCRDIR}/stuff/folderfixosu.vbs" "${VBS_PATH}"
     cp "${SCRDIR}/stuff/folderfixosu" "${FALLBACK_PATH}"
 
     local VBS_WINPATH
-    local chk
-    VBS_WINPATH="$(WINEDEBUG=-all waitWine winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || chk="1"
+    local fallback
+    VBS_WINPATH="$(WINEDEBUG=-all waitWine winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || fallback="1"
+    [ -z "$VBS_WINPATH" ] && fallback="1"
 
     waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
     waitWine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
-    if [ -z "${chk:-}" ]; then
-        waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\"" || chk="1"
+    if [ -z "${fallback:-}" ]; then
+        waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\""
     else
-        waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\"" || chk="1"
+        waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
     fi
-    [ "${chk:-}" = "1" ] && Error "Failed adding registry keys for native folder integrations!"
-    return 0
+    _Done
 }
 
 osuHandlerSetup() {
     # Fix to importing maps/skins/osu links after Stable update 20250122.1: https://osu.ppy.sh/home/changelog/stable40/20250122.1
+    Info "Setting up file (.osz/.osk) and url associations..."
     local REG_FILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
     cp "${SCRDIR}/stuff/osu-handler.reg" "${REG_FILE}"
 
     # Adding the osu-handler.reg file to registry
-    waitWine regedit /s "${REG_FILE}" || Error "Failed setting up osu-handler!"
-    return 0
+    waitWine regedit /s "${REG_FILE}"
+    _Done
 }
 
 InstallDxvk() {
     # Installing patched dxvk-osu binaries, read more in stuff/dxvk-osu.
-    # Copying dlls from stuff/dxvk-osu into Wineprefix
-    Info "Installing dxvk-osu in Wineprefix.."
+    Info "Installing DXVK for improved osu! compatibility mode performance..."
     cp "${SCRDIR}"/stuff/dxvk-osu/x64/*.dll "$WINEPREFIX/drive_c/windows/system32"
     cp "${SCRDIR}"/stuff/dxvk-osu/x32/*.dll "$WINEPREFIX/drive_c/windows/syswow64"
 
     # Setting DllOverrides for those to Native
     for dll in dxgi d3d8 d3d9 d3d10core d3d11; do
-        waitWine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v "$dll" /d native /f || Error "Failed setting up DXVK!"
+        waitWine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v "$dll" /d native /f
     done
-    return 0
+    _Done
 }
 
 FixUmu() {
     if [ ! -f "$BINDIR/osu-wine" ] || [ -z "${LAUNCHERPATH}" ]; then
-        Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
-        return
+        Error "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first." && return 1
     fi
     Info "Looks like you're updating from the umu-launcher based osu-wine, so we'll try to run a full update now..."
     Info "Please answer 'yes' when asked to update the 'osu-wine' launcher"
 
-    Update "${LAUNCHERPATH}"
-    Info "Done!"
+    Update "${LAUNCHERPATH}" || { Error "Updating failed... Please do a fresh install of osu-winello." && return 1; }
+    _Done
 }
 
 FixYawl() {
     if [ ! -f "$BINDIR/osu-wine" ]; then
-        Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
-        return
+        Error "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first." && return 1
     elif [ ! -f "$WINE" ]; then
-        Info "yawl not found, you should run ./osu-winello.sh first."
-        return
+        Error "yawl not found, you should run ./osu-winello.sh first." && return 1
     fi
 
     Info "Fixing yawl..."
     YAWL_VERBS="update;reinstall" "$WINE" "--version" && chk="$?"
     if [ "${chk}" != 0 ]; then
-        Info "That didn't seem to work... try again?"
+        Error "That didn't seem to work... try again?" && return 1
     else
         Info "yawl should be good to go now."
     fi
+    _Done
 }
 
 # Help!
@@ -821,54 +852,60 @@ Help() {
 
 case "$1" in
 '')
-    InitialSetup
-    InstallWine
-    FullInstall
+    {
+        InitialSetup &&
+            InstallWine &&
+            FullInstall
+    } || return 1
     ;;
 
 'uninstall')
-    Uninstall
+    Uninstall || return 1
     ;;
 
 'gosumemory')
-    Gosumemory
+    Gosumemory || return 1
     ;;
 
 'tosu')
-    tosu
+    tosu || return 1
     ;;
 
 'discordrpc')
-    discordRpc
+    discordRpc || return 1
     ;;
 
 'fixfolders')
-    folderFixSetup
+    folderFixSetup || return 1
+    ;;
+
+'fixprefix')
+    reconfigurePrefix fresh || return 1
     ;;
 
 'osuhandler')
-    osuHandlerSetup
+    osuHandlerSetup || return 1
     ;;
 
 'installdxvk')
-    InstallDxvk
+    InstallDxvk || return 1
     ;;
 
 'changedir')
-    installOrChangeDir
+    installOrChangeDir || return 1
     ;;
 
 update*)
-    Update "${2:-}" # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
+    Update "${2:-}" || return 1 # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
     ;;
 
 # "umu" kept for backwards compatibility when updating from umu-launcher based osu-wine
 *umu*)
-    FixUmu
+    FixUmu || return 1
     ;;
 
 *yawl*)
-    FixYawl
+    FixYawl || return 1
     ;;
 
 *help* | '-h')

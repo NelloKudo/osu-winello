@@ -5,18 +5,18 @@
 ## any argument before osu!, use #LAUNCH_ARGS!
 
 # For reference: export A="${A:-}" means use "A" if already set, otherwise use the value after ":-" for the variable
-# Example: enable WINENTSYNC by running `WINENTSYNC=1 osu-wine` in a terminal, 
+# Example: enable WINENTSYNC by running `WINENTSYNC=1 osu-wine` in a terminal,
 #                            or by changing the line to `export WINENTSYNC="${WINENTSYNC:-1}"`
 
 # Customization and and performance configuration options are here:
 
 LAUNCH_ARGS="" # Put arguments like prime-run, gamemoderun, or mangohud in between the quotes here!
 
- # Set this to your external disk paths if you use symlinks!
+# Set this to your external disk paths if you use symlinks!
 export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW:-}"
 
 # Set this to 1 or 2 to play with absolute mode in OTD on Wayland (if this doesn't work, check the "Tablet issues" page in the osu-winello wiki)
-export WINE_ENABLE_ABS_TABLET_HACK="${WINE_ENABLE_ABS_TABLET_HACK:-0}" 
+export WINE_ENABLE_ABS_TABLET_HACK="${WINE_ENABLE_ABS_TABLET_HACK:-0}"
 # Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
 export WINE_BLOCK_GET_VERSION="${WINE_BLOCK_GET_VERSION:-0}"
 # Set this to 1 to force fixes for alt-tab (only if needed!)
@@ -88,7 +88,7 @@ Warning() {
     echo -e '\033[0;33m'"Winello:\033[0m $*"
 }
 
-Error() {
+ErrorAndExit() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
     exit 1
 }
@@ -117,6 +117,7 @@ Help() {
     osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
 }
 
+# Won't return failure if there's no internet connection, but tries to update the main script first before calling the function
 cleanUpdateFolder() {
     _clone() { GIT_TERMINAL_PROMPT=0 git clone "https://github.com/NelloKudo/osu-winello.git" "$XDG_DATA_HOME/osuconfig/update" --quiet; }
     _pull() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet; }
@@ -125,7 +126,7 @@ cleanUpdateFolder() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/update" ]; then
         _clone # where did the update directory go? need to clone it first.
     else
-        _pull || { { _reset || _reset main; } && _pull; } # I think this should handle when a branch is deleted/main branch changes?
+        _pull || { { _reset || _reset origin || _reset main; } && _pull; } # I think this should handle when a branch is deleted/main branch changes?
     fi
     _reset
     # check again, doesn't hurt
@@ -134,7 +135,7 @@ cleanUpdateFolder() {
 }
 
 Update() {
-    cleanUpdateFolder || Error "Your osu-winello folder is broken, please reinstall from scratch..."
+    cleanUpdateFolder || ErrorAndExit "Your osu-winello folder is broken, please reinstall from scratch..."
 
     # if no arguments are passed, just do a regular update
     # if we're updating ourselves, we should use `exec` so that we don't try to re-enter the changed launcher script
@@ -142,41 +143,15 @@ Update() {
     local execcmd=("exec" "bash")
     [ -n "${*}" ] && { args=("${*}") && execcmd=("bash"); } # we had arguments, pass those on and don't need `exec`
     "${execcmd[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${args[@]}"
-}
-
-longPathsFix() {
-    # Applying fix for long names/paths...
-    rm -rf "$WINEPREFIX/dosdevices/d:"
-    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
-}
-
-osuHandlerSetup() {
-    # Fix to importing maps/skins/osu links after Stable update 20250122.1
-    # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
-    Update "osuhandler"
-}
-
-InstallDxvk() {
-    # Installing patched dxvk-osu binaries in Wineprefix
-    Update "installdxvk"
-}
-
-folderFix() {
-    # Applying fix for opening folders in the native file browser...
-    Update "fixfolders"
-}
-
-fixRpc() {
-    # reinstall discord rpc bridge
-    Update "discordrpc"
+    return $?
 }
 
 SetupReader() {
     local READER_NAME="${1}"
-    [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && Update "$READER_NAME"
+    { [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && Update "$READER_NAME"; } || return 1
 
     Info "Setting up $READER_NAME wrapper..."
-    READER_PATH="$("$YAWL_PATH" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
+    READER_PATH="$(WINEDEBUG=-all "$WINE" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
 
     # launcher batch file which monitors osu! and closes gosumemory when osu! exits
     cat >"$OSUPATH/launch_with_memory.bat" <<EOF
@@ -197,17 +172,19 @@ goto loop
 EOF
 
     Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
+    return 0
 }
 
 LaunchWine() {
-    local EXE_ARG="${YAWL_PATH}"
+    local EXE_ARG="${WINE}"
     declare -a POST_ARGS=("${@}")
 
     WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
     Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
     Info "Launching: ${PRE_ARGS[*]} ${EXE_ARG} ${POST_ARGS[*]}"
     echo ""
-    exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}"
+    exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}" || return 1
+    return 0
 }
 
 LaunchOsu() {
@@ -220,7 +197,8 @@ LaunchOsu() {
     fi
 
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-    LaunchWine "${OSU_EXE[@]}" "${@}"
+    LaunchWine "${OSU_EXE[@]}" "${@}" || return 1
+    return 0
 }
 
 ###################################################################################################
@@ -235,7 +213,7 @@ case "$1" in
     ###################################################################################################
 
 '--devserver')
-    if [ -z "$2" ]; then Error "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
+    if [ -z "$2" ]; then ErrorAndExit "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
     LaunchOsu "-devserver" "$2"
     ;;
 
@@ -254,19 +232,19 @@ case "$1" in
     ###################################################################################################
 
 '--winetricks')
-    winetricks "${@:2}"
+    winetricks "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
     ;;
 
     ###################################################################################################
 
 '--changedir')
-    Update "changedir"
+    Update "changedir" || ErrorAndExit "Changing directories failed..."
     ;;
 
     ###################################################################################################
 
 '--remove')
-    Update "uninstall"
+    Update "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
     ;;
 
     ###################################################################################################
@@ -284,25 +262,25 @@ case "$1" in
     ###################################################################################################
 
 '--update')
-    Update
+    Update || ErrorAndExit "The update partially or completely failed..."
     ;;
 
     ###################################################################################################
 
 '--fixfolders')
-    folderFix
+    Update "fixfolders" || ErrorAndExit "The folderfix somehow failed to apply..."
     ;;
 
     ###################################################################################################
 
 *fix*yawl*)
-    Update "fixyawl"
+    Update "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
     ;;
 
     ###################################################################################################
 
 '--fixrpc')
-    fixRpc
+    Update "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
     ;;
 
     ###################################################################################################
@@ -338,38 +316,17 @@ case "$1" in
     ###################################################################################################
 
 '--fixprefix')
-    Info "Checking for internet connection.."
-    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && Error "Please connect to internet before continuing xd. Run the script again"
-
-    Info "Deleting old Wineprefix..."
-    rm -rf "$WINEPREFIX"
-
-    WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
-
-    folderFix
-
-    # Applying fix for long names/paths...
-    longPathsFix
-
-    # Re-set-up osu-handler
-    osuHandlerSetup
-
-    # Install dxvk-osu
-    InstallDxvk
-
-    # Try fixing the rpc bridge
-    fixRpc
-
-    Info "Wineprefix is now working; launch osu! with osu-wine"
+    Update "fixprefix" ||
+        ErrorAndExit "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
     ;;
 
     ###################################################################################################
 
 '--tosu')
-    SetupReader 'tosu'
+    SetupReader 'tosu' || ErrorAndExit "Couldn't set up tosu..."
     ;;
 '--gosumemory')
-    SetupReader 'gosumemory'
+    SetupReader 'gosumemory' || ErrorAndExit "Couldn't set up gosumemory..."
     ;;
 
     ###################################################################################################
