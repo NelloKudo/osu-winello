@@ -57,10 +57,10 @@ export __GL_MaxFramesAllowed="${__GL_MaxFramesAllowed:-}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
-export YAWL_PATH="$XDG_DATA_HOME/osuconfig/yawl-winello"
-export WINESERVER_PATH="${YAWL_PATH}server"
-export WINE_PATH="$XDG_DATA_HOME/osuconfig/wine-osu"
+export WINE="$XDG_DATA_HOME/osuconfig/yawl-winello"
+export WINESERVER="${WINE}server"
 export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+export WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu"
 
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
@@ -254,7 +254,7 @@ case "$1" in
     ###################################################################################################
 
 '--winetricks')
-    WINE="$YAWL_PATH" winetricks "${@:2}"
+    winetricks "${@:2}"
     ;;
 
     ###################################################################################################
@@ -272,13 +272,13 @@ case "$1" in
     ###################################################################################################
 
 '--kill')
-    "$WINESERVER_PATH" -k
+    "$WINESERVER" -k
     ;;
 
     ###################################################################################################
 
 '--kill9')
-    "$WINESERVER_PATH" -k9
+    "$WINESERVER" -k9
     ;;
 
     ###################################################################################################
@@ -344,8 +344,7 @@ case "$1" in
     Info "Deleting old Wineprefix..."
     rm -rf "$WINEPREFIX"
 
-    WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 WINE="$YAWL_PATH" \
-        winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
+    WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3
 
     folderFix
 

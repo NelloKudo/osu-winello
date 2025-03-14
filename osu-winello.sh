@@ -56,10 +56,8 @@ fi
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
-export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
-export WINE_PATH="${WINE_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
-
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
+export WINEDEBUG="-wineboot,${WINEDEBUG:-}" # Don't show "failed to start winemenubuilder"
 
 export WINENTSYNC="0" # Don't use these for setup-related stuff to be safe
 export WINEFSYNC="0"
@@ -67,7 +65,11 @@ export WINEESYNC="0"
 
 # Other shell local variables
 YAWL_INSTALL_PATH="${YAWL_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl"}"
-YAWL_PATH="${YAWL_INSTALL_PATH}-winello"
+export WINE="${WINE:-"${YAWL_INSTALL_PATH}-winello"}"
+export WINESERVER="${WINESERVER:-"${WINE}server"}"
+export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
+[ -n "${WINE_PATH}" ] && WINE_INSTALL_PATH="${WINE_PATH}" # calling into the script from umu-based osu-wine
+export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
 
 #   =====================================
 #   =====================================
@@ -168,6 +170,9 @@ InitialSetup() {
     done
 }
 
+# Helper to wait for wineserver to close before continuing to a next step, reduces the chance of flakiness
+waitWine() { "$WINESERVER" -w && "$WINE" "$@"; }
+
 # Function to install script files, yawl and Wine-osu
 InstallWine() {
     # Installing game launcher and related...
@@ -220,9 +225,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     chmod +x "$YAWL_INSTALL_PATH"
 
     # Install and verify yawl ASAP, the wrapper mode does not download/install the runtime if no arguments are passed
-    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
-
-    YAWL_VERBS="update;verify" "$YAWL_PATH" "--version" || InstallError "There was an error setting up yawl!"
+    installYawl || Revert
 
     # The update function works under this folder: it compares variables from files stored in osuconfig
     # with latest values from GitHub and check whether to update or not
@@ -238,7 +241,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
 }
 
 # Function configuring folders to install the game
-ConfigurePath() {
+InitialOsuInstall() {
     local installpath=1
     Info "Where do you want to install the game?: 
           1 - Default path ($XDG_DATA_HOME/osu-wine)
@@ -261,7 +264,7 @@ saveOsuWinepath() {
     Info "Saving a copy of the osu! path..."
     local temp_winepath
     {
-        temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
+        temp_winepath="$(waitWine winepath -w "$OSUPATH/")" &&
             echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
             echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
     } || return 1
@@ -305,7 +308,7 @@ installOrChangeDir() {
         [ ! -d "$newdir" ] && Error "No folder selected, please make sure zenity is installed.."
     fi
 
-    newdir="$newdir/osu!" # Make it a subdirectory
+    [ -s "$newdir/osu!.exe" ] || newdir="$newdir/osu!" # Make it a subdirectory unless osu!.exe is already there
     OSUPATH="$newdir" # Set the global OSUPATH var
 
     if [ -s "$newdir/osu!.exe" ] || [ "$newdir" = "$lastdir" ]; then
@@ -327,7 +330,7 @@ installOrChangeDir() {
 
     # save the osu winepath with the new folder
     saveOsuWinepath || Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
-    Info "Change done from '$lastdir' to '$newdir'!"
+    Info "osu! installed to '$newdir'!"
     return 0
 }
 
@@ -338,9 +341,6 @@ installOrChangeDir() {
 # - Regedit keys to integrate native file manager with Wine
 # - rpc-bridge for Discord RPC (flatpak users, google "flatpak discord rpc")
 FullInstall() {
-    Info "Configuring osu! folder:"
-    ConfigurePath || Revert
-
     Info "Configuring osu-mime and osu-handler:"
 
     # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
@@ -421,7 +421,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            WINE="$YAWL_PATH" winetricks -q dotnet20 dotnet48 gdiplus_winxp win2k3
+            winetricks -q dotnet20 dotnet48 gdiplus_winxp win2k3
         else
             tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
             mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
@@ -430,19 +430,26 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         # Cleaning..
         rm -rf "$HOME/.winellotmp"
 
+        Info "Setting up file (.osz/.osk) and url associations..."
         # Setup osu-handler for file integrations
-        osuHandlerSetup
+        osuHandlerSetup || Revert
 
         # Integrating native file explorer by Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
         # This only involves regedit keys.
-        folderFixSetup
+        Info "Setting up native file explorer integration..."
+        folderFixSetup || Revert
 
         # Installing dxvk-osu into Wineprefix
-        InstallDxvk
+        Info "Installing DXVK for improved osu! compatibility mode performance..."
+        InstallDxvk || Revert
     fi
 
     # Set up the discord rpc bridge
-    discordRpc
+    Info "Setting up Discord RPC integration..."
+    discordRpc || Revert
+
+    Info "Configure and install osu!"
+    InitialOsuInstall || Revert
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
@@ -530,7 +537,6 @@ launcherUpdate() {
 }
 
 installYawl() {
-    rm -f "${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
     Info "Installing yawl..."
 
     wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
@@ -542,24 +548,25 @@ installYawl() {
     chmod +x "$YAWL_INSTALL_PATH"
 
     # Also setup yawl here, this will be required anyways when updating from umu-based osu-wine versions
-    YAWL_VERBS="make_wrapper=winello;exec=$WINE_PATH/bin/wine;wineserver=$WINE_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
-    YAWL_VERBS="update;verify" "$YAWL_PATH" "--version" || Warning "There was an error setting up yawl! Continuing, but things might be broken..."
+    YAWL_VERBS="make_wrapper=winello;exec=$WINE_INSTALL_PATH/bin/wine;wineserver=$WINE_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
+    YAWL_VERBS="update;verify" "$WINE" "--version" || Error "There was an error setting up yawl!"
 }
 
 # This function reads files located in $XDG_DATA_HOME/osuconfig
 # to see whether a new wine-osu version has been released.
 Update() {
     local launcher_path="${1:-"${LAUNCHERPATH}"}"
-    if [ ! -x "$YAWL_PATH" ]; then
-        installYawl
+    if [ ! -x "$WINE" ]; then
+        rm -f "${XDG_DATA_HOME}/osuconfig/rememberupdatechoice"
+        installYawl || Info "Continuing, but things might be broken..."
     else
         local INSTALLED_YAWL_VERSION
-        INSTALLED_YAWL_VERSION="$(env "YAWL_VERBS=version" "$YAWL_PATH" 2>/dev/null)"
+        INSTALLED_YAWL_VERSION="$(env "YAWL_VERBS=version" "$WINE" 2>/dev/null)"
         if [[ "$INSTALLED_YAWL_VERSION" =~ 0\.5\.* ]]; then
-            installYawl
+            installYawl || Info "Continuing, but things might be broken..."
         else
             Info "Checking for yawl updates..."
-            YAWL_VERBS="update" "$YAWL_PATH" "--version"
+            YAWL_VERBS="update" "$WINE" "--version"
         fi
     fi
 
@@ -700,11 +707,11 @@ discordRpc() {
     Info "Configuring rpc-bridge (Discord RPC)"
     if [ -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
         Info "rpc-bridge (Discord RPC) is already installed, do you want to reinstall it?"
-        askConfirmTimeout "rpc-bridge (Discord RPC)" || return 1
+        askConfirmTimeout "rpc-bridge (Discord RPC)" || return 0
     fi
 
     # try uninstalling the service first
-    "$YAWL_PATH" reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
+    waitWine reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
     local chk
 
     wget -O "/tmp/bridge.zip" "${DISCRPCLINK}" && chk="$?"
@@ -716,9 +723,10 @@ discordRpc() {
 
     mkdir -p /tmp/rpc-bridge
     unzip -d /tmp/rpc-bridge -q "/tmp/bridge.zip"
-    "$YAWL_PATH" /tmp/rpc-bridge/bridge.exe --install
+    waitWine /tmp/rpc-bridge/bridge.exe --install || Error "Error setting up the Discord RPC bridge"
     rm -f "/tmp/bridge.zip"
     rm -rf "/tmp/rpc-bridge"
+    return 0
 }
 
 folderFixSetup() {
@@ -730,15 +738,17 @@ folderFixSetup() {
 
     local VBS_WINPATH
     local chk
-    VBS_WINPATH="$(WINEDEBUG=-all "$YAWL_PATH" winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || chk=1
+    VBS_WINPATH="$(WINEDEBUG=-all waitWine winepath.exe -w "${VBS_PATH}" 2>/dev/null)" || chk="1"
 
-    "$YAWL_PATH" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
-    "$YAWL_PATH" reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
+    waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f
+    waitWine reg delete "HKEY_CLASSES_ROOT\folder\shell\open\ddeexec" /f
     if [ -z "${chk:-}" ]; then
-        "$YAWL_PATH" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\""
+        waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\"" || chk="1"
     else
-        "$YAWL_PATH" reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
+        waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\"" || chk="1"
     fi
+    [ "${chk:-}" = "1" ] && Error "Failed adding registry keys for native folder integrations!"
+    return 0
 }
 
 osuHandlerSetup() {
@@ -747,7 +757,8 @@ osuHandlerSetup() {
     cp "${SCRDIR}/stuff/osu-handler.reg" "${REG_FILE}"
 
     # Adding the osu-handler.reg file to registry
-    "$YAWL_PATH" regedit /s "${REG_FILE}"
+    waitWine regedit /s "${REG_FILE}" || Error "Failed setting up osu-handler!"
+    return 0
 }
 
 InstallDxvk() {
@@ -759,8 +770,9 @@ InstallDxvk() {
 
     # Setting DllOverrides for those to Native
     for dll in dxgi d3d8 d3d9 d3d10core d3d11; do
-        "$YAWL_PATH" reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v "$dll" /d native /f
+        waitWine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v "$dll" /d native /f || Error "Failed setting up DXVK!"
     done
+    return 0
 }
 
 FixUmu() {
@@ -779,13 +791,13 @@ FixYawl() {
     if [ ! -f "$BINDIR/osu-wine" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
         return
-    elif [ ! -f "$YAWL_PATH" ]; then
+    elif [ ! -f "$WINE" ]; then
         Info "yawl not found, you should run ./osu-winello.sh first."
         return
     fi
 
     Info "Fixing yawl..."
-    YAWL_VERBS="update;reinstall" "$YAWL_PATH" "--version" && chk="$?"
+    YAWL_VERBS="update;reinstall" "$WINE" "--version" && chk="$?"
     if [ "${chk}" != 0 ]; then
         Info "That didn't seem to work... try again?"
     else
