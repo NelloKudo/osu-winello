@@ -298,6 +298,17 @@ ConfigurePath() {
     fi
 }
 
+saveOsuWinepath() {
+    Info "Saving a copy of the osu! path..."
+    local temp_winepath
+    {
+        temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
+            echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
+            echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
+    } || return 1
+    return 0
+}
+
 # Here comes the real Winello 8)
 # What the script will install, in order, is:
 # - osu!mime and osu!handler to properly import skins and maps
@@ -427,13 +438,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         fi
     fi
 
-    local temp_winepath
-    {
-        temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
-            echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
-            echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
-    } ||
-        InstallError "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+    saveOsuWinepath || InstallError "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
@@ -578,6 +583,9 @@ Update() {
     else
         Info "Your Wine-osu is already up-to-date!"
     fi
+
+    # Will be required when updating from umu-launcher
+    [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?" ; }
 
     [ ! -x "${launcher_path}" ] && return
 
