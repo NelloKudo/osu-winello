@@ -119,9 +119,9 @@ Help() {
 
 # Won't return failure if there's no internet connection, but tries to update the main script first before calling the function
 cleanUpdateFolder() {
-    _clone() { GIT_TERMINAL_PROMPT=0 git clone "https://github.com/NelloKudo/osu-winello.git" "$XDG_DATA_HOME/osuconfig/update" --quiet; }
-    _pull() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet; }
-    _reset() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard "${1:-HEAD}" --quiet; }
+    _clone() { GIT_TERMINAL_PROMPT=0 git clone "https://github.com/NelloKudo/osu-winello.git" "$XDG_DATA_HOME/osuconfig/update" --quiet 2>/dev/null; }
+    _pull() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet 2>/dev/null; }
+    _reset() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard "${1:-HEAD}" --quiet 2>/dev/null; }
 
     if [ ! -d "$XDG_DATA_HOME/osuconfig/update" ]; then
         _clone # where did the update directory go? need to clone it first.
@@ -134,7 +134,7 @@ cleanUpdateFolder() {
     return 0
 }
 
-Update() {
+MainUpdate() {
     cleanUpdateFolder || ErrorAndExit "Your osu-winello folder is broken, please reinstall from scratch..."
 
     # if no arguments are passed, just do a regular update
@@ -148,7 +148,7 @@ Update() {
 
 SetupReader() {
     local READER_NAME="${1}"
-    { [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && Update "$READER_NAME"; } || return 1
+    { [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && MainUpdate "$READER_NAME"; } || return 1
 
     Info "Setting up $READER_NAME wrapper..."
     READER_PATH="$(WINEDEBUG=-all "$WINE" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
@@ -238,13 +238,13 @@ case "$1" in
     ###################################################################################################
 
 '--changedir')
-    Update "changedir" || ErrorAndExit "Changing directories failed..."
+    MainUpdate "changedir" || ErrorAndExit "Changing directories failed..."
     ;;
 
     ###################################################################################################
 
 '--remove')
-    Update "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
+    MainUpdate "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
     ;;
 
     ###################################################################################################
@@ -262,25 +262,25 @@ case "$1" in
     ###################################################################################################
 
 '--update')
-    Update || ErrorAndExit "The update partially or completely failed..."
+    MainUpdate || ErrorAndExit "The update partially or completely failed..."
     ;;
 
     ###################################################################################################
 
 '--fixfolders')
-    Update "fixfolders" || ErrorAndExit "The folderfix somehow failed to apply..."
+    MainUpdate "fixfolders" || ErrorAndExit "The folderfix somehow failed to apply..."
     ;;
 
     ###################################################################################################
 
 *fix*yawl*)
-    Update "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
+    MainUpdate "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
     ;;
 
     ###################################################################################################
 
 '--fixrpc')
-    Update "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
+    MainUpdate "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
     ;;
 
     ###################################################################################################
@@ -316,7 +316,7 @@ case "$1" in
     ###################################################################################################
 
 '--fixprefix')
-    Update "fixprefix" ||
+    MainUpdate "fixprefix" ||
         ErrorAndExit "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
     ;;
 
