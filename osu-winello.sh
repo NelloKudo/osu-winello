@@ -7,12 +7,6 @@
 #   Feel free to contribute!
 #   =======================================
 
-# The URL for this git repo
-WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
-
-# The directory osu-winello.sh is in
-SCRDIR="$(realpath "$(dirname "$0")")"
-
 # Wine-osu current versions for update
 MAJOR=10
 MINOR=3
@@ -39,6 +33,20 @@ OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 DISCRPCLINK="https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip"
 GOSUMEMORYLINK="https://github.com/l3lackShark/gosumemory/releases/download/${GOSUMEMORYVERSION}/gosumemory_windows_amd64.zip"
 TOSULINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu-windows-v${TOSUVERSION}.zip"
+
+# The URL for our git repo
+WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
+
+# The directory osu-winello.sh is in
+SCRDIR="$(realpath "$(dirname "$0")")"
+# The full path to osu-winello.sh
+# SCRPATH="$(realpath "$0")"
+
+# Don't rely on this! We should get the launcher path from `osu-wine --update`, this is a "hack" to support updating from umu
+if [ -z "${LAUNCHERPATH}" ]; then
+  LAUNCHERPATH="$(realpath /proc/$PPID/exe)" || LAUNCHERPATH="$(readlink /proc/$PPID/exe)"
+  [[ ! "${LAUNCHERPATH}" =~ .*osu-wine ]] && LAUNCHERPATH=
+fi
 
 # Exported global variables
 
@@ -532,7 +540,7 @@ installYawl() {
 # This function reads files located in $XDG_DATA_HOME/osuconfig
 # to see whether a new wine-osu version has been released.
 Update() {
-    local launcher_path="${1:-}"
+    local launcher_path="${1:-"${LAUNCHERPATH}"}"
     if [ ! -x "$YAWL_PATH" ]; then
         installYawl
     else
@@ -744,18 +752,14 @@ InstallDxvk() {
 }
 
 FixUmu() {
-    if [ ! -f "$BINDIR/osu-wine" ]; then
+    if [ ! -f "$BINDIR/osu-wine" ] || [ -z "${LAUNCHERPATH}" ]; then
         Info "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first."
         return
     fi
     Info "Looks like you're updating from the umu-launcher based osu-wine, so we'll try to run a full update now..."
     Info "Please answer 'yes' when asked to update the 'osu-wine' launcher"
 
-    local parentscript
-    parentscript="$(realpath /proc/$PPID/exe)" || parentscript="$(readlink /proc/$PPID/exe)"
-    [[ ! "${parentscript}" =~ .*osu-wine ]] && Error "Please re-download and re-install osu-winello."
-
-    Update "${parentscript}"
+    Update "${LAUNCHERPATH}"
     Info "Done!"
 }
 
@@ -827,7 +831,7 @@ case "$1" in
     InstallDxvk
     ;;
 
-'update')
+update*)
     Update "${2:-}" # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
     ;;
 
@@ -845,7 +849,7 @@ case "$1" in
     ;;
 
 *)
-    Info "Unknown argument, see ./osu-winello.sh help or ./osu-winello.sh -h"
+    Info "Unknown argument(s) ${*}, see ./osu-winello.sh help or ./osu-winello.sh -h"
     ;;
 esac
 

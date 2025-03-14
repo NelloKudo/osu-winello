@@ -54,6 +54,8 @@ export __GL_MaxFramesAllowed="${__GL_MaxFramesAllowed:-}"
 # osu-winello internal variables, you probably don't have to touch these!
 ###################################################################################################
 
+export LAUNCHERPATH="$(realpath "$0")"
+
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
@@ -134,58 +136,51 @@ deleteFolder() {
     fi
 }
 
-Update() {
-    local self
-    self="$(realpath "$0")"
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    exec bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" update "${self}"
-}
-
 longPathsFix() {
     # Applying fix for long names/paths...
     rm -rf "$WINEPREFIX/dosdevices/d:"
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
+Update() {
+    _pull() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet; }
+    _reset() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard "${1:-HEAD}" --quiet; }
+
+    _pull || { { _reset || _reset main; } && _pull; } # I think this should handle when a branch is deleted/main branch changes?
+    _reset
+
+    # if no arguments are passed, just do a regular update
+    # if we're updating ourselves, we should use `exec` so that we don't try to re-enter the changed launcher script
+    local args=("update" "${LAUNCHERPATH}")
+    local execcmd=("exec" "bash")
+    [ -n "${*}" ] && { args=("${*}") && execcmd=("bash"); } # we had arguments, pass those on and don't need `exec`
+    "${execcmd[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${args[@]}"
+}
+
 osuHandlerSetup() {
     # Fix to importing maps/skins/osu links after Stable update 20250122.1
     # This assumes the osu! folder is mounted at the D: drive (which Winello does in longPathsFix)
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" osuhandler
+    Update "osuhandler"
 }
 
 InstallDxvk() {
     # Installing patched dxvk-osu binaries in Wineprefix
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" installdxvk
+    Update "installdxvk"
 }
 
 folderFix() {
     # Applying fix for opening folders in the native file browser...
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixfolders
+    Update "fixfolders"
 }
 
 fixRpc() {
     # reinstall discord rpc bridge
-    if [ ! -f "${WINEPREFIX}/drive_c/windows/bridge.exe" ]; then
-        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-        git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    fi
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" discordrpc
+    Update "discordrpc"
 }
 
 SetupReader() {
     local READER_NAME="${1}"
-    if [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ]; then
-        git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-        git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-        bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "$READER_NAME"
-    fi
+    [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && Update "$READER_NAME"
 
     Info "Setting up $READER_NAME wrapper..."
     READER_PATH="$("$YAWL_PATH" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
@@ -360,9 +355,7 @@ case "$1" in
     ###################################################################################################
 
 *fix*yawl*)
-    git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet
-    git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard origin --quiet
-    bash "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" fixyawl
+    Update "fixyawl"
     ;;
 
     ###################################################################################################
