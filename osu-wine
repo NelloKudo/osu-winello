@@ -142,12 +142,24 @@ longPathsFix() {
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
 }
 
-Update() {
+cleanUpdateFolder() {
+    _clone() { GIT_TERMINAL_PROMPT=0 git clone "https://github.com/NelloKudo/osu-winello.git" "$XDG_DATA_HOME/osuconfig/update" --quiet; }
     _pull() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet; }
     _reset() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard "${1:-HEAD}" --quiet; }
 
-    _pull || { { _reset || _reset main; } && _pull; } # I think this should handle when a branch is deleted/main branch changes?
+    if [ ! -d "$XDG_DATA_HOME/osuconfig/update" ]; then
+        _clone # where did the update directory go? need to clone it first.
+    else
+        _pull || { { _reset || _reset main; } && _pull; } # I think this should handle when a branch is deleted/main branch changes?
+    fi
     _reset
+    # check again, doesn't hurt
+    [ ! -d "$XDG_DATA_HOME/osuconfig/update" ] && return 1
+    return 0
+}
+
+Update() {
+    cleanUpdateFolder || Error "Your osu-winello folder is broken, please reinstall from scratch..."
 
     # if no arguments are passed, just do a regular update
     # if we're updating ourselves, we should use `exec` so that we don't try to re-enter the changed launcher script
