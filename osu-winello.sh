@@ -337,6 +337,7 @@ installOrChangeDir() {
     echo "${newdir}" >"$XDG_DATA_HOME/osuconfig/osupath" # Save it for later
     export OSUPATH="${newdir}"
 
+    longPathsFix || return 1
     saveOsuWinepath || return 1
     Info "osu! installed to '$newdir'!"
     return 0
