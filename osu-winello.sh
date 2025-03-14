@@ -773,7 +773,7 @@ FixYawl() {
     fi
 
     Info "Fixing yawl..."
-    YAWL_VERBS="update;reinstall" "$YAWL_PATH" true && chk="$?"
+    YAWL_VERBS="update;reinstall" "$YAWL_PATH" "--version" && chk="$?"
     if [ "${chk}" != 0 ]; then
         Info "That didn't seem to work... try again?"
     else
