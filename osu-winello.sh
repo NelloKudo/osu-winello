@@ -42,10 +42,13 @@ SCRDIR="$(realpath "$(dirname "$0")")"
 # The full path to osu-winello.sh
 # SCRPATH="$(realpath "$0")"
 
+[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, from the osuconfig/osupath, or empty at first install (will set up in installOrChangeDir)
+
 # Don't rely on this! We should get the launcher path from `osu-wine --update`, this is a "hack" to support updating from umu
 if [ -z "${LAUNCHERPATH}" ]; then
-  LAUNCHERPATH="$(realpath /proc/$PPID/exe)" || LAUNCHERPATH="$(readlink /proc/$PPID/exe)"
-  [[ ! "${LAUNCHERPATH}" =~ .*osu-wine ]] && LAUNCHERPATH=
+    LAUNCHERPATH="$(realpath /proc/$PPID/exe)" || LAUNCHERPATH="$(readlink /proc/$PPID/exe)"
+    [[ ! "${LAUNCHERPATH}" =~ .*osu-wine ]] && LAUNCHERPATH=
 fi
 
 # Exported global variables
@@ -115,7 +118,7 @@ InstallError() {
 # Error function for other features besides install
 Error() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
-    exit 1
+    return 1 # don't exit, handle errors ourselves
 }
 
 # Function looking for basic stuff needed for installation
@@ -128,15 +131,6 @@ InitialSetup() {
     if [ -e "$BINDIR/osu-wine" ]; then Quit "Please uninstall Winello (osu-wine --remove) before installing!"; fi
 
     Info "Welcome to the script! Follow it to install osu! 8)"
-
-    # Setting root perms. to either 'sudo' or 'doas'
-    root_var="sudo"
-    if command -v doas >/dev/null 2>&1; then
-        doascheck=$(doas id -u)
-        if [ "$doascheck" = "0" ]; then
-            root_var="doas"
-        fi
-    fi
 
     # Checking if $BINDIR is in PATH:
     mkdir -p "$BINDIR"
@@ -245,57 +239,22 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
 
 # Function configuring folders to install the game
 ConfigurePath() {
-    Info "Configuring osu! folder:"
+    local installpath=1
     Info "Where do you want to install the game?: 
           1 - Default path ($XDG_DATA_HOME/osu-wine)
           2 - Custom path"
     read -r -p "$(Info "Choose your option: ")" installpath
 
-    if [ "$installpath" = 1 ] || [ "$installpath" = 2 ]; then
-        case "$installpath" in
-        '1')
-            mkdir -p "$XDG_DATA_HOME/osu-wine"
-            GAMEDIR="$XDG_DATA_HOME/osu-wine"
-
-            if [ -d "$GAMEDIR/OSU" ]; then
-                OSUPATH="$GAMEDIR/OSU"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-            else
-                mkdir -p "$GAMEDIR/osu!"
-                OSUPATH="$GAMEDIR/osu!"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-            fi
-            ;;
-
-        '2')
-            Info "Choose your directory: "
-            GAMEDIR="$(zenity --file-selection --directory)"
-
-            if [ -e "$GAMEDIR/osu!.exe" ]; then
-                OSUPATH="$GAMEDIR"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-            else
-                mkdir -p "$GAMEDIR/osu!"
-                OSUPATH="$GAMEDIR/osu!"
-                echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-            fi
-            ;;
-        esac
-    else
-        Info "No option chosen, installing to default.. ($XDG_DATA_HOME/osu-wine)"
-
-        mkdir -p "$XDG_DATA_HOME/osu-wine"
-        GAMEDIR="$XDG_DATA_HOME/osu-wine"
-
-        if [ -d "$GAMEDIR/OSU" ]; then
-            OSUPATH="$GAMEDIR/OSU"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-        else
-            mkdir -p "$GAMEDIR/osu!"
-            OSUPATH="$GAMEDIR/osu!"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-        fi
-    fi
+    case "$installpath" in
+    '2')
+        installOrChangeDir || return 1
+        ;;
+    *)
+        Info "Installing to default.. ($XDG_DATA_HOME/osu-wine)"
+        installOrChangeDir "$XDG_DATA_HOME/osu-wine" || return 1
+        ;;
+    esac
+    return 0
 }
 
 saveOsuWinepath() {
@@ -309,6 +268,69 @@ saveOsuWinepath() {
     return 0
 }
 
+longPathsFix() {
+    # Applying fix for long names/paths...
+    rm -rf "$WINEPREFIX/dosdevices"
+    rm -rf "$WINEPREFIX/drive_c/users/nellokudo"
+    mkdir -p "$WINEPREFIX/dosdevices"
+    ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
+    ln -s / "$WINEPREFIX/dosdevices/z:"
+    ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
+}
+
+deleteFolder() {
+    local folder="${1}"
+    Info "Do you want to remove the previous install at ${folder}?"
+    read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
+
+    if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
+        read -r -p "$(Info "Are you sure? This will delete your osu! files! (y/N)")" dirchoice2
+        if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
+            rm -rf "${folder}" && Error "Couldn't remove folder!"
+            return 0
+        fi
+    fi
+    Info "Skipping.."
+    return 0
+}
+
+# Handle `osu-wine --changedir` and installation setup
+installOrChangeDir() {
+    local newdir="${1:-}"
+    local lastdir="$OSUPATH"
+    if [ -z "${newdir}" ]; then
+        Info "Please choose your osu! directory:"
+        newdir="$(zenity --file-selection --directory)"
+
+        [ ! -d "$newdir" ] && Error "No folder selected, please make sure zenity is installed.."
+    fi
+
+    newdir="$newdir/osu!" # Make it a subdirectory
+    OSUPATH="$newdir" # Set the global OSUPATH var
+
+    if [ -s "$newdir/osu!.exe" ] || [ "$newdir" = "$lastdir" ]; then
+        Info "The osu! installation already exists..."
+    else
+        mkdir -p "$newdir"
+
+        Info "Downloading osu!..."
+        wget -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || {
+            Info "wget failed; trying with --no-check-certificate.."
+            wget --no-check-certificate -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || Error "Failed to download osu!"
+        }
+
+        [ -n "${lastdir}" ] && deleteFolder "$lastdir"
+    fi
+
+    echo "$newdir" >"$XDG_DATA_HOME/osuconfig/osupath" # Save it for later
+    longPathsFix
+
+    # save the osu winepath with the new folder
+    saveOsuWinepath || Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+    Info "Change done from '$lastdir' to '$newdir'!"
+    return 0
+}
+
 # Here comes the real Winello 8)
 # What the script will install, in order, is:
 # - osu!mime and osu!handler to properly import skins and maps
@@ -316,6 +338,9 @@ saveOsuWinepath() {
 # - Regedit keys to integrate native file manager with Wine
 # - rpc-bridge for Discord RPC (flatpak users, google "flatpak discord rpc")
 FullInstall() {
+    Info "Configuring osu! folder:"
+    ConfigurePath || Revert
+
     Info "Configuring osu-mime and osu-handler:"
 
     # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
@@ -405,14 +430,6 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
         # Cleaning..
         rm -rf "$HOME/.winellotmp"
 
-        # Time to debloat the prefix a bit and make necessary symlinks (drag and drop, long name maps/paths..)
-        rm -rf "$WINEPREFIX/dosdevices"
-        rm -rf "$WINEPREFIX/drive_c/users/nellokudo"
-        mkdir -p "$WINEPREFIX/dosdevices"
-        ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
-        ln -s / "$WINEPREFIX/dosdevices/z:"
-        ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:"
-
         # Setup osu-handler for file integrations
         osuHandlerSetup
 
@@ -426,19 +443,6 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
     # Set up the discord rpc bridge
     discordRpc
-
-    # Well...
-    Info "Downloading osu!"
-    if [ ! -s "$OSUPATH/osu!.exe" ]; then
-        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && chk="$?"
-
-        if [ ! "$chk" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" || InstallError "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-        fi
-    fi
-
-    saveOsuWinepath || InstallError "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
@@ -585,7 +589,7 @@ Update() {
     fi
 
     # Will be required when updating from umu-launcher
-    [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?" ; }
+    [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"; }
 
     [ ! -x "${launcher_path}" ] && return
 
@@ -807,7 +811,6 @@ case "$1" in
 '')
     InitialSetup
     InstallWine
-    ConfigurePath
     FullInstall
     ;;
 
@@ -837,6 +840,10 @@ case "$1" in
 
 'installdxvk')
     InstallDxvk
+    ;;
+
+'changedir')
+    installOrChangeDir
     ;;
 
 update*)

@@ -64,7 +64,6 @@ export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
-OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
 
 LAUNCHERPATH="$(realpath "$0")"
@@ -143,25 +142,6 @@ Update() {
     local execcmd=("exec" "bash")
     [ -n "${*}" ] && { args=("${*}") && execcmd=("bash"); } # we had arguments, pass those on and don't need `exec`
     "${execcmd[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${args[@]}"
-}
-
-deleteFolder() {
-    Info "Do you want to delete the previous install?"
-    read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
-
-    if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
-        read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" dirchoice2
-
-        if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
-            lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-            rm -rf "$lastdir/osu!" && Info "Cleaning done!"
-        else
-            Info "Skipping..."
-        fi
-
-    else
-        Info "Skipping.."
-    fi
 }
 
 longPathsFix() {
@@ -280,60 +260,7 @@ case "$1" in
     ###################################################################################################
 
 '--changedir')
-    Info "Please choose your new directory:"
-
-    newdir="$(zenity --file-selection --directory)"
-    lastdir=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-
-    if [ ! -d "$newdir" ]; then
-        Error "No folder selected, please make sure zenity is installed.."
-    fi
-
-    rm -f "$XDG_DATA_HOME/osuconfig/osupath"
-    if [ -d "$newdir/osu!" ] || [ -s "$newdir/osu!.exe" ]; then
-        Info "osu! folder/game already exists: skipping.."
-
-        if [ -d "$newdir/osu!" ]; then
-            OSUPATH="$newdir/osu!"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-
-            Info "Change done from '$lastdir' to '$newdir'!"
-            deleteFolder
-        fi
-
-        if [ -s "$newdir/osu!.exe" ]; then
-            OSUPATH="$newdir"
-            echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-
-            Info "Change done from '$lastdir' to '$newdir'!"
-            deleteFolder
-        fi
-    else
-        mkdir "$newdir/osu!"
-        OSUPATH="$newdir/osu!"
-        echo "$OSUPATH" >"$XDG_DATA_HOME/osuconfig/osupath"
-
-        Info "Downloading osu! to your new install.."
-        wget -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}" && wgetcheck6="$?"
-
-        if [ ! "$wgetcheck6" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$OSUPATH/osu!.exe" "${OSUDOWNLOADURL}"
-        fi
-
-        Info "Change done from '$lastdir' to '$newdir'!"
-        deleteFolder
-    fi
-
-    longPathsFix
-
-    # save the osu winepath with the new folder
-    {
-        temp_winepath="$("$YAWL_PATH" winepath -w "$OSUPATH/")" &&
-            echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath" &&
-            echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
-    } ||
-        Error "Couldn't get the osu! path from winepath... Check $OSUPATH/osu!.exe ?"
+    Update "changedir"
     ;;
 
     ###################################################################################################
