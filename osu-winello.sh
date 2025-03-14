@@ -68,7 +68,6 @@ YAWL_INSTALL_PATH="${YAWL_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl"}"
 export WINE="${WINE:-"${YAWL_INSTALL_PATH}-winello"}"
 export WINESERVER="${WINESERVER:-"${WINE}server"}"
 export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
-[ -n "${WINE_PATH}" ] && WINE_INSTALL_PATH="${WINE_PATH}" # calling into the script from umu-based osu-wine
 export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
 
 #   =====================================
@@ -574,7 +573,7 @@ installYawl() {
 
     # Also setup yawl here, this will be required anyways when updating from umu-based osu-wine versions
     YAWL_VERBS="make_wrapper=winello;exec=$WINE_INSTALL_PATH/bin/wine;wineserver=$WINE_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
-    YAWL_VERBS="update;verify" "$WINE" "--version" || { Error "There was an error setting up yawl!" && return 1; }
+    YAWL_VERBS="update;verify;exec=/bin/true" "$YAWL_INSTALL_PATH" || { Error "There was an error setting up yawl!" && return 1; }
     _Done
 }
 
@@ -634,7 +633,7 @@ Update() {
     fi
 
     Info "Do you want to update the 'osu-wine' launcher as well?"
-    Info "This is recommended, as there may be important fixes and updates."
+    Info "This is **HIGHLY** recommended, as there may be important fixes and updates."
     Warning "This will remove any customizations you might have made to ${launcher_path},"
     Warning "   but a backup will be left in $XDG_DATA_HOME/osuconfig/osu-wine.bak ."
 
@@ -856,56 +855,56 @@ case "$1" in
         InitialSetup &&
             InstallWine &&
             FullInstall
-    } || return 1
+    } || exit 1
     ;;
 
 'uninstall')
-    Uninstall || return 1
+    Uninstall || exit 1
     ;;
 
 'gosumemory')
-    Gosumemory || return 1
+    Gosumemory || exit 1
     ;;
 
 'tosu')
-    tosu || return 1
+    tosu || exit 1
     ;;
 
 'discordrpc')
-    discordRpc || return 1
+    discordRpc || exit 1
     ;;
 
 'fixfolders')
-    folderFixSetup || return 1
+    folderFixSetup || exit 1
     ;;
 
 'fixprefix')
-    reconfigurePrefix fresh || return 1
+    reconfigurePrefix fresh || exit 1
     ;;
 
 'osuhandler')
-    osuHandlerSetup || return 1
+    osuHandlerSetup || exit 1
     ;;
 
 'installdxvk')
-    InstallDxvk || return 1
+    InstallDxvk || exit 1
     ;;
 
 'changedir')
-    installOrChangeDir || return 1
+    installOrChangeDir || exit 1
     ;;
 
 update*)
-    Update "${2:-}" || return 1 # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
+    Update "${2:-}" || exit 1 # second argument is the path to the osu-wine launcher, expected to be called by `osu-wine --update`
     ;;
 
 # "umu" kept for backwards compatibility when updating from umu-launcher based osu-wine
 *umu*)
-    FixUmu || return 1
+    FixUmu || exit 1
     ;;
 
 *yawl*)
-    FixYawl || return 1
+    FixYawl || exit 1
     ;;
 
 *help* | '-h')
