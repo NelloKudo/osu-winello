@@ -24,6 +24,7 @@ TOSUVERSION=4.3.1
 YAWLVERSION=0.6.1
 
 # Other download links
+WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"      # Winetricks for --fixprefix
 PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
 OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz"                       # osu-mime (file associations)
 YAWLLINK="https://github.com/whrvt/yawl/releases/download/v${YAWLVERSION}/yawl"                     # yawl (Wine launcher for Steam Runtime)
@@ -64,6 +65,7 @@ export WINEFSYNC="0"
 export WINEESYNC="0"
 
 # Other shell local variables
+WINETRICKS="${WINETRICKS:-"$XDG_DATA_HOME/osuconfig/winetricks"}"
 YAWL_INSTALL_PATH="${YAWL_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/yawl"}"
 export WINE="${WINE:-"${YAWL_INSTALL_PATH}-winello"}"
 export WINESERVER="${WINESERVER:-"${WINE}server"}"
@@ -359,6 +361,8 @@ reconfigurePrefix() {
         shift
     done
 
+    installWinetricks
+
     [ -n "${freshprefix}" ] && {
         Info "Checking for internet connection.." # The bundled prefix install already checks for internet, so no point checking again
         ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && { Error "Please connect to internet before continuing xd. Run the script again" && return 1; }
@@ -366,7 +370,7 @@ reconfigurePrefix() {
         rm -rf "${WINEPREFIX}"
 
         Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
-        WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 winetricks -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3 || return 1
+        WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 "$WINETRICKS" -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3 || return 1
     }
 
     longPathsFix || return 1
@@ -808,6 +812,20 @@ InstallDxvk() {
     _Done
 }
 
+installWinetricks() {
+    Info "Installing winetricks..."
+    if [ ! -x "$WINETRICKS" ]; then
+        wget -O "/tmp/winetricks" "$WINETRICKSLINK" && chk="$?"
+        if [ ! "$chk" = 0 ]; then
+            Info "wget failed; trying with --no-check-certificate.."
+            wget --no-check-certificate -O "/tmp/winetricks" "$WINETRICKSLINK" || { Error "Download failed, check your connection" && return 1; }
+        fi
+        mv "/tmp/winetricks" "$XDG_DATA_HOME/osuconfig"
+        chmod +x "$WINETRICKS"
+    fi
+    _Done
+}
+
 FixUmu() {
     if [ ! -f "$BINDIR/osu-wine" ] || [ -z "${LAUNCHERPATH}" ]; then
         Error "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first." && return 1
@@ -889,6 +907,10 @@ case "$1" in
 
 'installdxvk')
     InstallDxvk || exit 1
+    ;;
+
+'installwinetricks')
+    installWinetricks || exit 1
     ;;
 
 'changedir')

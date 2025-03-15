@@ -62,6 +62,8 @@ export WINESERVER="${WINE}server"
 export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
 export WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu"
 
+export WINETRICKS="$XDG_DATA_HOME/osuconfig/winetricks"
+
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
 IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
@@ -232,7 +234,8 @@ case "$1" in
     ###################################################################################################
 
 '--winetricks')
-    winetricks "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
+    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { MainUpdate "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
+    "$WINETRICKS" "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
     ;;
 
     ###################################################################################################
