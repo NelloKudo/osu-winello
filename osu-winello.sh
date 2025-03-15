@@ -10,18 +10,18 @@
 # Wine-osu current versions for update
 MAJOR=10
 MINOR=3
-PATCH=5
-WINEVERSION=$MAJOR.$MINOR.$PATCH
+PATCH=6
+WINEVERSION=$MAJOR.$MINOR-$PATCH
 LASTWINEVERSION=0
 
 # Wine-osu mirror
-WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-$MAJOR.$MINOR-$PATCH-yawl-test/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
+WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-${WINEVERSION}/wine-osu-winello-fonts-wow64-${WINEVERSION}-x86_64.tar.xz"
 
 # Other versions for external downloads
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
-YAWLVERSION=0.6.1
+YAWLVERSION=0.6.2
 
 # Other download links
 WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"      # Winetricks for --fixprefix
@@ -49,7 +49,7 @@ OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, fr
 # Don't rely on this! We should get the launcher path from `osu-wine --update`, this is a "hack" to support updating from umu
 if [ -z "${LAUNCHERPATH}" ]; then
     LAUNCHERPATH="$(realpath /proc/$PPID/exe)" || LAUNCHERPATH="$(readlink /proc/$PPID/exe)"
-    [[ ! "${LAUNCHERPATH}" =~ .*osu-wine ]] && LAUNCHERPATH=
+    [[ ! "${LAUNCHERPATH}" =~ .*osu.* ]] && LAUNCHERPATH=
 fi
 
 # Exported global variables

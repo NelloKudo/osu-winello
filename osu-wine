@@ -155,22 +155,13 @@ SetupReader() {
     Info "Setting up $READER_NAME wrapper..."
     READER_PATH="$(WINEDEBUG=-all "$WINE" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
 
-    # launcher batch file which monitors osu! and closes gosumemory when osu! exits
+    # launcher batch file to open tosu/gosumemory together with osu in the container
     cat >"$OSUPATH/launch_with_memory.bat" <<EOF
 @echo off
 set NODE_SKIP_PLATFORM_CHECK=1
 cd /d "$OSU_WINEDIR"
 start "" "$OSU_WINEEXE" %*
 start /b "" "$READER_PATH"
-
-:loop
-tasklist | find "osu!.exe" >nul
-if ERRORLEVEL 1 (
-    taskkill /F /IM $READER_NAME.exe >nul 2>&1
-    exit
-)
-ping -n 5 127.0.0.1 >nul
-goto loop
 EOF
 
     Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
@@ -192,6 +183,9 @@ LaunchWine() {
 LaunchOsu() {
     Info "Opening: $OSUPATH/osu!.exe"
     if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
+        if command -v pgrep &>/dev/null; then
+            { pgrep 'osu!.exe' &>/dev/null; } || $WINESERVER -k # stop lingering tosu process if any
+        fi
         OSU_EXE=("${OSU_WINEDIR}launch_with_memory.bat")
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
