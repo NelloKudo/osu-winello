@@ -1,5 +1,5 @@
 # osu-winello
-osu! stable installer for Linux with patched Proton-osu and other features.
+osu! stable installer for Linux with patched wine-osu and other features.
 
 ![ezgif com-video-to-gif(1)](https://user-images.githubusercontent.com/98063377/224407211-70fa648c-b96f-442b-b5f5-eaf28a84670a.gif)
 
@@ -20,7 +20,7 @@ osu! stable installer for Linux with patched Proton-osu and other features.
 
 ## Prerequisites 
 
-The only requirements, besides **64- and 32-bit graphics drivers**, are `git`, `zenity`,`wget` and `xdg-desktop-portal` (for in-game links).
+The only requirements, besides **64-bit graphics drivers**, are `git`, `zenity`,`wget` and `xdg-desktop-portal` (for in-game links).
 
 You can easily install them like this:
 
@@ -37,11 +37,15 @@ You can easily install them like this:
 As obvious as this might sound, installing drivers the **right** way is needed to have a great experience overall
 and avoid poor performance or other problems. 
 
-Keep in mind that osu! needs **lib32 drivers** in order to run as it should, so
+Keep in mind that osu! needs **64-bit graphics drivers** in order to run as it should, so
 if you're having performance problems, it's probably related to this.
 
-Please make sure to follow the instructions below:
+This is usually something like `nvidia-utils` or `nvidia-driver` for NVIDIA, and `libgl1-mesa-dri` for AMD/Intel.
+
+You may find more helpful instructions for your distro here (only 64-bit is required):
 - [Installing Drivers](https://github.com/lutris/docs/blob/master/InstallingDrivers.md)
+
+If you're still confused, try installing Steam with your package manager. That will install the necessary drivers for your distro.
 
 ## PipeWire:
 
@@ -76,13 +80,13 @@ osu-wine
 - Use **-40/35ms** offset to make up for Wine quirks (or -25 if you're using audio compatibility mode)
 
 # Features:
-- Comes with **updatable patched** [Proton-osu](https://github.com/whrvt/umubuilder) binaries with the latest osu! patches for low-latency audio, better performance, alt-tab behavior, crashes fixes and more.
-- Uses [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher) to run Proton-osu on Steam's runtime, providing great performance on every system.
+- Comes with **updatable patched** [wine-osu](https://github.com/NelloKudo/WineBuilder/releases) binaries with the latest osu! patches for low-latency audio, better performance, alt-tab behavior, crashes fixes and more.
+- Uses [yawl](https://github.com/whrvt/yawl) to run wine-osu in Steam's runtime, providing great performance on every system without needing to download dependencies.
 - Provides [osu-handler](https://aur.archlinux.org/packages/osu-handler) for importing maps and skins, Discord RPC with [rpc-bridge](https://github.com/EnderIce2/rpc-bridge) and support for native file managers!
 - Supports the latest [tosu](https://github.com/KotRikD/tosu) and legacy [gosumemory](https://github.com/l3lackShark/gosumemory) for streaming etc. with automatic install! (Check [flags](#flags)!)
-- Installs osu! on either default or custom path (using GUI), also working for already existing osu! installations from Windows!
+- Installs osu! on either default or custom path (using the zenity GUI), also working for already existing osu! installations from Windows!
 - Skips the pain of downloading Wineprefix thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
-- Support for Windows fonts pre-installed in Proton (JP fonts, special characters etc.)
+- Support for Windows fonts pre-installed in Wine (JP fonts, special characters etc.)
 
 # Troubleshooting
 
@@ -98,7 +102,7 @@ If that doesn't help, either:
 ./osu-winello.sh: Installs the game
 ./osu-winello.sh --no-deps: Installs the game but skips installing dependencies
 ./osu-winello.sh uninstall: Uninstalls the game
-./osu-winello.sh fix-umu: Tries to fix umu-launcher issues (partial downloads, corruption etc.)
+./osu-winello.sh fix-yawl: Tries to fix yawl issues (partial downloads, corruption etc.)
 ```
 
 **Game script:**
@@ -111,7 +115,7 @@ osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
 osu-wine --kill9: Kills osu! but with wineserver -k9
 osu-wine --update: Updates wine-osu to latest version
 osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
-osu-wine --fix-umu: Reinstalls files related to umu-launcher in case something went wrong
+osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
 osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
 osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
 osu-wine --info: Troubleshooting and more info
@@ -127,7 +131,7 @@ osu-wine --disable-memory-reader: Turn off gosumemory and tosu
 
 # Steam Deck Support
 
-Since osu! runs on Proton, you can play that on Steam Deck as well!
+Since osu! runs on Wine in the Steam Linux Runtime (same as Proton), you should be able to play on Steam Deck as well!
 
 It is recommended to not manually install PipeWire on the Steam Deck as it is already installed by default and attempting to do so may cause audio issues.
 
@@ -137,7 +141,6 @@ Special thanks to:
 
 - [whrvt aka spectator](https://github.com/whrvt/wine-osu-patches) for his help with Wine, Proton and related, never failed to solve any issue :')
 - [ThePooN's Discord](https://discord.gg/bc4qaYjqyT) for supporting Winello since its early stages!
-- [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher) for making using Proton as easy as this!
 - [gonX's wine-osu](https://drive.google.com/drive/folders/17MVlyXixv7uS3JW4B-H8oS4qgLn7eBw5)
 - [Integrating native file manager by Maot](https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2)
 - [KatouMegumi's guide](https://wiki.archlinux.org/title/User:Katoumegumi#osu!_(stable)_on_Arch_Linux)

@@ -1,0 +1,44 @@
+From 49b18f03fe7c6dd29e9aa296c5cd072d3765a1bb Mon Sep 17 00:00:00 2001
+From: Robin Kertels <robin.kertels@gmail.com>
+Date: Tue, 20 Feb 2024 23:34:26 +0100
+Subject: [PARTIAL REVERT] [d3d9] Unbind buffers in EndScene & Reset
+
+---
+ dxvk/src/d3d9/d3d9_device.cpp | 18 ------------------
+ 1 file changed, 18 deletions(-)
+
+diff --git b/dxvk/src/d3d9/d3d9_device.cpp a/dxvk/src/d3d9/d3d9_device.cpp
+index 2b340c74..f11ae400 100644
+--- b/dxvk/src/d3d9/d3d9_device.cpp
++++ a/dxvk/src/d3d9/d3d9_device.cpp
+@@ -482,14 +482,6 @@ namespace dxvk {
+       return hr;
+     }
+ 
+-    // Unbind all buffers that were still bound to the backend to avoid leaks.
+-    EmitCs([](DxvkContext* ctx) {
+-      ctx->bindIndexBuffer(DxvkBufferSlice(), VK_INDEX_TYPE_UINT32);
+-      for (uint32_t i = 0; i < caps::MaxStreams; i++) {
+-        ctx->bindVertexBuffer(i, DxvkBufferSlice(), 0);
+-      }
+-    });
+-
+     Flush();
+     SynchronizeCsThread(DxvkCsThread::SynchronizeAll);
+ 
+#@@ -1655,15 +1647,6 @@ namespace dxvk {
+# 
+#     m_flags.clr(D3D9DeviceFlag::InScene);
+# 
+#-    // D3D9 resets the internally bound vertex buffers and index buffer in EndScene if they were unbound in the meantime.
+#-    // We have to ignore unbinding those buffers because of Operation Flashpoint Red River,
+#-    // so we should also clear the bindings here, to avoid leaks.
+#-    if (m_state.indices == nullptr) {
+#-      EmitCs([](DxvkContext* ctx) {
+#-        ctx->bindIndexBuffer(DxvkBufferSlice(), VK_INDEX_TYPE_UINT32);
+#-      });
+#-    }
+#-
+#     for (uint32_t i : bit::BitMask(~m_activeVertexBuffers & ((1 << 16) - 1))) {
+#       if (m_state.vertexBuffers[i].vertexBuffer == nullptr) {
+#         EmitCs([cIndex = i](DxvkContext* ctx) {
