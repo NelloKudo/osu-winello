@@ -43,6 +43,11 @@ SCRDIR="$(realpath "$(dirname "$0")")"
 # The full path to osu-winello.sh
 # SCRPATH="$(realpath "$0")"
 
+# Exported global variables
+
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export BINDIR="${BINDIR:-$HOME/.local/bin}"
+
 OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, from the osuconfig/osupath, or empty at first install (will set up in installOrChangeDir)
 [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
 
@@ -51,11 +56,7 @@ if [ -z "${LAUNCHERPATH}" ]; then
     LAUNCHERPATH="$(realpath /proc/$PPID/exe)" || LAUNCHERPATH="$(readlink /proc/$PPID/exe)"
     [[ ! "${LAUNCHERPATH}" =~ .*osu.* ]] && LAUNCHERPATH=
 fi
-
-# Exported global variables
-
-export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-export BINDIR="${BINDIR:-$HOME/.local/bin}"
+[ -z "${LAUNCHERPATH}" ] && LAUNCHERPATH="$BINDIR/osu-wine" # If we STILL couldn't find it, just use the default directory
 
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 export WINEDEBUG="-wineboot,${WINEDEBUG:-}"     # Don't show "failed to start winemenubuilder"
@@ -628,7 +629,7 @@ Update() {
     # Will be required when updating from umu-launcher
     [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || return 1; }
 
-    [ ! -x "${launcher_path}" ] && { Error "The osu-wine launcher doesn't exist??" && return 1; }
+    [ ! -x "${launcher_path}" ] && { Error "Can't find the path to the osu-wine launcher to update it. Please reinstall osu-winello." && return 1; }
 
     if [ ! -w "${launcher_path}" ]; then
         Warning "Note: ${launcher_path} is not writable - updating the osu-wine launcher will not be possible"
