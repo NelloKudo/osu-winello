@@ -809,7 +809,7 @@ MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-o
 Exec=$XDG_DATA_HOME/osuconfig/update/osu-winello.sh handle %f
 NoDisplay=true
 StartupNotify=true
-Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
+Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
     chmod +x "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
 
     echo "[Desktop Entry]
@@ -819,7 +819,7 @@ MimeType=x-scheme-handler/osu;
 Exec=$XDG_DATA_HOME/osuconfig/update/osu-winello.sh handle %u
 NoDisplay=true
 StartupNotify=true
-Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
+Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop" >/dev/null
     chmod +x "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop" >/dev/null
     update-desktop-database "$XDG_DATA_HOME/applications"
 
