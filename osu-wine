@@ -148,6 +148,27 @@ MainUpdate() {
     return $?
 }
 
+# Open files/links with osu-handler-wine
+handle() {
+    local ARG="${1:-}"
+    local OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/osu-handler-wine"
+    case "$ARG" in
+    osu://*)
+        echo "Trying to load link ($ARG).." >&2
+        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$ARG"
+        ;;
+    *.osr | *.osz | *.osk | *.osz2)
+        echo "Trying to load file ($ARG).." >&2
+        local EXT="${ARG##*.}"
+        local QUOTED=\'"$ARG"\'
+        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$QUOTED"
+        ;;
+    *)
+        echo "Unsupported osu! file.." >&2
+        ;;
+    esac
+}
+
 LaunchWine() {
     local EXE_ARG="${WINE}"
     declare -a POST_ARGS=("${@}")
@@ -264,36 +285,6 @@ case "$1" in
 
     ###################################################################################################
 
-'--osuhandler')
-
-    OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/osu-handler-wine"
-
-    Info "Trying to load your file/link.."
-    case "$2" in
-    *.osr)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osr "$2"
-        ;;
-    *.osz)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osz "$2"
-        ;;
-    *.osk)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osk "$2"
-        ;;
-    *.osz2)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' /ProgIDOpen osustable.File.osz2 "$2"
-        ;;
-    osu://*)
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$2"
-        ;;
-    *)
-        Info "Unsupported osu! file.."
-        ;;
-    esac
-
-    ;;
-
-    ###################################################################################################
-
 '--fixprefix')
     MainUpdate "fixprefix" ||
         ErrorAndExit "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
@@ -313,6 +304,12 @@ case "$1" in
 *disable-@(*osu*|memory*))
     rm -f "$OSUPATH/launch_with_memory.bat"
     Info "Memory reader (tosu/gosumemory) disabled."
+    ;;
+
+    ###################################################################################################
+
+'--osuhandler')
+    handle "$2"
     ;;
 
     ###################################################################################################
