@@ -100,9 +100,12 @@ ErrorAndExit() {
 Help() {
     Info "Script features:
     osu-wine: Runs osu!
+    osu-wine --help: Show this help
+    osu-wine --info: Troubleshooting and more info
     osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
     osu-wine --winetricks: Install packages on osu! Wineprefix
     osu-wine --regedit: Opens regedit on osu! Wineprefix
+    osu-wine --wine <args>: Runs wine + your arguments as if it was normal wine
     osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
     osu-wine --kill9: Kills osu! but with wineserver -k9
     osu-wine --update: Updates proton-osu (and optionally, the osu-wine script) to upstream
@@ -110,7 +113,6 @@ Help() {
     osu-wine --fixfolders: Reconfigure osu-handler and native file integration (run this if osu!direct/.osz/.osk/opening folders from ingame is broken)
     osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
     osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
-    osu-wine --info: Troubleshooting and more info
     osu-wine --remove: Uninstalls osu! and the script
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
@@ -157,20 +159,11 @@ MainScript() {
     return $? # shouldn't reach this if using exec
 }
 
-LaunchWine() {
-    declare -a PRE_ARGS POST_ARGS
-    IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
-    IFS=" " read -r -a POST_ARGS <<<"${*}"
-
-    WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
-    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
-    Info "Launching: ${PRE_ARGS[*]} ${WINE} ${POST_ARGS[*]}"
-    echo ""
-    exec "${PRE_ARGS[@]}" "${WINE}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}" || return 1
-    return 0
-}
-
 LaunchOsu() {
+    declare -a PRE_ARGS POST_ARGS
+    IFS=" " read -r -a POST_ARGS <<<"${*}"
+    IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
+
     Info "Opening: $OSUPATH/osu!.exe"
     if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
         if command -v pgrep &>/dev/null; then
@@ -182,8 +175,13 @@ LaunchOsu() {
         OSU_EXE=("C:\\windows\\system32\\start.exe" "/b" "${OSU_WINEEXE}")
     fi
 
+    WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
+    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
+    Info "Launching: ${PRE_ARGS[*]} ${WINE} ${OSU_EXE[*]} ${POST_ARGS[*]}"
+    echo ""
+
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-    LaunchWine "${OSU_EXE[@]}" "${@}" || return 1
+    exec "${PRE_ARGS[@]}" "${WINE}" "${OSU_EXE[@]}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}" || return 1
     return 0
 }
 
@@ -195,26 +193,32 @@ shopt -s extglob
 
 case "$1" in
 '')
-    LaunchOsu
+    LaunchOsu "${@:1}"
     ;;
 
     ###################################################################################################
 
 '--devserver')
     if [ -z "$2" ]; then ErrorAndExit "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
-    LaunchOsu "-devserver" "$2"
+    LaunchOsu "-devserver" "${@:2}"
+    ;;
+
+    ###################################################################################################
+
+'--wine')
+    "$WINE" "${@:2}"
     ;;
 
     ###################################################################################################
 
 '--regedit')
-    LaunchWine regedit
+    "$WINE" regedit
     ;;
 
     ###################################################################################################
 
 '--winecfg')
-    LaunchWine winecfg
+    "$WINE" winecfg
     ;;
 
     ###################################################################################################

@@ -328,7 +328,6 @@ FullInstall() {
 #   =====================================
 #   =====================================
 
-
 longPathsFix() {
     Info "Applying fix for long song names (e.g. because of deeply nested osu! folder)..."
 
@@ -703,7 +702,7 @@ Gosumemory() {
         unzip -d "$XDG_DATA_HOME/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
         rm "/tmp/gosumemory.zip"
     fi
-    SetupReader 'gosumemory' || return 1
+    SetupReader "gosumemory" || return 1
     $okay
 }
 
@@ -715,7 +714,7 @@ tosu() {
         unzip -d "$XDG_DATA_HOME/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
-    SetupReader 'tosu' || return 1
+    SetupReader "tosu" || return 1
     $okay
 }
 
