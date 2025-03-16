@@ -61,9 +61,9 @@ fi
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 export WINEDEBUG="-wineboot,${WINEDEBUG:-}"     # Don't show "failed to start winemenubuilder"
 
-export WINENTSYNC="0" # Don't use these for setup-related stuff to be safe
-export WINEFSYNC="0"
-export WINEESYNC="0"
+export WINENTSYNC="${WINENTSYNC:-0}" # Don't use these for setup-related stuff to be safe
+export WINEFSYNC="${WINEFSYNC:-0}" # (still, don't override launcher settings, because if wineserver is running with different settings, it will fail to start)
+export WINEESYNC="${WINEESYNC:-0}"
 
 # Other shell local variables
 WINETRICKS="${WINETRICKS:-"$XDG_DATA_HOME/osuconfig/winetricks"}"
