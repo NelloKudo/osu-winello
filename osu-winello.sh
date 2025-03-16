@@ -47,6 +47,7 @@ SCRPATH="$(realpath "$0")"
 
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
+export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media" # Bind osu!'s disk and usual mountpoints to pressure-vessel
 
 OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, from the osuconfig/osupath, or empty at first install (will set up in installOrChangeDir)
 [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
@@ -350,9 +351,10 @@ saveOsuWinepath() {
             Error "Can't find the osu! path!" && return 1
         }
     fi
-
+    
     Info "Saving a copy of the osu! path..."
 
+    export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media"
     local temp_winepath
     temp_winepath="$(waitWine winepath -w "$osupath")"
     [ -z "${temp_winepath}" ] && Error "Couldn't get the osu! path from winepath... Check $osupath/osu!.exe ?" && return 1
@@ -405,6 +407,10 @@ installOrChangeDir() {
 
     echo "${newdir}" >"$XDG_DATA_HOME/osuconfig/osupath" # Save it for later
     export OSUPATH="${newdir}"
+
+    # Automatically bind osu's disks to pressure-vessel
+    echo "OSUPATH=$OSUPATH
+PRESSURE_VESSEL_FILESYSTEMS_RW=\"\$(realpath \$OSUPATH):\$(realpath \$OSUPATH/Songs)\"" > "$XDG_DATA_HOME/osuconfig/configs/mounts.cfg"
 
     longPathsFix || return 1
     saveOsuWinepath || return 1
