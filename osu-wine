@@ -150,7 +150,7 @@ MainUpdate() {
 
 SetupReader() {
     local READER_NAME="${1}"
-    { [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && MainUpdate "$READER_NAME"; } || return 1
+    [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && { MainUpdate "$READER_NAME" || return 1; }
 
     Info "Setting up $READER_NAME wrapper..."
     READER_PATH="$(WINEDEBUG=-all "$WINE" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
