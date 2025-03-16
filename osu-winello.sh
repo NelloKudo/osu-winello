@@ -49,7 +49,8 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
 OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, from the osuconfig/osupath, or empty at first install (will set up in installOrChangeDir)
-[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") && export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media"
+[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
+    PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs):/mnt:/media:/run/media" && export PRESSURE_VESSEL_FILESYSTEMS_RW
 
 # Don't rely on this! We should get the launcher path from `osu-wine --update`, this is a "hack" to support updating from umu
 if [ -z "${LAUNCHERPATH}" ]; then
@@ -353,9 +354,8 @@ saveOsuWinepath() {
 
     Info "Saving a copy of the osu! path..."
 
-    export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media"
     local temp_winepath
-    temp_winepath="$(waitWine winepath -w "$osupath")"
+    temp_winepath="$(PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$osupath"):$(realpath "$osupath"/Songs):/mnt:/media:/run/media" waitWine winepath -w "$osupath")"
     [ -z "${temp_winepath}" ] && Error "Couldn't get the osu! path from winepath... Check $osupath/osu!.exe ?" && return 1
 
     echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath"

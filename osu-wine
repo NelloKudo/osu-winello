@@ -34,9 +34,10 @@ export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .des
 LAUNCHERPATH="$(realpath "$0")"
 export LAUNCHERPATH
 
-[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
-export OSUPATH
-export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media" # Bind osu!'s disk and usual folders to pressure-vessel
+# Bind osu!'s disk and usual folders to pressure-vessel
+[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
+    PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs):/mnt:/media:/run/media"
+export OSUPATH PRESSURE_VESSEL_FILESYSTEMS_RW
 
 # Get the Windows-formatted paths to osu! and its install directory
 [ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
