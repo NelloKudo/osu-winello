@@ -216,10 +216,10 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
 
     Info "Installing Wine-osu:"
     # Downloading Wine..
-    wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
+    wget -q --show-progress -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || InstallError "Download failed, check your connection"
+        wget -q --show-progress --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || InstallError "Download failed, check your connection"
     fi
 
     # This will extract Wine-osu and set last version to the one downloaded
@@ -295,12 +295,12 @@ FullInstall() {
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
+        wget -q --show-progress -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
 
         # If download failed:
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
+            wget -q --show-progress --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
         fi
 
         # Checking whether to create prefix manually or install it from repos
@@ -397,9 +397,9 @@ installOrChangeDir() {
         mkdir -p "$newdir"
 
         Info "Downloading osu!..."
-        wget -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || {
+        wget -q --show-progress -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || {
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || { Error "Failed to download osu!" && return 1; }
+            wget -q --show-progress --no-check-certificate -O "$newdir/osu!.exe" "${OSUDOWNLOADURL}" || { Error "Failed to download osu!" && return 1; }
         }
 
         [ -n "${lastdir}" ] && { deleteFolder "$lastdir" || return 1; }
@@ -528,10 +528,10 @@ launcherUpdate() {
 
 installYawl() {
     Info "Installing yawl..."
-    wget -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
+    wget -q --show-progress -O "/tmp/yawl" "$YAWLLINK" && chk="$?"
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || { Error "Download failed, check your connection" && return 1; }
+        wget -q --show-progress --no-check-certificate -O "/tmp/yawl" "$YAWLLINK" || { Error "Download failed, check your connection" && return 1; }
     fi
     mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
     chmod +x "$YAWL_INSTALL_PATH"
@@ -565,10 +565,10 @@ Update() {
 
     if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
         # Downloading Wine..
-        wget -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
+        wget -q --show-progress -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" && chk="$?"
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || { Error "Download failed, check your connection" && return 1; }
+            wget -q --show-progress --no-check-certificate -O "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" "$WINELINK" || { Error "Download failed, check your connection" && return 1; }
         fi
 
         # This will extract Wine-osu and set last version to the one downloaded
@@ -707,7 +707,7 @@ Gosumemory() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
         Info "Downloading gosumemory.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/gosumemory"
-        wget -O "/tmp/gosumemory.zip" "${GOSUMEMORYLINK}" || { Error "Download failed, check your connection.." && return 1; }
+        wget -q --show-progress -O "/tmp/gosumemory.zip" "${GOSUMEMORYLINK}" || { Error "Download failed, check your connection.." && return 1; }
         unzip -d "$XDG_DATA_HOME/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
         rm "/tmp/gosumemory.zip"
     fi
@@ -719,7 +719,7 @@ tosu() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
         Info "Downloading tosu.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/tosu"
-        wget -O "/tmp/tosu.zip" "${TOSULINK}" || { Error "Download failed, check your connection.." && return 1; }
+        wget -q --show-progress -O "/tmp/tosu.zip" "${TOSULINK}" || { Error "Download failed, check your connection.." && return 1; }
         unzip -d "$XDG_DATA_HOME/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
@@ -739,11 +739,11 @@ discordRpc() {
     waitWine reg delete 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\rpc-bridge' /f &>/dev/null
     local chk
 
-    wget -O "/tmp/bridge.zip" "${DISCRPCLINK}" && chk="$?"
+    wget -q --show-progress -O "/tmp/bridge.zip" "${DISCRPCLINK}" && chk="$?"
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/bridge.zip" "${DISCRPCLINK}" || { Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" && return 1; }
+        wget -q --show-progress --no-check-certificate -O "/tmp/bridge.zip" "${DISCRPCLINK}" || { Error "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues" && return 1; }
     fi
 
     mkdir -p /tmp/rpc-bridge
@@ -783,11 +783,11 @@ osuHandlerSetup() {
     Info "Configuring osu-mime and osu-handler..."
 
     # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
-    wget -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" && chk="$?"
+    wget -q --show-progress -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" && chk="$?"
 
     if [ ! "$chk" = 0 ]; then
         Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || InstallError "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+        wget -q --show-progress --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || InstallError "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
     fi
 
     tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
@@ -870,10 +870,10 @@ InstallDxvk() {
 installWinetricks() {
     Info "Installing winetricks..."
     if [ ! -x "$WINETRICKS" ]; then
-        wget -O "/tmp/winetricks" "$WINETRICKSLINK" && chk="$?"
+        wget -q --show-progress -O "/tmp/winetricks" "$WINETRICKSLINK" && chk="$?"
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "/tmp/winetricks" "$WINETRICKSLINK" || { Error "Download failed, check your connection" && return 1; }
+            wget -q --show-progress --no-check-certificate -O "/tmp/winetricks" "$WINETRICKSLINK" || { Error "Download failed, check your connection" && return 1; }
         fi
         mv "/tmp/winetricks" "$XDG_DATA_HOME/osuconfig"
         chmod +x "$WINETRICKS"
