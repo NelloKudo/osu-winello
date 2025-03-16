@@ -47,10 +47,9 @@ SCRPATH="$(realpath "$0")"
 
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
-export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media" # Bind osu!'s disk and usual mountpoints to pressure-vessel
 
 OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, from the osuconfig/osupath, or empty at first install (will set up in installOrChangeDir)
-[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
+[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") && export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media"
 
 # Don't rely on this! We should get the launcher path from `osu-wine --update`, this is a "hack" to support updating from umu
 if [ -z "${LAUNCHERPATH}" ]; then
