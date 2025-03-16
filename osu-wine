@@ -1,61 +1,26 @@
 #!/usr/bin/env bash
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
 ## Welcome to your osu! launch script!
-## Most stuff here is explained with comments, but if you just need to add
-## any argument before osu!, use #LAUNCH_ARGS!
 
-# For reference: export A="${A:-}" means use "A" if already set, otherwise use the value after ":-" for the variable
-# Example: enable WINENTSYNC by running `WINENTSYNC=1 osu-wine` in a terminal,
-#                            or by changing the line to `export WINENTSYNC="${WINENTSYNC:-1}"`
+set -a
+# Don't change this file! It'll be overwritten on updates.
+source "$XDG_DATA_HOME/osuconfig/update/stuff/winello-default.cfg"
 
-# Customization and and performance configuration options are here:
+## Add your launch options to a file in $XDG_DATA_HOME/osuconfig/configs, likely ~/.local/share/osuconfig/configs
+## You can look at the $XDG_DATA_HOME/osuconfig/configs/example.cfg for some common options (also on the git repo under 'stuff/').
+## This example file won't be overwritten, but you can copy/rename it etc. as long as it ends in .cfg
 
-LAUNCH_ARGS="" # Put arguments like prime-run, gamemoderun, or mangohud in between the quotes here!
+## Variables are explained with comments, but if you just need to add
+## any argument (like gamemoderun or mangohud) before osu!, use 'LAUNCH_ARGS'!
 
-# Set this to your external disk paths if you use symlinks!
-export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW:-}"
-
-# Set this to 1 or 2 to play with absolute mode in OTD on Wayland (if this doesn't work, check the "Tablet issues" page in the osu-winello wiki)
-export WINE_ENABLE_ABS_TABLET_HACK="${WINE_ENABLE_ABS_TABLET_HACK:-0}"
-# Set this to 1 to enable Windows fonts/boss key, but it might cause crashes in future updates! Revert back if so.
-export WINE_BLOCK_GET_VERSION="${WINE_BLOCK_GET_VERSION:-0}"
-# Set this to 1 to force fixes for alt-tab (only if needed!)
-export WINE_ENABLE_OSU_FOCUS_FIX="${WINE_ENABLE_OSU_FOCUS_FIX:-0}"
-
-# Enables NTsync (when possible, requires Linux >=6.14 or the DKMS module installed)
-export WINENTSYNC="${WINENTSYNC:-0}"
-# Enables Fsync (when possible)
-export WINEFSYNC="${WINEFSYNC:-1}"
-# Enables Esync (when possible)
-export WINEESYNC="${WINEESYNC:-1}"
-
-# Uncomment the line below to try the native winewayland.drv driver (unsupported, but feel free to experiment if you're on Wayland)
-# export DISPLAY=
-
-# Set custom logging channels for Wine
-export WINEDEBUG="${WINEDEBUG:-}"
-
-# Disables vsync for mesa
-export vblank_mode="${vblank_mode:-0}"
-# Put true after :- to enable threaded OpenGL optimizations for AMD/Intel
-# (unsupported, use at your own risk! May INCREASE FPS, but may also INCREASE input latency due to multithreading overhead)
-export mesa_glthread="${mesa_glthread:-}"
-
-# Disables vsync for NVIDIA >=510
-export __GL_SYNC_TO_VBLANK="${__GL_SYNC_TO_VBLANK:-0}"
-# Put 1 after :- to enable threaded OpenGL optimizations for NVIDIA
-# (unsupported, use at your own risk! May INCREASE FPS, but may also INCREASE input latency due to multithreading overhead)
-export __GL_THREADED_OPTIMIZATIONS="${__GL_THREADED_OPTIMIZATIONS:-}"
-# Put 1 after :- to minimize the pre-rendered frames for NVIDIA (driver default is 2, 0 does nothing)
-# (unsupported, use at your own risk! Will LOWER FPS for a slightly LOWER input latency)
-export __GL_MaxFramesAllowed="${__GL_MaxFramesAllowed:-}"
+source "$XDG_DATA_HOME/osuconfig/configs/"*.cfg 2>/dev/null
+set +a
 
 ###################################################################################################
 # osu-winello internal variables, you probably don't have to touch these!
 ###################################################################################################
-
-export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
 export WINE="$XDG_DATA_HOME/osuconfig/yawl-winello"
 export WINESERVER="${WINE}server"
@@ -151,14 +116,16 @@ LaunchOsu() {
     else
         OSU_EXE=("C:\\windows\\system32\\start.exe" "/b" "${OSU_WINEEXE}")
     fi
-
     WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
+
+    mapfile -t configs < <(find "$XDG_DATA_HOME/osuconfig/configs" -name '*.cfg')
+    echo "Using configs: ${configs[*]}" &>"${WINELLO_LOGS_PATH}"
+
     Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
     Info "Launching: ${PRE_ARGS[*]} ${WINE} ${OSU_EXE[*]} ${POST_ARGS[*]}"
-    echo ""
 
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-    exec "${PRE_ARGS[@]}" "${WINE}" "${OSU_EXE[@]}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}" || return 1
+    exec "${PRE_ARGS[@]}" "${WINE}" "${OSU_EXE[@]}" "${POST_ARGS[@]}" &>>"${WINELLO_LOGS_PATH}" || return 1
     return 0
 }
 

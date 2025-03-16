@@ -272,6 +272,9 @@ FullInstall() {
     # Time to install my prepackaged Wineprefix, which works in most cases
     # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
 
+    mkdir -p "$XDG_DATA_HOME/osuconfig/configs" # make the configs directory and copy the example if it doesnt exist
+    [ ! -r "$XDG_DATA_HOME/osuconfig/configs/example.cfg" ] && cp "${SCRDIR}/stuff/example.cfg" "$XDG_DATA_HOME/osuconfig/configs/example.cfg"
+
     Info "Configuring Wineprefix:"
 
     # Variable to check if download finished properly
@@ -580,6 +583,9 @@ Update() {
         Info "Your Wine-osu is already up-to-date!"
     fi
 
+    mkdir -p "$XDG_DATA_HOME/osuconfig/configs" # make the configs directory and copy the example if it doesnt exist
+    [ ! -r "$XDG_DATA_HOME/osuconfig/configs/example.cfg" ] && cp "${SCRDIR}/stuff/example.cfg" "$XDG_DATA_HOME/osuconfig/configs/example.cfg"
+
     # Will be required when updating from umu-launcher
     [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || return 1; }
 
@@ -592,22 +598,12 @@ Update() {
         return 0
     fi
 
-    Info "Do you want to update the 'osu-wine' launcher as well?"
-    Info "This is **HIGHLY** recommended, as there may be important fixes and updates."
-    Warning "This will remove any customizations you might have made to ${launcher_path},"
-    Warning "   but a backup will be left in $XDG_DATA_HOME/osuconfig/osu-wine.bak ."
-
-    # use a really long timeout so the user can read everything and decide
-    askConfirmTimeout "the 'osu-wine' launcher" 60 && selfupdate=y
-    if [ -n "${selfupdate}" ]; then
-        if launcherUpdate "${launcher_path}"; then
-            Info "Launcher update successful!"
-            Info "Backup saved to: $XDG_DATA_HOME/osuconfig/osu-wine.bak"
-        else
-            Error "Launcher update failed" && return 1
-        fi
+    Info "Updating the launcher (${launcher_path})..."
+    if launcherUpdate "${launcher_path}"; then
+        Info "Launcher update successful!"
+        Info "Backup saved to: $XDG_DATA_HOME/osuconfig/osu-wine.bak"
     else
-        Info "Your osu-wine launcher will be left alone."
+        Error "Launcher update failed" && return 1
     fi
     $okay
 }
