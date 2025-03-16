@@ -116,7 +116,7 @@ LaunchOsu() {
         OSU_EXE=("${OSU_WINEDIR}launch_with_memory.bat")
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
-        OSU_EXE=("C:\\windows\\system32\\start.exe" "/b" "${OSU_WINEEXE}")
+        OSU_EXE=("${OSU_WINEEXE}")
     fi
     WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
 
