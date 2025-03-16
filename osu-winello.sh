@@ -680,13 +680,24 @@ SetupReader() {
         [ -r "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath" ] && read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"; } ||
         { Error "You need to fully install osu-winello before trying to set up $READER_NAME.\n\t(Missing $XDG_DATA_HOME/osuconfig/.osu-path-winepath or .osu-exe-winepath .)" && return 1; }
 
-    # launcher batch file to open tosu/gosumemory together with osu in the container
+    # launcher batch file to open tosu/gosumemory together with osu in the container, and tries to stop hung gosumemory/tosu process when osu! exits (why does that happen!?)
     cat >"$OSUPATH/launch_with_memory.bat" <<EOF
 @echo off
 set NODE_SKIP_PLATFORM_CHECK=1
 cd /d "$OSU_WINEDIR"
 start "" "$OSU_WINEEXE" %*
 start /b "" "$READER_PATH"
+
+:loop
+tasklist | find "osu!.exe" >nul
+if ERRORLEVEL 1 (
+    taskkill /F /IM $READER_NAME.exe
+    taskkill /F /IM ${READER_NAME}_overlay.exe
+    wineboot -e -f
+    exit
+)
+ping -n 5 127.0.0.1 >nul
+goto loop
 EOF
 
     Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
