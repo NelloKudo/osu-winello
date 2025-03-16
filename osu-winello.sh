@@ -351,7 +351,7 @@ saveOsuWinepath() {
             Error "Can't find the osu! path!" && return 1
         }
     fi
-    
+
     Info "Saving a copy of the osu! path..."
 
     export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/run/media"
@@ -407,10 +407,6 @@ installOrChangeDir() {
 
     echo "${newdir}" >"$XDG_DATA_HOME/osuconfig/osupath" # Save it for later
     export OSUPATH="${newdir}"
-
-    # Automatically bind osu's disks to pressure-vessel
-    echo "OSUPATH=$OSUPATH
-PRESSURE_VESSEL_FILESYSTEMS_RW=\"\$(realpath \$OSUPATH):\$(realpath \$OSUPATH/Songs)\"" > "$XDG_DATA_HOME/osuconfig/configs/mounts.cfg"
 
     longPathsFix || return 1
     saveOsuWinepath || return 1
