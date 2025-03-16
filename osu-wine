@@ -128,7 +128,7 @@ cleanUpdateFolder() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/update" ]; then
         _clone # where did the update directory go? need to clone it first.
     else
-        _pull || { { _reset || _reset origin || _reset main; } && _pull; } # I think this should handle when a branch is deleted/main branch changes?
+        _pull || { _reset origin/main && _pull; } # I think this should handle when a branch is deleted/main branch changes?
     fi
     _reset
     # check again, doesn't hurt
@@ -146,26 +146,6 @@ MainUpdate() {
     [ -n "${*}" ] && { args=("${*}") && execcmd=("bash"); } # we had arguments, pass those on and don't need `exec`
     "${execcmd[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${args[@]}"
     return $?
-}
-
-SetupReader() {
-    local READER_NAME="${1}"
-    [ ! -d "$XDG_DATA_HOME/osuconfig/$READER_NAME" ] && { MainUpdate "$READER_NAME" || return 1; }
-
-    Info "Setting up $READER_NAME wrapper..."
-    READER_PATH="$(WINEDEBUG=-all "$WINE" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe")"
-
-    # launcher batch file to open tosu/gosumemory together with osu in the container
-    cat >"$OSUPATH/launch_with_memory.bat" <<EOF
-@echo off
-set NODE_SKIP_PLATFORM_CHECK=1
-cd /d "$OSU_WINEDIR"
-start "" "$OSU_WINEEXE" %*
-start /b "" "$READER_PATH"
-EOF
-
-    Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
-    return 0
 }
 
 LaunchWine() {
@@ -200,6 +180,8 @@ LaunchOsu() {
 ###################################################################################################
 # Begin argument handling
 ###################################################################################################
+
+shopt -s extglob
 
 case "$1" in
 '')
@@ -320,21 +302,17 @@ case "$1" in
     ###################################################################################################
 
 '--tosu')
-    SetupReader 'tosu' || ErrorAndExit "Couldn't set up tosu..."
+    MainUpdate 'tosu' || ErrorAndExit "Couldn't set up tosu..."
     ;;
 '--gosumemory')
-    SetupReader 'gosumemory' || ErrorAndExit "Couldn't set up gosumemory..."
+    MainUpdate 'gosumemory' || ErrorAndExit "Couldn't set up gosumemory..."
     ;;
 
     ###################################################################################################
 
-'--disable-memory-reader')
-    if [ -f "$OSUPATH/launch_with_memory.bat" ]; then
-        rm "$OSUPATH/launch_with_memory.bat"
-        Info "Memory reader wrapper disabled."
-    else
-        Info "No memory reader wrapper was enabled."
-    fi
+*disable-@(*osu*|memory*))
+    rm -f "$OSUPATH/launch_with_memory.bat"
+    Info "Memory reader (tosu/gosumemory) disabled."
     ;;
 
     ###################################################################################################
@@ -357,7 +335,7 @@ case "$1" in
     Help
     ;;
 *)
-    Info "Unknown argument: ${1}"
+    Info "Unknown argument(s) ${*}"
     Help
     ;;
 esac

@@ -714,26 +714,53 @@ Uninstall() {
     return 0
 }
 
+SetupReader() {
+    local READER_NAME="${1}"
+    Info "Setting up $READER_NAME wrapper..."
+    # get all the required paths first
+    local READER_PATH
+    local OSU_WINEDIR
+    local OSU_WINEEXE
+    READER_PATH="$(WINEDEBUG=-all "$WINE" winepath -w "$XDG_DATA_HOME/osuconfig/$READER_NAME/$READER_NAME.exe" 2>/dev/null)" || { Error "Didn't find $READER_NAME in the expected location..." && return 1; }
+    { [ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")" &&
+        [ -r "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath" ] && read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"; } ||
+        { Error "You need to fully install osu-winello before trying to set up $READER_NAME.\n\t(Missing $XDG_DATA_HOME/osuconfig/.osu-path-winepath or .osu-exe-winepath .)" && return 1; }
+
+    # launcher batch file to open tosu/gosumemory together with osu in the container
+    cat >"$OSUPATH/launch_with_memory.bat" <<EOF
+@echo off
+set NODE_SKIP_PLATFORM_CHECK=1
+cd /d "$OSU_WINEDIR"
+start "" "$OSU_WINEEXE" %*
+start /b "" "$READER_PATH"
+EOF
+
+    Info "$READER_NAME wrapper enabled. Launch osu! normally to use it!"
+    return 0
+}
+
 # Simple function that downloads Gosumemory!
 Gosumemory() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/gosumemory" ]; then
-        Info "Installing gosumemory.."
+        Info "Downloading gosumemory.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/gosumemory"
         wget -O "/tmp/gosumemory.zip" "${GOSUMEMORYLINK}" || { Error "Download failed, check your connection.." && return 1; }
         unzip -d "$XDG_DATA_HOME/osuconfig/gosumemory" -q "/tmp/gosumemory.zip"
         rm "/tmp/gosumemory.zip"
     fi
+    SetupReader 'gosumemory' || return 1
     _Done
 }
 
 tosu() {
     if [ ! -d "$XDG_DATA_HOME/osuconfig/tosu" ]; then
-        Info "Installing tosu.."
+        Info "Downloading tosu.."
         mkdir -p "$XDG_DATA_HOME/osuconfig/tosu"
         wget -O "/tmp/tosu.zip" "${TOSULINK}" || { Error "Download failed, check your connection.." && return 1; }
         unzip -d "$XDG_DATA_HOME/osuconfig/tosu" -q "/tmp/tosu.zip"
         rm "/tmp/tosu.zip"
     fi
+    SetupReader 'tosu' || return 1
     _Done
 }
 
@@ -936,7 +963,8 @@ update*)
     ;;
 
 *)
-    Info "Unknown argument(s) ${*}, see ./osu-winello.sh help or ./osu-winello.sh -h"
+    Info "Unknown argument(s): ${*}"
+    Help
     ;;
 esac
 
