@@ -66,8 +66,6 @@ export WINETRICKS="$XDG_DATA_HOME/osuconfig/winetricks"
 
 export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
-IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
-
 LAUNCHERPATH="$(realpath "$0")"
 export LAUNCHERPATH
 
@@ -90,6 +88,10 @@ Warning() {
     echo -e '\033[0;33m'"Winello:\033[0m $*"
 }
 
+Error() {
+    echo -e '\033[1;31m'"Winello (error):\033[0m $*"
+}
+
 ErrorAndExit() {
     echo -e '\033[1;31m'"Script failed:\033[0m $*"
     exit 1
@@ -105,8 +107,8 @@ Help() {
     osu-wine --kill9: Kills osu! but with wineserver -k9
     osu-wine --update: Updates proton-osu (and optionally, the osu-wine script) to upstream
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
+    osu-wine --fixfolders: Reconfigure osu-handler and native file integration (run this if osu!direct/.osz/.osk/opening folders from ingame is broken)
     osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
-    osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
     osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
     osu-wine --info: Troubleshooting and more info
     osu-wine --remove: Uninstalls osu! and the script
@@ -136,48 +138,35 @@ cleanUpdateFolder() {
     return 0
 }
 
-MainUpdate() {
+MainScriptUpdate() {
     cleanUpdateFolder || ErrorAndExit "Your osu-winello folder is broken, please reinstall from scratch..."
-
-    # if no arguments are passed, just do a regular update
-    # if we're updating ourselves, we should use `exec` so that we don't try to re-enter the changed launcher script
-    local args=("update" "${LAUNCHERPATH}")
-    local execcmd=("exec" "bash")
-    [ -n "${*}" ] && { args=("${*}") && execcmd=("bash"); } # we had arguments, pass those on and don't need `exec`
-    "${execcmd[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${args[@]}"
+    MainScript "${*}"
     return $?
 }
 
-# Open files/links with osu-handler-wine
-handle() {
-    local ARG="${1:-}"
-    local OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/osu-handler-wine"
-    case "$ARG" in
-    osu://*)
-        echo "Trying to load link ($ARG).." >&2
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$ARG"
-        ;;
-    *.osr | *.osz | *.osk | *.osz2)
-        echo "Trying to load file ($ARG).." >&2
-        local EXT="${ARG##*.}"
-        local QUOTED=\'"$ARG"\'
-        "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$QUOTED"
-        ;;
-    *)
-        echo "Unsupported osu! file.." >&2
-        ;;
-    esac
+# Same as above, but without checking for updates
+MainScript() {
+    declare -a CMD POST_ARGS
+    IFS=" " read -r -a POST_ARGS <<<"${*}"
+    CMD=("bash")
+    # Check for MainScript(Update) exec <command> to not re-enter the launcher after calling the main script
+    [ "${POST_ARGS[0]}" = "exec" ] && CMD=("exec" "bash") && POST_ARGS=("${POST_ARGS[@]:1}")
+    [ -z "${POST_ARGS[*]}" ] && ErrorAndExit "(internal) Missing arguments?"
+
+    "${CMD[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${POST_ARGS[@]}"
+    return $? # shouldn't reach this if using exec
 }
 
 LaunchWine() {
-    local EXE_ARG="${WINE}"
-    declare -a POST_ARGS=("${@}")
+    declare -a PRE_ARGS POST_ARGS
+    IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
+    IFS=" " read -r -a POST_ARGS <<<"${*}"
 
     WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
     Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
-    Info "Launching: ${PRE_ARGS[*]} ${EXE_ARG} ${POST_ARGS[*]}"
+    Info "Launching: ${PRE_ARGS[*]} ${WINE} ${POST_ARGS[*]}"
     echo ""
-    exec "${PRE_ARGS[@]}" "${EXE_ARG}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}" || return 1
+    exec "${PRE_ARGS[@]}" "${WINE}" "${POST_ARGS[@]}" &>"${WINELLO_LOGS_PATH}" || return 1
     return 0
 }
 
@@ -231,20 +220,20 @@ case "$1" in
     ###################################################################################################
 
 '--winetricks')
-    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { MainUpdate "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
+    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { Main "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
     "$WINETRICKS" "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
     ;;
 
     ###################################################################################################
 
 '--changedir')
-    MainUpdate "changedir" || ErrorAndExit "Changing directories failed..."
+    MainScriptUpdate "changedir" || ErrorAndExit "Changing directories failed..."
     ;;
 
     ###################################################################################################
 
 '--remove')
-    MainUpdate "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
+    MainScriptUpdate "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
     ;;
 
     ###################################################################################################
@@ -262,41 +251,42 @@ case "$1" in
     ###################################################################################################
 
 '--update')
-    MainUpdate || ErrorAndExit "The update partially or completely failed..."
+    MainScriptUpdate "exec" "update" || ErrorAndExit "The update partially or completely failed..."
     ;;
 
     ###################################################################################################
 
 '--fixfolders')
-    MainUpdate "fixfolders" || ErrorAndExit "The folderfix somehow failed to apply..."
+    MainScriptUpdate "fixfolders" || Error "The native file manager integration failed. Will still try to fix osu-handler..."
+    MainScriptUpdate "fixosuhandler" || ErrorAndExit "The osu-handler setup was unsuccessful..."
     ;;
 
     ###################################################################################################
 
 *fix*yawl*)
-    MainUpdate "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
+    MainScriptUpdate "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
     ;;
 
     ###################################################################################################
 
 '--fixrpc')
-    MainUpdate "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
+    MainScriptUpdate "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
     ;;
 
     ###################################################################################################
 
 '--fixprefix')
-    MainUpdate "fixprefix" ||
-        ErrorAndExit "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
+    MainScriptUpdate "fixprefix" ||
+        Error "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
     ;;
 
     ###################################################################################################
 
 '--tosu')
-    MainUpdate 'tosu' || ErrorAndExit "Couldn't set up tosu..."
+    MainScriptUpdate "tosu" || ErrorAndExit "Couldn't set up tosu..."
     ;;
 '--gosumemory')
-    MainUpdate 'gosumemory' || ErrorAndExit "Couldn't set up gosumemory..."
+    MainScriptUpdate "gosumemory" || ErrorAndExit "Couldn't set up gosumemory..."
     ;;
 
     ###################################################################################################
@@ -309,7 +299,9 @@ case "$1" in
     ###################################################################################################
 
 '--osuhandler')
-    handle "$2"
+    # kept to avoid any sort of breakage (shouldn't be needed, though, since both scripts will be updated at the same time)
+    # don't update to avoid unnecessary slowdown
+    MainScript "exec" "handle" "${@:2}"
     ;;
 
     ###################################################################################################

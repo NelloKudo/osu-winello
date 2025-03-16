@@ -41,7 +41,7 @@ WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
 # The directory osu-winello.sh is in
 SCRDIR="$(realpath "$(dirname "$0")")"
 # The full path to osu-winello.sh
-# SCRPATH="$(realpath "$0")"
+SCRPATH="$(realpath "$0")"
 
 # Exported global variables
 
@@ -125,11 +125,8 @@ Error() {
     return 0 # don't exit, handle errors ourselves, propagate result to launcher if needed
 }
 
-# Shorthand for a lot of functions suceeding
-_Done() {
-    Info "Done!"
-    return 0
-}
+# Shorthand for a lot of functions succeeding
+okay="eval Info Done! && return 0"
 
 # Function looking for basic stuff needed for installation
 InitialSetup() {
@@ -262,8 +259,75 @@ InitialOsuInstall() {
         installOrChangeDir "$XDG_DATA_HOME/osu-wine" || return 1
         ;;
     esac
-    _Done
+    $okay
 }
+
+# Here comes the real Winello 8)
+# What the script will install, in order, is:
+# - osu!mime and osu!handler to properly import skins and maps
+# - Wineprefix
+# - Regedit keys to integrate native file manager with Wine
+# - rpc-bridge for Discord RPC (flatpak users, google "flatpak discord rpc")
+FullInstall() {
+    # Time to install my prepackaged Wineprefix, which works in most cases
+    # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
+
+    Info "Configuring Wineprefix:"
+
+    # Variable to check if download finished properly
+    local failprefix="false"
+    mkdir -p "$XDG_DATA_HOME/wineprefixes"
+    if [ -r "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/system.reg" ]; then
+        Info "Wineprefix already exists; do you want to reinstall it?"
+        Warning "HIGHLY RECOMMENDED UNLESS YOU KNOW WHAT YOU'RE DOING!"
+        read -r -p "$(Info "Choose (y/N): ")" prefchoice
+        if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
+            rm -rf "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+        fi
+    fi
+
+    # So if there's no prefix (or the user wants to reinstall):
+    if [ ! -r "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/system.reg" ]; then
+        # Downloading prefix in temporary ~/.winellotmp folder
+        # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
+        mkdir -p "$HOME/.winellotmp"
+        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
+
+        # If download failed:
+        if [ ! "$chk" = 0 ]; then
+            Info "wget failed; trying with --no-check-certificate.."
+            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
+        fi
+
+        # Checking whether to create prefix manually or install it from repos
+        if [ "$failprefix" = "true" ]; then
+            reconfigurePrefix nowinepath fresh || Revert
+        else
+            tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
+            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+            reconfigurePrefix nowinepath || Revert
+        fi
+        # Cleaning..
+        rm -rf "$HOME/.winellotmp"
+    fi
+
+    # Now set up desktop files and such, no matter whether its a new or old prefix
+    osuHandlerSetup || Revert
+
+    Info "Configure and install osu!"
+    InitialOsuInstall || Revert
+
+    Info "Installation is completed! Run 'osu-wine' to play osu!"
+    Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    exit 0
+}
+
+#   =====================================
+#   =====================================
+#          POST-INSTALL FUNCTIONS
+#   =====================================
+#   =====================================
+
 
 longPathsFix() {
     Info "Applying fix for long song names (e.g. because of deeply nested osu! folder)..."
@@ -293,7 +357,7 @@ saveOsuWinepath() {
 
     echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath"
     echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
-    _Done
+    $okay
 }
 
 deleteFolder() {
@@ -376,123 +440,14 @@ reconfigurePrefix() {
 
     longPathsFix || return 1
     folderFixSetup || return 1
-    osuHandlerSetup || return 1
     InstallDxvk || return 1
     discordRpc || return 1
 
     # save the osu winepath with the new folder, unless its a first-time install (need to install osu first)
     [ -z "${nowinepath}" ] && { saveOsuWinepath || return 1; }
 
-    _Done
+    $okay
 }
-
-# Here comes the real Winello 8)
-# What the script will install, in order, is:
-# - osu!mime and osu!handler to properly import skins and maps
-# - Wineprefix
-# - Regedit keys to integrate native file manager with Wine
-# - rpc-bridge for Discord RPC (flatpak users, google "flatpak discord rpc")
-FullInstall() {
-    Info "Configuring osu-mime and osu-handler:"
-
-    # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
-    wget -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" && chk="$?"
-
-    if [ ! "$chk" = 0 ]; then
-        Info "wget failed; trying with --no-check-certificate.."
-        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || InstallError "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
-    fi
-
-    tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
-    mkdir -p "$XDG_DATA_HOME/mime/packages"
-    cp "/tmp/osu-mime/osu-file-extensions.xml" "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
-    update-mime-database "$XDG_DATA_HOME/mime"
-    rm -f "/tmp/osu-mime.tar.gz"
-    rm -rf "/tmp/osu-mime"
-
-    # Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
-    # Binary was compiled from source on Ubuntu 18.04
-    cp "${SCRDIR}/stuff/osu-handler-wine" "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
-
-    chmod +x "$XDG_DATA_HOME/osuconfig/osu-handler-wine"
-
-    # Creating entries for those two
-    echo "[Desktop Entry]
-Type=Application
-Name=osu!
-MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
-Exec=$BINDIR/osu-wine --osuhandler %f
-NoDisplay=true
-StartupNotify=true
-Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
-    chmod +x "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
-
-    echo "[Desktop Entry]
-Type=Application
-Name=osu!
-MimeType=x-scheme-handler/osu;
-Exec=$BINDIR/osu-wine --osuhandler %u
-NoDisplay=true
-StartupNotify=true
-Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
-    chmod +x "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop" >/dev/null
-    update-desktop-database "$XDG_DATA_HOME/applications"
-
-    # Time to install my prepackaged Wineprefix, which works in most cases
-    # The script is still bundled with osu-wine --fixprefix, which should do the job for me as well
-
-    Info "Configuring Wineprefix:"
-
-    # Variable to check if download finished properly
-    local failprefix="false"
-    mkdir -p "$XDG_DATA_HOME/wineprefixes"
-    if [ -r "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/system.reg" ]; then
-        Info "Wineprefix already exists; do you want to reinstall it?"
-        Warning "HIGHLY RECOMMENDED UNLESS YOU KNOW WHAT YOU'RE DOING!"
-        read -r -p "$(Info "Choose (y/N): ")" prefchoice
-        if [ "$prefchoice" = 'y' ] || [ "$prefchoice" = 'Y' ]; then
-            rm -rf "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
-        fi
-    fi
-
-    # So if there's no prefix (or the user wants to reinstall):
-    if [ ! -r "$XDG_DATA_HOME/wineprefixes/osu-wineprefix/system.reg" ]; then
-        # Downloading prefix in temporary ~/.winellotmp folder
-        # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
-        mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
-
-        # If download failed:
-        if [ ! "$chk" = 0 ]; then
-            Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
-        fi
-
-        # Checking whether to create prefix manually or install it from repos
-        if [ "$failprefix" = "true" ]; then
-            reconfigurePrefix nowinepath fresh || Revert
-        else
-            tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
-            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
-            reconfigurePrefix nowinepath || Revert
-        fi
-        # Cleaning..
-        rm -rf "$HOME/.winellotmp"
-    fi
-
-    Info "Configure and install osu!"
-    InitialOsuInstall || Revert
-
-    Info "Installation is completed! Run 'osu-wine' to play osu!"
-    Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
-    exit 0
-}
-
-#   =====================================
-#   =====================================
-#          POST-INSTALL FUNCTIONS
-#   =====================================
-#   =====================================
 
 # Remember whether the user wants to overwrite their local files
 askConfirmTimeout() {
@@ -564,7 +519,7 @@ launcherUpdate() {
             return 1
         }
     fi
-    _Done
+    $okay
 }
 
 installYawl() {
@@ -580,7 +535,7 @@ installYawl() {
     # Also setup yawl here, this will be required anyways when updating from umu-based osu-wine versions
     YAWL_VERBS="make_wrapper=winello;exec=$WINE_INSTALL_PATH/bin/wine;wineserver=$WINE_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
     YAWL_VERBS="update;verify;exec=/bin/true" "$YAWL_INSTALL_PATH" || { Error "There was an error setting up yawl!" && return 1; }
-    _Done
+    $okay
 }
 
 # This function reads files located in $XDG_DATA_HOME/osuconfig
@@ -655,7 +610,7 @@ Update() {
     else
         Info "Your osu-wine launcher will be left alone."
     fi
-    _Done
+    $okay
 }
 
 # Well, simple function to install the game (also implement in osu-wine --remove)
@@ -749,7 +704,7 @@ Gosumemory() {
         rm "/tmp/gosumemory.zip"
     fi
     SetupReader 'gosumemory' || return 1
-    _Done
+    $okay
 }
 
 tosu() {
@@ -761,7 +716,7 @@ tosu() {
         rm "/tmp/tosu.zip"
     fi
     SetupReader 'tosu' || return 1
-    _Done
+    $okay
 }
 
 # Installs rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
@@ -788,7 +743,7 @@ discordRpc() {
     waitWine /tmp/rpc-bridge/bridge.exe --install
     rm -f "/tmp/bridge.zip"
     rm -rf "/tmp/rpc-bridge"
-    _Done
+    $okay
 }
 
 folderFixSetup() {
@@ -813,18 +768,82 @@ folderFixSetup() {
     else
         waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
     fi
-    _Done
+    $okay
 }
 
 osuHandlerSetup() {
+    Info "Configuring osu-mime and osu-handler..."
+
+    # Installing osu-mime from https://aur.archlinux.org/packages/osu-mime
+    wget -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" && chk="$?"
+
+    if [ ! "$chk" = 0 ]; then
+        Info "wget failed; trying with --no-check-certificate.."
+        wget --no-check-certificate -O "/tmp/osu-mime.tar.gz" "${OSUMIMELINK}" || InstallError "Download failed, check your connection or open an issue here: https://github.com/NelloKudo/osu-winello/issues"
+    fi
+
+    tar -xf "/tmp/osu-mime.tar.gz" -C "/tmp"
+    mkdir -p "$XDG_DATA_HOME/mime/packages"
+    cp "/tmp/osu-mime/osu-file-extensions.xml" "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
+    update-mime-database "$XDG_DATA_HOME/mime"
+    rm -f "/tmp/osu-mime.tar.gz"
+    rm -rf "/tmp/osu-mime"
+
+    # Installing osu-handler from https://github.com/openglfreak/osu-handler-wine / https://aur.archlinux.org/packages/osu-handler
+    # Binary was compiled from source on Ubuntu 18.04
+    chmod +x "$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler-wine"
+
+    # Creating entries for those two
+    echo "[Desktop Entry]
+Type=Application
+Name=osu!
+MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
+Exec=$XDG_DATA_HOME/osuconfig/update/osu-winello.sh handle %f
+NoDisplay=true
+StartupNotify=true
+Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop"
+    chmod +x "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
+
+    echo "[Desktop Entry]
+Type=Application
+Name=osu!
+MimeType=x-scheme-handler/osu;
+Exec=$XDG_DATA_HOME/osuconfig/update/osu-winello.sh handle %u
+NoDisplay=true
+StartupNotify=true
+Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
+    chmod +x "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop" >/dev/null
+    update-desktop-database "$XDG_DATA_HOME/applications"
+
     # Fix to importing maps/skins/osu links after Stable update 20250122.1: https://osu.ppy.sh/home/changelog/stable40/20250122.1
     Info "Setting up file (.osz/.osk) and url associations..."
-    local REG_FILE="$XDG_DATA_HOME/osuconfig/osu-handler.reg"
-    cp "${SCRDIR}/stuff/osu-handler.reg" "${REG_FILE}"
 
     # Adding the osu-handler.reg file to registry
-    waitWine regedit /s "${REG_FILE}"
-    _Done
+    waitWine regedit /s "$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler.reg"
+    $okay
+}
+
+# Open files/links with osu-handler-wine
+osuHandlerHandle() {
+    local ARG="${*:-}"
+    local OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler-wine"
+    [ ! -x "$OSUHANDLERPATH" ] && chmod +x "$OSUHANDLERPATH"
+
+    case "$ARG" in
+    osu://*)
+        echo "Trying to load link ($ARG).." >&2
+        exec "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$ARG"
+        ;;
+    *.osr | *.osz | *.osk | *.osz2)
+        echo "Trying to load file ($ARG).." >&2
+        local EXT="${ARG##*.}"
+        exec "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$ARG"
+        ;;
+    esac
+    # If we reached here, it must means osu-handler failed/none of the cases matched
+    Error "Unsupported osu! file ($ARG) !" >&2
+    Error "Try running \"bash $SCRPATH fixosuhandler\" !" >&2
+    return 1
 }
 
 InstallDxvk() {
@@ -837,7 +856,7 @@ InstallDxvk() {
     for dll in dxgi d3d8 d3d9 d3d10core d3d11; do
         waitWine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v "$dll" /d native /f
     done
-    _Done
+    $okay
 }
 
 installWinetricks() {
@@ -851,7 +870,7 @@ installWinetricks() {
         mv "/tmp/winetricks" "$XDG_DATA_HOME/osuconfig"
         chmod +x "$WINETRICKS"
     fi
-    _Done
+    $okay
 }
 
 FixUmu() {
@@ -862,7 +881,7 @@ FixUmu() {
     Info "Please answer 'yes' when asked to update the 'osu-wine' launcher"
 
     Update "${LAUNCHERPATH}" || { Error "Updating failed... Please do a fresh install of osu-winello." && return 1; }
-    _Done
+    $okay
 }
 
 FixYawl() {
@@ -879,7 +898,7 @@ FixYawl() {
     else
         Info "yawl should be good to go now."
     fi
-    _Done
+    $okay
 }
 
 # Help!
@@ -929,8 +948,14 @@ case "$1" in
     reconfigurePrefix fresh || exit 1
     ;;
 
-'osuhandler')
+# Also catch "fixosuhandler"
+*osu*handler)
     osuHandlerSetup || exit 1
+    ;;
+
+'handle')
+    # Should be called by the osu-handler desktop files (or osu-wine for backwards compatibility)
+    osuHandlerHandle "${@:2}" || exit 1
     ;;
 
 'installdxvk')
