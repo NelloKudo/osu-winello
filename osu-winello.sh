@@ -341,6 +341,7 @@ longPathsFix() {
     ln -s "$WINEPREFIX/drive_c/" "$WINEPREFIX/dosdevices/c:"
     ln -s / "$WINEPREFIX/dosdevices/z:"
     ln -s "$OSUPATH" "$WINEPREFIX/dosdevices/d:" 2>/dev/null # it's fine if this fails on a fresh install
+    waitWine wineboot -u
     return 0
 }
 
