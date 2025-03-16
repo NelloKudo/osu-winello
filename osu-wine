@@ -36,6 +36,7 @@ export LAUNCHERPATH
 
 [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath")
 export OSUPATH
+export PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath $OSUPATH):$(realpath $OSUPATH/Songs):/mnt:/media:/var:/run/media" # Bind osu!'s disk and usual folders to pressure-vessel
 
 # Get the Windows-formatted paths to osu! and its install directory
 [ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
