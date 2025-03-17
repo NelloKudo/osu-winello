@@ -108,7 +108,7 @@ LaunchOsu() {
     IFS=" " read -r -a POST_ARGS <<<"${*}"
     IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
 
-    Info "Opening: $OSUPATH/osu!.exe"
+    Info "Opening: $OSUPATH/osu!.exe ${POST_ARGS[*]}"
     if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
         if command -v pgrep &>/dev/null; then
             { pgrep 'osu!.exe' &>/dev/null; } || $WINESERVER -k # stop lingering tosu process if any
@@ -155,12 +155,6 @@ ErrorAndExit() {
 shopt -s extglob
 
 case "$1" in
-'')
-    LaunchOsu "${@:1}"
-    ;;
-
-    ###################################################################################################
-
 '--devserver')
     if [ -z "$2" ]; then ErrorAndExit "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
     LaunchOsu "-devserver" "${@:2}"
@@ -230,7 +224,7 @@ case "$1" in
 
     ###################################################################################################
 
-*fix*yawl*)
+*--fix*yawl*)
     MainScriptUpdate "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
     ;;
 
@@ -258,7 +252,7 @@ case "$1" in
 
     ###################################################################################################
 
-*disable-@(*osu*|memory*))
+*--disable-@(*osu*|memory*))
     rm -f "$OSUPATH/launch_with_memory.bat"
     Info "Memory reader (tosu/gosumemory) disabled."
     ;;
@@ -266,7 +260,6 @@ case "$1" in
     ###################################################################################################
 
 '--osuhandler')
-    # kept to avoid any sort of breakage (shouldn't be needed, though, since both scripts will be updated at the same time)
     # don't update to avoid unnecessary slowdown
     MainScript "exec" "handle" "${@:2}"
     ;;
@@ -287,11 +280,14 @@ case "$1" in
 
     ###################################################################################################
 
-*help*)
+*--help*)
     Help
     ;;
+
+    ###################################################################################################
+
 *)
-    Info "Unknown argument(s) ${*}"
-    Help
+    # Fall through to osu
+    LaunchOsu "${@:1}"
     ;;
 esac

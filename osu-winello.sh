@@ -806,7 +806,7 @@ osuHandlerSetup() {
 Type=Application
 Name=osu!
 MimeType=application/x-osu-skin-archive;application/x-osu-replay;application/x-osu-beatmap-archive;
-Exec=$XDG_DATA_HOME/osuconfig/update/osu-winello.sh handle %f
+Exec=$BINDIR/osu-wine --osuhandler %f
 NoDisplay=true
 StartupNotify=true
 Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-file-extensions-handler.desktop" >/dev/null
@@ -816,7 +816,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 Type=Application
 Name=osu!
 MimeType=x-scheme-handler/osu;
-Exec=$XDG_DATA_HOME/osuconfig/update/osu-winello.sh handle %u
+Exec=$BINDIR/osu-wine --osuhandler %u
 NoDisplay=true
 StartupNotify=true
 Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop" >/dev/null
