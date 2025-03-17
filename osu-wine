@@ -162,6 +162,7 @@ case "$1" in
     # Don't update the launcher before running a command
     # e.g. osu-wine n --fixprefix
     mainscriptcommand=MainScript
+    export NOLAUNCHERUPDATE=1 # let osu-winello.sh know we don't want osu-wine to be updated/overwritten
     shift
     ;;
 esac

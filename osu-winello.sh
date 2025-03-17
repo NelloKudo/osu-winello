@@ -594,6 +594,8 @@ Update() {
     # Will be required when updating from umu-launcher
     [ ! -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && { saveOsuWinepath || return 1; }
 
+    [ -n "$NOLAUNCHERUPDATE" ] && Info "Your osu-wine launcher will be left alone." && $okay
+
     [ ! -x "${launcher_path}" ] && { Error "Can't find the path to the osu-wine launcher to update it. Please reinstall osu-winello." && return 1; }
 
     if [ ! -w "${launcher_path}" ]; then
