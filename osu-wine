@@ -48,7 +48,9 @@ export OSUPATH PRESSURE_VESSEL_FILESYSTEMS_RW
 ###################################################################################################
 
 Help() {
-    Info "Script features:
+    Info "NOTE: Any command can be prefixed by the letter 'n' to avoid updating when running it
+          e.g. \`osu-wine n --fixprefix\` will run \`--fixprefix\` without overwriting any of your files from the osu-winello git repo
+    Script features:
     osu-wine: Runs osu!
     osu-wine --help: Show this help
     osu-wine --info: Troubleshooting and more info
@@ -152,6 +154,18 @@ ErrorAndExit() {
 # Begin argument handling
 ###################################################################################################
 
+# default to MainSciptUpdate, allow overriding from config
+: "${mainscriptcommand:=MainScriptUpdate}"
+
+case "$1" in
+'n')
+    # Don't update the launcher before running a command
+    # e.g. osu-wine n --fixprefix
+    mainscriptcommand=MainScript
+    shift
+    ;;
+esac
+
 shopt -s extglob
 
 case "$1" in
@@ -188,13 +202,13 @@ case "$1" in
     ###################################################################################################
 
 '--changedir')
-    MainScriptUpdate "changedir" || ErrorAndExit "Changing directories failed..."
+    $mainscriptcommand "changedir" || ErrorAndExit "Changing directories failed..."
     ;;
 
     ###################################################################################################
 
 '--remove')
-    MainScriptUpdate "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
+    $mainscriptcommand "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
     ;;
 
     ###################################################################################################
@@ -212,42 +226,43 @@ case "$1" in
     ###################################################################################################
 
 '--update')
-    MainScriptUpdate "exec" "update" || ErrorAndExit "The update partially or completely failed..."
+    # It might look pointless to allow "not-updating" if you want to update... but it's better to leave it predictable
+    $mainscriptcommand "exec" "update" || ErrorAndExit "The update partially or completely failed..."
     ;;
 
     ###################################################################################################
 
 '--fixfolders')
-    MainScriptUpdate "fixfolders" || Error "The native file manager integration failed. Will still try to fix osu-handler..."
-    MainScriptUpdate "fixosuhandler" || ErrorAndExit "The osu-handler setup was unsuccessful..."
+    $mainscriptcommand "fixfolders" || Error "The native file manager integration failed. Will still try to fix osu-handler..."
+    $mainscriptcommand "fixosuhandler" || ErrorAndExit "The osu-handler setup was unsuccessful..."
     ;;
 
     ###################################################################################################
 
 *--fix*yawl*)
-    MainScriptUpdate "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
+    $mainscriptcommand "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
     ;;
 
     ###################################################################################################
 
 '--fixrpc')
-    MainScriptUpdate "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
+    $mainscriptcommand "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
     ;;
 
     ###################################################################################################
 
 '--fixprefix')
-    MainScriptUpdate "fixprefix" ||
+    $mainscriptcommand "fixprefix" ||
         Error "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
     ;;
 
     ###################################################################################################
 
 '--tosu')
-    MainScriptUpdate "tosu" || ErrorAndExit "Couldn't set up tosu..."
+    $mainscriptcommand "tosu" || ErrorAndExit "Couldn't set up tosu..."
     ;;
 '--gosumemory')
-    MainScriptUpdate "gosumemory" || ErrorAndExit "Couldn't set up gosumemory..."
+    $mainscriptcommand "gosumemory" || ErrorAndExit "Couldn't set up gosumemory..."
     ;;
 
     ###################################################################################################
