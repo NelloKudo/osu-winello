@@ -63,7 +63,7 @@ export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .des
 export WINEDEBUG="-wineboot,${WINEDEBUG:-}"     # Don't show "failed to start winemenubuilder"
 
 export WINENTSYNC="${WINENTSYNC:-0}" # Don't use these for setup-related stuff to be safe
-export WINEFSYNC="${WINEFSYNC:-0}" # (still, don't override launcher settings, because if wineserver is running with different settings, it will fail to start)
+export WINEFSYNC="${WINEFSYNC:-0}"   # (still, don't override launcher settings, because if wineserver is running with different settings, it will fail to start)
 export WINEESYNC="${WINEESYNC:-0}"
 
 # Other shell local variables
@@ -441,7 +441,8 @@ reconfigurePrefix() {
         Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
         "$WINESERVER" -k
         WINEDLLOVERRIDES="winemenubuilder.exe=;" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
-            "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet472 dotnet20 gdiplus_winxp meiryo winxp # ignore errors, hope for the best!
+            "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo win10 ||
+            { Error "winetricks failed catastrophically!" && return 1; }
     }
 
     longPathsFix || return 1
