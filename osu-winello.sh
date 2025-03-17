@@ -439,7 +439,9 @@ reconfigurePrefix() {
         rm -rf "${WINEPREFIX}"
 
         Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
-        WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 "$WINETRICKS" -q dotnet20 dotnet48 gdiplus_winxp meiryo win2k3 || return 1
+        "$WINESERVER" -k
+        WINEDLLOVERRIDES="winemenubuilder.exe=;" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
+            "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet472 dotnet20 gdiplus_winxp meiryo winxp # ignore errors, hope for the best!
     }
 
     longPathsFix || return 1
