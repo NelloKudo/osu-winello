@@ -24,10 +24,10 @@ TOSUVERSION=4.3.1
 YAWLVERSION=0.6.2
 
 # Other download links
-WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"      # Winetricks for --fixprefix
-PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
-OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz"                       # osu-mime (file associations)
-YAWLLINK="https://github.com/whrvt/yawl/releases/download/v${YAWLVERSION}/yawl"                     # yawl (Wine launcher for Steam Runtime)
+WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"                 # Winetricks for --fixprefix
+PREFIXLINK="https://github.com/NelloKudo/osu-winello/releases/download/winello-bins/osu-winello-prefix.tar.xz" # Default WINEPREFIX
+OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz"                                  # osu-mime (file associations)
+YAWLLINK="https://github.com/whrvt/yawl/releases/download/v${YAWLVERSION}/yawl"                                # yawl (Wine launcher for Steam Runtime)
 
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 
@@ -295,20 +295,20 @@ FullInstall() {
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/osu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
-        wget -q --show-progress -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
+        wget -q --show-progress -O "$HOME/.winellotmp/osu-winello-prefix.tar.xz" "${PREFIXLINK}" && chk="$?"
 
         # If download failed:
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget -q --show-progress --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
+            wget -q --show-progress --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix.tar.xz" "${PREFIXLINK}" || failprefix="true"
         fi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
             reconfigurePrefix nowinepath fresh || Revert
         else
-            tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
-            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+            tar -xf "$HOME/.winellotmp/osu-winello-prefix.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
+            mv "$XDG_DATA_HOME/wineprefixes/osu-prefix" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
             reconfigurePrefix nowinepath || Revert
         fi
         # Cleaning..
@@ -443,11 +443,13 @@ reconfigurePrefix() {
         WINEDLLOVERRIDES="winemenubuilder.exe=;" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
             "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo win10 ||
             { Error "winetricks failed catastrophically!" && return 1; }
+
+        Info "Installing dxvk-osu into Wineprefix.."
+        InstallDxvk || return 1
     }
 
     longPathsFix || return 1
     folderFixSetup || return 1
-    InstallDxvk || return 1
     discordRpc || return 1
 
     # save the osu winepath with the new folder, unless its a first-time install (need to install osu first)
