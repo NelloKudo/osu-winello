@@ -444,7 +444,6 @@ reconfigurePrefix() {
             "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo win10 ||
             { Error "winetricks failed catastrophically!" && return 1; }
 
-        Info "Installing dxvk-osu into Wineprefix.."
         InstallDxvk || return 1
     }
 
