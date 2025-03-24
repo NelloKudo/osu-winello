@@ -159,7 +159,7 @@ InitialSetup() {
 
         if grep -q "fish" "$SHELL"; then
             mkdir -p "$HOME/.config/fish" && touch -a "$HOME/.config/fish/config.fish"
-            fish_add_path "$BINDIR/"
+            fish -c fish_add_path "$BINDIR/"
         fi
     fi
 
