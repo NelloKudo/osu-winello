@@ -440,7 +440,7 @@ reconfigurePrefix() {
 
         Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
         "$WINESERVER" -k
-        WINEDLLOVERRIDES="winemenubuilder.exe=;" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
+        PATH="${SCRDIR}/stuff:${PATH}" WINEDLLOVERRIDES="winemenubuilder.exe=;" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
             "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo win10 ||
             { Error "winetricks failed catastrophically!" && return 1; }
 
