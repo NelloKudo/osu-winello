@@ -136,19 +136,23 @@ If that doesn't help, either:
 ```
 
 **Game script:**
+
 ```
 osu-wine: Runs osu!
+osu-wine --help: Show this help
+osu-wine --info: Troubleshooting and more info
+osu-wine --edit-config: Open your configuration file to edit launch arguments and other customizations
 osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
 osu-wine --winetricks: Install packages on osu! Wineprefix
 osu-wine --regedit: Opens regedit on osu! Wineprefix
+osu-wine --wine <args>: Runs wine + your arguments as if it was normal wine
 osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
 osu-wine --kill9: Kills osu! but with wineserver -k9
-osu-wine --update: Updates wine-osu to latest version
+osu-wine --update: Updates proton-osu (and optionally, the osu-wine script) to upstream
 osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
+osu-wine --fixfolders: Reconfigure osu-handler and native file integration (run this if osu!direct/.osz/.osk/opening folders from ingame is broken)
 osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
-osu-wine --fixfolders: Reinstalls registry keys for native file manager in case they break
 osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
-osu-wine --info: Troubleshooting and more info
 osu-wine --remove: Uninstalls osu! and the script
 osu-wine --changedir: Changes directory of the install according to the user
 osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
@@ -158,6 +162,10 @@ osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
 osu-wine --tosu: Installs and runs tosu without any needed config!
 osu-wine --disable-memory-reader: Turn off gosumemory and tosu
 ```
+
+NOTE: Any command can be prefixed by the letter 'n' to avoid updating when running it.
+
+e.g. `osu-wine n --fixprefix` will run `--fixprefix` without overwriting any of your files from the osu-winello git repo
 
 # Steam Deck Support
 
