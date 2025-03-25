@@ -11,6 +11,8 @@ osu! stable installer for Linux with patched wine-osu and other features.
 		- [PipeWire](#pipewire)
 	- [Installing osu!](#installing-osu)
 - [Features](#features)
+- [Customization](#customization)
+- [Optimizations](#optimizations)
 - [Troubleshooting](#troubleshooting)
 - [Flags](#flags)
 - [Steam Deck Support](#steam-deck-support)
@@ -87,6 +89,34 @@ osu-wine
 - Installs osu! on either default or custom path (using the zenity GUI), also working for already existing osu! installations from Windows!
 - Skips the pain of downloading Wineprefix thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
 - Support for Windows fonts pre-installed in Wine (JP fonts, special characters etc.)
+
+# Customization
+
+Winello allows you to set launch arguments or custom environment variables using `.cfg` files located in:
+
+```
+~/.local/share/osuconfig/configs
+```
+
+An `example.cfg` file is provided, containing all supported environment variables along with usage instructions.
+
+### Example  
+To add `mangohud` to the launch arguments, edit the `example.cfg` file:
+
+```sh
+nano ~/.local/share/osuconfig/configs/example.cfg
+```
+
+Then, set the following line:
+
+```sh
+LAUNCH_ARGS="mangohud"
+```
+
+# Optimizations
+
+Due to the vast variety of distributions and setups, follow the guide below to optimize your osu! performance:
+- [Optimizing: osu! performance](https://github.com/NelloKudo/osu-winello/wiki/Optimizing:-osu!-performance) 
 
 # Troubleshooting
 
