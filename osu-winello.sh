@@ -129,14 +129,23 @@ Error() {
 # Shorthand for a lot of functions succeeding
 okay="eval Info Done! && return 0"
 
+wgetcommand="wget -q --show-progress"
+_wget() {
+    local url="$1"
+    local output="$2"
+    $wgetcommand "$url" -O "$output" && return 0
+    { [ $? = 2 ] && wgetcommand="wget"; } || wgetcommand="wget --no-check-certificate"
+    $wgetcommand "$url" -O "$output" && return 0
+    return 1
+}
+
 DownloadFile() {
     local url="$1"
     local output="$2"
     Info "Downloading $1 to $2..."
     {
         if command -v wget >/dev/null 2>&1; then
-            wget -q --show-progress "$url" -O "$output" ||
-                wget -q --show-progress --no-check-certificate "$url" -O "$output"
+            _wget "$url" "$output"
         elif command -v curl >/dev/null 2>&1; then
             curl -sSL "$url" -o "$output"
         fi
