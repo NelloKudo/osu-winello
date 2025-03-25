@@ -196,7 +196,7 @@ case "$1" in
     ###################################################################################################
 
 '--winetricks')
-    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { Main "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
+    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { MainScript "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
     "$WINETRICKS" "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
     ;;
 
