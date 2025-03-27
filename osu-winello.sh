@@ -445,11 +445,11 @@ reconfigurePrefix() {
         Info "Checking for internet connection.." # The bundled prefix install already checks for internet, so no point checking again
         ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && { Error "Please connect to internet before continuing xd. Run the script again" && return 1; }
 
-        rm -rf "${WINEPREFIX}"
+        [ -d "${WINEPREFIX:?}" ] && rm -rf "${WINEPREFIX}"
 
         Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
         "$WINESERVER" -k
-        PATH="${SCRDIR}/stuff:${PATH}" WINEDLLOVERRIDES="winemenubuilder.exe=;" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
+        PATH="${SCRDIR}/stuff:${PATH}" WINEDEBUG="fixme-winediag,${WINEDEBUG:-}" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
             "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo win10 ||
             { Error "winetricks failed catastrophically!" && return 1; }
 
@@ -865,13 +865,14 @@ InstallDxvk() {
 }
 
 installWinetricks() {
-    Info "Installing winetricks..."
     if [ ! -x "$WINETRICKS" ]; then
+        Info "Installing winetricks..."
         DownloadFile "$WINETRICKSLINK" "/tmp/winetricks" || return 1
         mv "/tmp/winetricks" "$XDG_DATA_HOME/osuconfig"
         chmod +x "$WINETRICKS"
+        $okay
     fi
-    $okay
+    return 0
 }
 
 FixUmu() {

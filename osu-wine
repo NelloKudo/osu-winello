@@ -264,7 +264,8 @@ case "$1" in
 
 '--fixprefix')
     $mainscriptcommand "fixprefix" ||
-        Error "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
+        ErrorAndExit "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
+    $mainscriptcommand "fixosuhandler" || ErrorAndExit "The osu-handler setup was unsuccessful..."
     ;;
 
     ###################################################################################################
