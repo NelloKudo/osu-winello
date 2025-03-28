@@ -373,8 +373,8 @@ saveOsuWinepath() {
     temp_winepath="$(PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$osupath"):$(realpath "$osupath"/Songs):/mnt:/media:/run/media" waitWine winepath -w "$osupath")"
     [ -z "${temp_winepath}" ] && Error "Couldn't get the osu! path from winepath... Check $osupath/osu!.exe ?" && return 1
 
-    echo -n "${temp_winepath}" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath"
-    echo -n "${temp_winepath}osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
+    echo -n "$temp_winepath" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath"
+    echo -n "$temp_winepath\osu!.exe" >"$XDG_DATA_HOME/osuconfig/.osu-exe-winepath"
     $okay
 }
 
@@ -690,7 +690,7 @@ SetupReader() {
 @echo off
 set NODE_SKIP_PLATFORM_CHECK=1
 cd /d "$OSU_WINEDIR"
-start "" osu!.exe %*
+start "" "$OSU_WINEEXE" %*
 start /b "" "$READER_PATH"
 
 :loop

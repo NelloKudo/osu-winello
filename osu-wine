@@ -40,8 +40,8 @@ export LAUNCHERPATH
 export OSUPATH PRESSURE_VESSEL_FILESYSTEMS_RW
 
 # Get the Windows-formatted paths to osu! and its install directory
-# [ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
-# [ -r "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath" ] && read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"
+[ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
+[ -r "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath" ] && read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"
 
 mapfile -t configs < <(find "$XDG_DATA_HOME/osuconfig/configs" -name '*.cfg')
 
@@ -118,10 +118,10 @@ LaunchOsu() {
         if command -v pgrep &>/dev/null; then
             { pgrep 'osu!.exe' &>/dev/null; } || $WINESERVER -k # stop lingering tosu process if any
         fi
-        OSU_EXE=("launch_with_memory.bat")
+        OSU_EXE=("${OSU_WINEDIR}launch_with_memory.bat")
         Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
     else
-        OSU_EXE=("osu!.exe")
+        OSU_EXE=("${OSU_WINEEXE}")
     fi
     WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
 
@@ -131,7 +131,6 @@ LaunchOsu() {
     Info "Launching: ${PRE_ARGS[*]} ${WINE} ${OSU_EXE[*]} ${POST_ARGS[*]}"
 
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec ${WINEDEBUG:-}"
-    cd "${OSUPATH}" || { Error "Couldn't change the working directory to your osu! folder... Did you remove it? Try \`osu-wine --changedir\`." && return 1; }
     exec "${PRE_ARGS[@]}" "${WINE}" "${OSU_EXE[@]}" "${POST_ARGS[@]}" &>>"${WINELLO_LOGS_PATH}" || return 1
     return 0
 }
