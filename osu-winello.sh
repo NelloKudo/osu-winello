@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 #   =======================================
 #   Welcome to Winello!
@@ -159,7 +159,7 @@ InitialSetup() {
     if [ "$USER" = "root" ]; then InstallError "Please run the script without root"; fi
 
     # Checking for previous versions of osu-wine (mine or DiamondBurned's)
-    if [ -e /bin/osu-wine ]; then Quit "Please uninstall old osu-wine (/bin/osu-wine) before installing!"; fi
+    if [ -e /usr/bin/osu-wine ]; then Quit "Please uninstall old osu-wine (/usr/bin/osu-wine) before installing!"; fi
     if [ -e "$BINDIR/osu-wine" ]; then Quit "Please uninstall Winello (osu-wine --remove) before installing!"; fi
 
     Info "Welcome to the script! Follow it to install osu! 8)"
