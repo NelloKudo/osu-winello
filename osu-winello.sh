@@ -266,7 +266,8 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
 # Function configuring folders to install the game
 InitialOsuInstall() {
     local installpath=1
-    Info "Where do you want to install the game?: 
+    Info "Where do you want to install the game?:
+          0 - Use existing osu! path
           1 - Default path ($XDG_DATA_HOME/osu-wine)
           2 - Custom path"
     read -r -p "$(Info "Choose your option: ")" installpath
@@ -274,6 +275,9 @@ InitialOsuInstall() {
     case "$installpath" in
     '2')
         installOrChangeDir || return 1
+        ;;
+    '0')
+        handleExistingOsu || return 1
         ;;
     *)
         Info "Installing to default.. ($XDG_DATA_HOME/osu-wine)"
@@ -391,6 +395,22 @@ deleteFolder() {
         fi
     fi
     Info "Skipping.."
+    return 0
+}
+
+handleExistingOsu() {
+    local newdir="${1:-}"
+    local lastdir="${OSUPATH:-}"
+    if [ -z "${newdir}" ]; then
+        Info "Please choose your osu! directory:"
+        newdir="$(zenity --file-selection --directory)"
+        [ ! -d "$newdir" ] && { Error "No folder selected, please make sure zenity is installed.." && return 1; }
+        [ ! -s "$newdir/osu!.exe" ] && { Error "osu! isn't installed in this path.." && return 1; }
+    fi
+
+    longPathsFix || return 1
+    saveOsuWinepath || return 1
+    Info "Done!"
     return 0
 }
 
