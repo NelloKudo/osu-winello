@@ -192,7 +192,7 @@ InitialSetup() {
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && ! ping -c 1 google.com >/dev/null 2>&1 && InstallError "Please connect to internet before continuing xd. Run the script again"
 
     # Looking for dependencies..
-    deps=(wget zenity unzip)
+    deps=(realpath wget zenity unzip)
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" >/dev/null 2>&1; then
             InstallError "Please install $dep before continuing!"
