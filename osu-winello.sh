@@ -21,7 +21,7 @@ WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-st
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
-YAWLVERSION=0.6.5
+YAWLVERSION=0.6.2
 
 # Other download links
 WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"                 # Winetricks for --fixprefix
@@ -192,7 +192,7 @@ InitialSetup() {
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && ! ping -c 1 google.com >/dev/null 2>&1 && InstallError "Please connect to internet before continuing xd. Run the script again"
 
     # Looking for dependencies..
-    deps=(pgrep realpath wget zenity unzip)
+    deps=(realpath wget zenity unzip)
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" >/dev/null 2>&1; then
             InstallError "Please install $dep before continuing!"
@@ -832,23 +832,17 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 osuHandlerHandle() {
     local ARG="${*:-}"
     local OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler-wine"
-    local OSUPID
-    OSUPID="$(pgrep osu!.exe)" || { Error "osu! isn't running!" >&2 && return 1; }
     [ ! -x "$OSUHANDLERPATH" ] && chmod +x "$OSUHANDLERPATH"
-
-    local HANDLECOMMAND=("env"
-        "YAWL_VERBS=enter=$OSUPID" "${YAWL_INSTALL_PATH}" "$OSUHANDLERPATH"
-    )
 
     case "$ARG" in
     osu://*)
         echo "Trying to load link ($ARG).." >&2
-        exec "${HANDLECOMMAND[@]}" 'C:\\windows\\system32\\start.exe' "$ARG"
+        exec "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$ARG"
         ;;
     *.osr | *.osz | *.osk | *.osz2)
         echo "Trying to load file ($ARG).." >&2
         local EXT="${ARG##*.}"
-        exec "${HANDLECOMMAND[@]}" 'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$(realpath "${ARG}")"
+        exec "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$ARG"
         ;;
     esac
     # If we reached here, it must means osu-handler failed/none of the cases matched
