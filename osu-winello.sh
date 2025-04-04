@@ -594,10 +594,9 @@ Update() {
         tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
         rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
 
-        LASTWINEVERSION="$WINEVERSION"
-        rm -f "$XDG_DATA_HOME/osuconfig/wineverupdate"
-        echo "$LASTWINEVERSION" >>"$XDG_DATA_HOME/osuconfig/wineverupdate"
+        echo "$WINEVERSION" >"$XDG_DATA_HOME/osuconfig/wineverupdate"
         Info "Update is completed!"
+        waitWine wineboot -u
     else
         Info "Your Wine-osu is already up-to-date!"
     fi
