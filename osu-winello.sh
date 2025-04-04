@@ -49,8 +49,6 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
 OSUPATH="${OSUPATH:-}" # Could either be exported from the osu-wine launcher, from the osuconfig/osupath, or empty at first install (will set up in installOrChangeDir)
-[ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
-    PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs):/mnt:/media:/run/media" && export PRESSURE_VESSEL_FILESYSTEMS_RW
 
 # Don't rely on this! We should get the launcher path from `osu-wine --update`, this is a "hack" to support updating from umu
 if [ -z "${LAUNCHERPATH}" ]; then
@@ -73,6 +71,20 @@ export WINE="${WINE:-"${YAWL_INSTALL_PATH}-winello"}"
 export WINESERVER="${WINESERVER:-"${WINE}server"}"
 export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
 export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
+
+# Make all paths visible to pressure-vessel
+[ -z "${PRESSURE_VESSEL_FILESYSTEMS_RW}" ] && {
+    _mountline="$(df -P "$SCRPATH" | tail -1)" && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
+    _mountline="$(df -P "$LAUNCHERPATH" | tail -1)" && _curdir_mount="${_mountline##* }:" # mountpoint to current directory
+    _mountline="$(df -P "$XDG_DATA_HOME" | tail -1)" && _home_mount="${_mountline##* }:" # mountpoint to XDG_DATA_HOME
+    PRESSURE_VESSEL_FILESYSTEMS_RW+="${_mainscript_mount:-}${_curdir_mount:-}${_home_mount:-}/mnt:/media:/run/media"
+    [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
+        PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs)" # mountpoint to osu/songs directory
+    export PRESSURE_VESSEL_FILESYSTEMS_RW
+}
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 #   =====================================
 #   =====================================
@@ -136,6 +148,7 @@ _wget() {
     $wgetcommand "$url" -O "$output" && return 0
     { [ $? = 2 ] && wgetcommand="wget"; } || wgetcommand="wget --no-check-certificate"
     $wgetcommand "$url" -O "$output" && return 0
+    wgetcommand='' # broken, use curl from now on
     return 1
 }
 
@@ -143,14 +156,14 @@ DownloadFile() {
     local url="$1"
     local output="$2"
     Info "Downloading $1 to $2..."
-    {
-        if command -v wget >/dev/null 2>&1; then
-            _wget "$url" "$output"
-        elif command -v curl >/dev/null 2>&1; then
-            curl -sSL "$url" -o "$output"
-        fi
-    } || { Error "Failed to download $url. Check your connection." && return 1; }
-    return 0
+    if [ -n "$wgetcommand" ] && command -v wget >/dev/null 2>&1; then
+        _wget "$url" "$output" && return 0
+    fi # fall through to curl
+    if command -v curl >/dev/null 2>&1; then
+        curl -sSL "$url" -o "$output" && return 0
+    fi
+    Error "Failed to download $url. Check your connection."
+    return 1
 }
 
 # Function looking for basic stuff needed for installation
@@ -370,7 +383,7 @@ saveOsuWinepath() {
     Info "Saving a copy of the osu! path..."
 
     local temp_winepath
-    temp_winepath="$(PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$osupath"):$(realpath "$osupath"/Songs):/mnt:/media:/run/media" waitWine winepath -w "$osupath")"
+    temp_winepath="$(PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$osupath"):$(realpath "$osupath"/Songs):${PRESSURE_VESSEL_FILESYSTEMS_RW}" waitWine winepath -w "$osupath")"
     [ -z "${temp_winepath}" ] && Error "Couldn't get the osu! path from winepath... Check $osupath/osu!.exe ?" && return 1
 
     echo -n "${temp_winepath}" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath"
@@ -456,7 +469,6 @@ reconfigurePrefix() {
         InstallDxvk || return 1
     }
 
-    longPathsFix || return 1
     folderFixSetup || return 1
     discordRpc || return 1
 
@@ -757,6 +769,7 @@ discordRpc() {
 }
 
 folderFixSetup() {
+    longPathsFix || return 1
     # Integrating native file explorer (inspired by) Maot: https://gist.github.com/maotovisk/1bf3a7c9054890f91b9234c3663c03a2
     # This only involves regedit keys.
     Info "Setting up native file explorer integration..."
