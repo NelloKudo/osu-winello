@@ -36,21 +36,13 @@ export LAUNCHERPATH
 
 # Make all paths visible to pressure-vessel
 _mainscriptpath="$(realpath "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh")"
-_mountline="$(df -P "$_mainscriptpath" | tail -1)" && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
-_mountline="$(df -P "$LAUNCHERPATH" | tail -1)" && _curdir_mount="${_mountline##* }:" # mountpoint to current directory
-_mountline="$(df -P "$XDG_DATA_HOME" | tail -1)" && _home_mount="${_mountline##* }:" # mountpoint to XDG_DATA_HOME
+_mountline="$(df -P "$_mainscriptpath" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
+_mountline="$(df -P "$LAUNCHERPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _curdir_mount="${_mountline##* }:" # mountpoint to current directory
+_mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:" # mountpoint to XDG_DATA_HOME
 PRESSURE_VESSEL_FILESYSTEMS_RW+="${_mainscript_mount:-}${_curdir_mount:-}${_home_mount:-}/mnt:/media:/run/media"
 [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
     PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs)" # mountpoint to osu/songs directory
 export PRESSURE_VESSEL_FILESYSTEMS_RW OSUPATH
-
-# reduce possibility of breakage
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-
-# Get the Windows-formatted paths to osu! and its install directory
-# [ -r "$XDG_DATA_HOME/osuconfig/.osu-path-winepath" ] && read -r OSU_WINEDIR <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-path-winepath")"
-# [ -r "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath" ] && read -r OSU_WINEEXE <<<"$(cat "$XDG_DATA_HOME/osuconfig/.osu-exe-winepath")"
 
 mapfile -t configs < <(find "$XDG_DATA_HOME/osuconfig/configs" -name '*.cfg')
 

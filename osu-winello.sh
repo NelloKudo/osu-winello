@@ -21,7 +21,7 @@ WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-st
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
-YAWLVERSION=0.6.2
+YAWLVERSION=0.6.6
 
 # Other download links
 WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"                 # Winetricks for --fixprefix
@@ -74,9 +74,9 @@ export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/wine-os
 
 # Make all paths visible to pressure-vessel
 [ -z "${PRESSURE_VESSEL_FILESYSTEMS_RW}" ] && {
-    _mountline="$(df -P "$SCRPATH" | tail -1)" && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
-    _mountline="$(df -P "$LAUNCHERPATH" | tail -1)" && _curdir_mount="${_mountline##* }:" # mountpoint to current directory
-    _mountline="$(df -P "$XDG_DATA_HOME" | tail -1)" && _home_mount="${_mountline##* }:" # mountpoint to XDG_DATA_HOME
+    _mountline="$(df -P "$SCRPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
+    _mountline="$(df -P "$LAUNCHERPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _curdir_mount="${_mountline##* }:" # mountpoint to current directory
+    _mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:" # mountpoint to XDG_DATA_HOME
     PRESSURE_VESSEL_FILESYSTEMS_RW+="${_mainscript_mount:-}${_curdir_mount:-}${_home_mount:-}/mnt:/media:/run/media"
     [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
         PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs)" # mountpoint to osu/songs directory
@@ -382,8 +382,11 @@ saveOsuWinepath() {
 
     Info "Saving a copy of the osu! path..."
 
+    PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$osupath"):$(realpath "$osupath"/Songs):${PRESSURE_VESSEL_FILESYSTEMS_RW}"
+    export PRESSURE_VESSEL_FILESYSTEMS_RW
+
     local temp_winepath
-    temp_winepath="$(PRESSURE_VESSEL_FILESYSTEMS_RW="$(realpath "$osupath"):$(realpath "$osupath"/Songs):${PRESSURE_VESSEL_FILESYSTEMS_RW}" waitWine winepath -w "$osupath")"
+    temp_winepath="$(waitWine winepath -w "$osupath")"
     [ -z "${temp_winepath}" ] && Error "Couldn't get the osu! path from winepath... Check $osupath/osu!.exe ?" && return 1
 
     echo -n "${temp_winepath}" >"$XDG_DATA_HOME/osuconfig/.osu-path-winepath"
