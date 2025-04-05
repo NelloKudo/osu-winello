@@ -42,7 +42,7 @@ _mountline="$(df -P "$XDG_DATA_HOME" | tail -1)" && _home_mount="${_mountline##*
 PRESSURE_VESSEL_FILESYSTEMS_RW+="${_mainscript_mount:-}${_curdir_mount:-}${_home_mount:-}/mnt:/media:/run/media"
 [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
     PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs)" # mountpoint to osu/songs directory
-export PRESSURE_VESSEL_FILESYSTEMS_RW
+export PRESSURE_VESSEL_FILESYSTEMS_RW OSUPATH
 
 # reduce possibility of breakage
 export LC_ALL=en_US.UTF-8
