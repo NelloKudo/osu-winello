@@ -904,12 +904,13 @@ FixUmu() {
 FixYawl() {
     if [ ! -f "$BINDIR/osu-wine" ]; then
         Error "Looks like you haven't installed osu-winello yet, so you should run ./osu-winello.sh first." && return 1
-    elif [ ! -f "$WINE" ]; then
+    elif [ ! -f "$YAWL_INSTALL_PATH" ]; then
         Error "yawl not found, you should run ./osu-winello.sh first." && return 1
     fi
 
     Info "Fixing yawl..."
-    YAWL_VERBS="update;reinstall" "$WINE" "--version" && chk="$?"
+    YAWL_VERBS="update;verify;exec=/bin/true" "$YAWL_INSTALL_PATH" && chk=$?
+    YAWL_VERBS="make_wrapper=winello;exec=$WINE_INSTALL_PATH/bin/wine;wineserver=$WINE_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
     if [ "${chk}" != 0 ]; then
         Error "That didn't seem to work... try again?" && return 1
     else
