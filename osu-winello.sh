@@ -205,7 +205,7 @@ InitialSetup() {
     ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && ! ping -c 1 google.com >/dev/null 2>&1 && InstallError "Please connect to internet before continuing xd. Run the script again"
 
     # Looking for dependencies..
-    deps=(realpath wget zenity unzip)
+    deps=(pgrep realpath wget zenity unzip)
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" >/dev/null 2>&1; then
             InstallError "Please install $dep before continuing!"
@@ -845,19 +845,25 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 
 # Open files/links with osu-handler-wine
 osuHandlerHandle() {
-    local ARG="${*:-}"
-    local OSUHANDLERPATH="$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler-wine"
-    [ ! -x "$OSUHANDLERPATH" ] && chmod +x "$OSUHANDLERPATH"
+    local ARG="${*:-}" OSUPID
+    local HANDLERRUN=("$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler-wine")
+    [ ! -x "${HANDLERRUN[0]}" ] && chmod +x "${HANDLERRUN[0]}"
+
+    [ -x "$YAWL_INSTALL_PATH" ] && OSUPID="$(pgrep osu!.exe)" && {
+        HANDLERRUN=("env" "YAWL_VERBS=enter=$OSUPID" "$YAWL_INSTALL_PATH" "${HANDLERRUN[0]}")
+        echo "Trying to open osu-handler-wine in the running container for osu! (PID=$OSUPID)"
+    }
 
     case "$ARG" in
     osu://*)
         echo "Trying to load link ($ARG).." >&2
-        exec "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "$ARG"
+        exec "${HANDLERRUN[@]}" 'C:\\windows\\system32\\start.exe' "$ARG"
         ;;
     *.osr | *.osz | *.osk | *.osz2)
-        echo "Trying to load file ($ARG).." >&2
-        local EXT="${ARG##*.}"
-        exec "$OSUHANDLERPATH" 'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$ARG"
+        local EXT="${ARG##*.}" FULLARGPATH
+        FULLARGPATH="$(realpath "$ARG")" || FULLARGPATH="$ARG"
+        echo "Trying to load file ($FULLARGPATH).." >&2
+        exec "${HANDLERRUN[@]}"  'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$FULLARGPATH"
         ;;
     esac
     # If we reached here, it must means osu-handler failed/none of the cases matched
