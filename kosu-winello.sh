@@ -448,7 +448,7 @@ Icon=$XDG_DATA_HOME/icons/kosu-wine.png" | tee "$XDG_DATA_HOME/applications/osuw
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
-            "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3
+            "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3 dotnetdesktop8 dotnet8
         else
             tar -xf "$HOME/.winellotmp/kosu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
             mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/kosu-wineprefix"
