@@ -22,17 +22,17 @@ osu! stable installer for Linux with patched wine-osu and other features.
 
 ## Prerequisites 
 
-The only requirements, besides **64-bit graphics drivers**, are `git`, `zenity`,`wget` and `xdg-desktop-portal` (for in-game links).
+The only requirements, besides **64-bit graphics drivers**, are `git`, `zenity`,`wget` and `xdg-desktop-portal-gtk` (for in-game links).
 
 You can easily install them like this:
 
-**Ubuntu/Debian:** `sudo apt install -y git wget zenity xdg-desktop-portal`
+**Ubuntu/Debian:** `sudo apt install -y git wget zenity xdg-desktop-portal-gtk`
 
-**Arch Linux:** `sudo pacman -Syu --needed  --noconfirm git wget zenity xdg-desktop-portal`
+**Arch Linux:** `sudo pacman -Syu --needed  --noconfirm git wget zenity xdg-desktop-portal-gtk`
 
-**Fedora:** `sudo dnf install -y git wget zenity xdg-desktop-portal`
+**Fedora:** `sudo dnf install -y git wget zenity xdg-desktop-portal-gtk`
 
-**openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal`
+**openSUSE:** `sudo zypper install -y git wget zenity xdg-desktop-portal-gtk`
 
 ## Drivers:
 
