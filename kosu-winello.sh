@@ -29,7 +29,7 @@ GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
 
 # Other download links
-PREFIXLINK="https://gitlab.com/NelloKudo/kosu-winello-prefix/-/raw/master/kosu-winello-prefix.tar.xz" # Default WINEPREFIX
+PREFIXLINK="https://gitlab.com/NelloKudo/osu-winello-prefix/-/raw/master/osu-winello-prefix.tar.xz" # Default WINEPREFIX
 OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz" # osu-mime (file associations)
 
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
@@ -438,20 +438,20 @@ Icon=$XDG_DATA_HOME/icons/kosu-wine.png" | tee "$XDG_DATA_HOME/applications/osuw
         # Downloading prefix in temporary ~/.winellotmp folder
         # to make up for this issue: https://github.com/NelloKudo/kosu-winello/issues/36
         mkdir -p "$HOME/.winellotmp"
-        wget -O "$HOME/.winellotmp/kosu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
+        wget -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" && chk="$?"
 
         # If download failed:
         if [ ! "$chk" = 0 ]; then
             Info "wget failed; trying with --no-check-certificate.."
-            wget --no-check-certificate -O "$HOME/.winellotmp/kosu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
+            wget --no-check-certificate -O "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" "${PREFIXLINK}" || failprefix="true"
         fi
 
         # Checking whether to create prefix manually or install it from repos
         if [ "$failprefix" = "true" ]; then
             "$UMU_RUN" winetricks dotnet20 dotnet48 gdiplus_winxp win2k3 dotnetdesktop8 dotnet8
         else
-            tar -xf "$HOME/.winellotmp/kosu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
-            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/kosu-wineprefix"
+            tar -xf "$HOME/.winellotmp/osu-winello-prefix-umu.tar.xz" -C "$XDG_DATA_HOME/wineprefixes"
+            mv "$XDG_DATA_HOME/wineprefixes/osu-umu" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
         fi
 
         # Cleaning..
