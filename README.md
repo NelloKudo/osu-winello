@@ -90,6 +90,9 @@ osu-wine
 - Skips the pain of downloading Wineprefix thanks to [my fork](https://gitlab.com/NelloKudo/osu-winello-prefix) of [osu-wineprefix](https://gitlab.com/osu-wine/osu-wineprefix)
 - Support for Windows fonts pre-installed in Wine (JP fonts, special characters etc.)
 
+For a clearer overview of everything the script does, DeepWiki did a great job summarizing it. Check it out:
+- [deepwiki/osu-winello](https://deepwiki.com/NelloKudo/osu-winello)
+
 # Customization
 
 Winello allows you to set launch arguments or custom environment variables using `.cfg` files located in:
