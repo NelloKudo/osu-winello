@@ -79,7 +79,7 @@ osu-wine
 ```
 ### ⚠ **!! \o/ !!** ⚠ :
 - You might need to relaunch your terminal to launch the game.
-- Use **-40/35ms** offset to make up for Wine quirks (or -25 if you're using audio compatibility mode)
+- Use **-40/35ms** global offset to make up for Wine quirks (or -25 if you're using audio compatibility mode). These values work for most setups, but your mileage may vary. Keep an eye on the hit meter!
 
 # Features:
 - Comes with **updatable patched** [wine-osu](https://github.com/NelloKudo/WineBuilder/releases) binaries with the latest osu! patches for low-latency audio, better performance, alt-tab behavior, crashes fixes and more.
