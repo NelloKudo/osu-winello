@@ -202,7 +202,7 @@ InitialSetup() {
 
     # Well, we do need internet ig...
     Info "Checking for internet connection.."
-    ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && ! ping -c 1 google.com >/dev/null 2>&1 && InstallError "Please connect to internet before continuing xd. Run the script again"
+    ! ping -c 2 1.1.1.1 >/dev/null 2>&1 && ! ping -c 2 google.com >/dev/null 2>&1 && InstallError "Please connect to internet before continuing xd. Run the script again"
 
     # Looking for dependencies..
     deps=(pgrep realpath wget zenity unzip)
@@ -459,7 +459,7 @@ reconfigurePrefix() {
 
     [ -n "${freshprefix}" ] && {
         Info "Checking for internet connection.." # The bundled prefix install already checks for internet, so no point checking again
-        ! ping -c 1 1.1.1.1 >/dev/null 2>&1 && { Error "Please connect to internet before continuing xd. Run the script again" && return 1; }
+        ! ping -c 2 1.1.1.1 >/dev/null 2>&1 && { Error "Please connect to internet before continuing xd. Run the script again" && return 1; }
 
         [ -d "${WINEPREFIX:?}" ] && rm -rf "${WINEPREFIX}"
 
