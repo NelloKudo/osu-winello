@@ -466,10 +466,8 @@ reconfigurePrefix() {
         Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
         "$WINESERVER" -k
         PATH="${SCRDIR}/stuff:${PATH}" WINEDEBUG="fixme-winediag,${WINEDEBUG:-}" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
-            "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo win10 ||
+            "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo dxvk win10 ||
             { Error "winetricks failed catastrophically!" && return 1; }
-
-        InstallDxvk || return 1
     }
 
     folderFixSetup || return 1
@@ -872,19 +870,6 @@ osuHandlerHandle() {
     return 1
 }
 
-InstallDxvk() {
-    # Installing patched dxvk-osu binaries, read more in stuff/dxvk-osu.
-    Info "Installing DXVK for improved osu! compatibility mode performance..."
-    cp "${SCRDIR}"/stuff/dxvk-osu/x64/*.dll "$WINEPREFIX/drive_c/windows/system32"
-    cp "${SCRDIR}"/stuff/dxvk-osu/x32/*.dll "$WINEPREFIX/drive_c/windows/syswow64"
-
-    # Setting DllOverrides for those to Native
-    for dll in dxgi d3d8 d3d9 d3d10core d3d11; do
-        waitWine reg add "HKEY_CURRENT_USER\Software\Wine\DllOverrides" /v "$dll" /d native /f
-    done
-    $okay
-}
-
 installWinetricks() {
     if [ ! -x "$WINETRICKS" ]; then
         Info "Installing winetricks..."
@@ -980,10 +965,6 @@ case "$1" in
 'handle')
     # Should be called by the osu-handler desktop files (or osu-wine for backwards compatibility)
     osuHandlerHandle "${@:2}" || exit 1
-    ;;
-
-'installdxvk')
-    InstallDxvk || exit 1
     ;;
 
 'installwinetricks')
