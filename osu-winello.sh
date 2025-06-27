@@ -34,6 +34,7 @@ OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
 DISCRPCLINK="https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRPCBRIDGEVERSION}/bridge.zip"
 GOSUMEMORYLINK="https://github.com/l3lackShark/gosumemory/releases/download/${GOSUMEMORYVERSION}/gosumemory_windows_amd64.zip"
 TOSULINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu-windows-v${TOSUVERSION}.zip"
+AKATSUKILINK="https://air_conditioning.akatsuki.gg/loader"
 
 # The URL for our git repo
 WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
@@ -746,6 +747,32 @@ tosu() {
     $okay
 }
 
+# Installs Akatsuki patcher (https://akatsuki.gg/patcher)
+akatsukiPatcher() {
+    local AKATSUKI_PATH="$XDG_DATA_HOME/osuconfig/akatsukiPatcher"
+
+    if ! grep -q 'dotnetdesktop6' "$WINEPREFIX/winetricks.log" 2>/dev/null; then
+        Info "Akatsuki Patcher needs .NET Desktop Runtime 6, installing it with winetricks..."
+        $WINETRICKS -q -f dotnetdesktop6
+    fi
+
+    if [ ! -d "$AKATSUKI_PATH" ]; then
+        Info "Downloading patcher.."
+        mkdir -p "$AKATSUKI_PATH"
+        wget --content-disposition -O "$AKATSUKI_PATH/akatsuki_patcher.exe" "$AKATSUKILINK"
+    fi
+
+    # Setup usual LaunchOsu settings
+    export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec${WINEDEBUG:+,${WINEDEBUG}}"
+    WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
+
+    Info "Opening $AKATSUKI_PATH/akatsuki_patcher.exe .."
+    Info "If the patcher fails to find osu!, click on Locate > My Computer > D:, then press open and launch!"
+    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
+    "$WINE" "$AKATSUKI_PATH/akatsuki_patcher.exe" &>>"${WINELLO_LOGS_PATH}" || return 1
+    return 0
+}
+
 # Installs rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
 discordRpc() {
     Info "Setting up Discord RPC integration..."
@@ -943,6 +970,10 @@ case "$1" in
 
 'tosu')
     tosu || exit 1
+    ;;
+
+'akatsukiPatcher')
+    akatsukiPatcher || exit 1
     ;;
 
 'discordrpc')

@@ -281,6 +281,12 @@ case "$1" in
 
     ###################################################################################################
 
+'--akatsuki')
+    MainScript "akatsukiPatcher" || ErrorAndExit "Couldn't launch akatsuki patcher..."
+    ;;
+
+    ###################################################################################################
+
 *--disable-@(*osu*|memory*))
     rm -f "$OSUPATH/launch_with_memory.bat"
     Info "Memory reader (tosu/gosumemory) disabled."
