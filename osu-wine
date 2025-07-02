@@ -5,15 +5,12 @@ export BINDIR="${BINDIR:-$HOME/.local/bin}"
 ## Welcome to your osu! launch script!
 
 set -a
-# Don't change this file! It'll be overwritten on updates.
-source "$XDG_DATA_HOME/osuconfig/update/stuff/winello-default.cfg"
-
 ## Add your launch options to a file in $XDG_DATA_HOME/osuconfig/configs, likely ~/.local/share/osuconfig/configs
 ## You can look at the $XDG_DATA_HOME/osuconfig/configs/example.cfg for some common options (also on the git repo under 'stuff/').
 ## This example file won't be overwritten, but you can copy/rename it etc. as long as it ends in .cfg
 
-## Variables are explained with comments, but if you just need to add
-## any argument (like gamemoderun or mangohud) before osu!, use 'LAUNCH_ARGS'!
+## Variables are explained with comments, but if you just need to prepend
+## any argument (like gamemoderun or mangohud) before osu!, use 'PRE_LAUNCH_ARGS'!
 
 source "$XDG_DATA_HOME/osuconfig/configs/"*.cfg 2>/dev/null
 set +a
@@ -22,14 +19,19 @@ set +a
 # osu-winello internal variables, you probably don't have to touch these!
 ###################################################################################################
 
+set -a
+# Don't change this 'winello-default' file! It'll be overwritten on updates.
+source "$XDG_DATA_HOME/osuconfig/update/stuff/winello-default.cfg"
+set +a
+
 export WINE="${WINE:-$XDG_DATA_HOME/osuconfig/yawl-winello}"
-export WINESERVER="${WINE}server"
-export WINEPREFIX="$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
-export WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu"
+export WINESERVER="${WINESERVER:-${WINE}server}"
+export WINEPREFIX="${WINEPREFIX:-$XDG_DATA_HOME/wineprefixes/osu-wineprefix}"
+export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-$XDG_DATA_HOME/osuconfig/wine-osu}"
 
-export WINETRICKS="$XDG_DATA_HOME/osuconfig/winetricks"
+export WINETRICKS="${WINE_INSTALL_PATH:-$XDG_DATA_HOME/osuconfig/winetricks}"
 
-export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
+export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-}${WINEDLLOVERRIDES:+";"}winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
 LAUNCHERPATH="$(realpath "$0")"
 export LAUNCHERPATH
@@ -37,12 +39,12 @@ export LAUNCHERPATH
 # Make all paths visible to pressure-vessel
 _mainscriptpath="$(realpath "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh")"
 _mountline="$(df -P "$_mainscriptpath" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
-_mountline="$(df -P "$LAUNCHERPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _curdir_mount="${_mountline##* }:" # mountpoint to current directory
-_mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:" # mountpoint to XDG_DATA_HOME
+_mountline="$(df -P "$LAUNCHERPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _curdir_mount="${_mountline##* }:"        # mountpoint to current directory
+_mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:"         # mountpoint to XDG_DATA_HOME
 PRESSURE_VESSEL_FILESYSTEMS_RW+="${_mainscript_mount:-}${_curdir_mount:-}${_home_mount:-}/mnt:/media:/run/media"
 [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
     PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs 2>/dev/null)" # mountpoint to osu/songs directory
-export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW//\/:/:}" OSUPATH # clean any "just /" mounts, pressure-vessel doesn't like that
+export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW//\/:/:}" OSUPATH               # clean any "just /" mounts, pressure-vessel doesn't like that
 
 mapfile -t configs < <(find "$XDG_DATA_HOME/osuconfig/configs" -name '*.cfg')
 
@@ -111,8 +113,13 @@ MainScript() {
 
 LaunchOsu() {
     declare -a PRE_ARGS POST_ARGS
-    IFS=" " read -r -a POST_ARGS <<<"${*}"
-    IFS=" " read -r -a PRE_ARGS <<<"env ${LAUNCH_ARGS}"
+    # only add custom arguments from config if there were none passed to LaunchOsu
+    if [ -z "${*}" ]; then
+        IFS=" " read -r -a POST_ARGS <<<"${POST_LAUNCH_ARGS}"
+    else
+        IFS=" " read -r -a POST_ARGS <<<"${*}"
+    fi
+    IFS=" " read -r -a PRE_ARGS <<<"env ${PRE_LAUNCH_ARGS}"
 
     Info "Opening: $OSUPATH/osu!.exe ${POST_ARGS[*]}"
     if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then

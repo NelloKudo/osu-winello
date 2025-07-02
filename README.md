@@ -104,17 +104,20 @@ Winello allows you to set launch arguments or custom environment variables using
 An `example.cfg` file is provided, containing all supported environment variables along with usage instructions.
 
 ### Example  
-To add `mangohud` to the launch arguments, edit the `example.cfg` file:
+To add `mangohud` to the launch arguments, edit the configuration file:
 
 ```sh
 nano ~/.local/share/osuconfig/configs/example.cfg
+# or simply: osu-wine --edit-config
 ```
 
-Then, set the following line:
+There, uncomment the existing `# PRE_LAUNCH_ARGS=""` line (remove the #), or add a new one, like so:
 
 ```sh
-LAUNCH_ARGS="mangohud"
+PRE_LAUNCH_ARGS="mangohud"
 ```
+
+If you want to always run on a custom server, just edit `POST_LAUNCH_ARGS` in a similar fashion. An example is shown in the same file.
 
 # Optimizations
 
