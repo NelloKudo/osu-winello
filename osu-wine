@@ -31,7 +31,7 @@ export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-$XDG_DATA_HOME/osuconfig/wine-osu
 
 export WINETRICKS="${WINE_INSTALL_PATH:-$XDG_DATA_HOME/osuconfig/winetricks}"
 
-export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-}${WINEDLLOVERRIDES:+";"}winemenubuilder.exe=;" # Blocks wine from creating .desktop files
+export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
 
 LAUNCHERPATH="$(realpath "$0")"
 export LAUNCHERPATH
