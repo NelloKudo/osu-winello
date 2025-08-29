@@ -27,7 +27,7 @@ YAWLVERSION=0.7.1
 # Other download links
 WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"                 # Winetricks for --fixprefix
 PREFIXLINK="https://github.com/NelloKudo/osu-winello/releases/download/winello-bins/osu-winello-prefix.tar.xz" # Default WINEPREFIX
-OSUMIMELINK="https://aur.archlinux.org/cgit/aur.git/snapshot/osu-mime.tar.gz"                                  # osu-mime (file associations)
+OSUMIMELINK="https://github.com/NelloKudo/osu-winello/releases/download/winello-bins/osu-mime.tar.gz"                                  # osu-mime (file associations)
 YAWLLINK="https://github.com/whrvt/yawl/releases/download/v${YAWLVERSION}/yawl"                                # yawl (Wine launcher for Steam Runtime)
 
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
