@@ -111,6 +111,12 @@ MainScript() {
     return $? # shouldn't reach this if using exec
 }
 
+# Use wine-osu-cachy when enabled in the configuration file
+if [ "$WINE_USE_CACHY" == "true" ]; then
+    MainScript winecachy-setup
+    export WINE="$XDG_DATA_HOME/osuconfig/yawl-winello-cachy"
+fi
+
 LaunchOsu() {
     declare -a PRE_ARGS POST_ARGS
     # only add custom arguments from config if there were none passed to LaunchOsu
