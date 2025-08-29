@@ -16,6 +16,7 @@ LASTWINEVERSION=0
 
 # Wine-osu mirror
 WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-${WINEVERSION}/wine-osu-winello-fonts-wow64-${WINEVERSION}-x86_64.tar.xz"
+WINECACHYLINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-cachy-10.0-1/wine-osu-cachy-winello-fonts-wow64-10.0-1-x86_64.tar.xz"
 
 # Other versions for external downloads
 DISCRPCBRIDGEVERSION=1.2
@@ -937,6 +938,18 @@ FixYawl() {
     $okay
 }
 
+WineCachySetup() {
+    # First time setup: yawl-winello-cachy
+    if [ ! -d "$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0" ]; then
+        DownloadFile "$WINECACHYLINK" "/tmp/winecachy.tar.xz"
+        tar -xf "/tmp/winecachy.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
+        rm -f "/tmp/winecachy.tar.xz"
+
+        WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0"
+        YAWL_VERBS="make_wrapper=winello-cachy;exec=$WINE_INSTALL_PATH/bin/wine;wineserver=$WINE_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
+    fi
+}
+
 # Help!
 Help() {
     Info "To install the game, run ./osu-winello.sh
@@ -986,6 +999,10 @@ case "$1" in
 
 'fixprefix')
     reconfigurePrefix fresh || exit 1
+    ;;
+
+'winecachy-setup')
+    WineCachySetup || exit 1
     ;;
 
 # Also catch "fixosuhandler"
