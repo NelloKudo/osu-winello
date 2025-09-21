@@ -9,7 +9,7 @@
 
 # Wine-osu current versions for update
 MAJOR=10
-MINOR=14
+MINOR=15
 PATCH=1
 WINEVERSION=$MAJOR.$MINOR-$PATCH
 LASTWINEVERSION=0
