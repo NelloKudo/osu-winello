@@ -26,7 +26,7 @@ YAWLVERSION=0.7.1
 # Other download links
 WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"                 # Winetricks for --fixprefix
 PREFIXLINK="https://github.com/NelloKudo/osu-winello/releases/download/winello-bins/osu-winello-prefix.tar.xz" # Default WINEPREFIX
-OSUMIMELINK="https://github.com/NelloKudo/osu-winello/releases/download/winello-bins/osu-mime.tar.gz"                                  # osu-mime (file associations)
+OSUMIMELINK="https://github.com/NelloKudo/osu-winello/releases/download/winello-bins/osu-mime.tar.gz"          # osu-mime (file associations)
 YAWLLINK="https://github.com/whrvt/yawl/releases/download/v${YAWLVERSION}/yawl"                                # yawl (Wine launcher for Steam Runtime)
 
 OSUDOWNLOADURL="https://m1.ppy.sh/r/osu!install.exe"
@@ -75,13 +75,13 @@ export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/wine-os
 
 # Make all paths visible to pressure-vessel
 [ -z "${PRESSURE_VESSEL_FILESYSTEMS_RW}" ] && {
-    _mountline="$(df -P "$SCRPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
+    _mountline="$(df -P "$SCRPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:"  # mountpoint to main script path
     _mountline="$(df -P "$LAUNCHERPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _curdir_mount="${_mountline##* }:" # mountpoint to current directory
-    _mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:" # mountpoint to XDG_DATA_HOME
+    _mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:"  # mountpoint to XDG_DATA_HOME
     PRESSURE_VESSEL_FILESYSTEMS_RW+="${_mainscript_mount:-}${_curdir_mount:-}${_home_mount:-}/mnt:/media:/run/media"
     [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
         PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs 2>/dev/null)" # mountpoint to osu/songs directory
-    export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW//\/:/:}" # clean any "just /" mounts, pressure-vessel doesn't like that
+    export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW//\/:/:}"                       # clean any "just /" mounts, pressure-vessel doesn't like that
 }
 
 export LC_ALL=en_US.UTF-8
@@ -874,10 +874,13 @@ osuHandlerHandle() {
     local HANDLERRUN=("$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler-wine")
     [ ! -x "${HANDLERRUN[0]}" ] && chmod +x "${HANDLERRUN[0]}"
 
-    [ -x "$YAWL_INSTALL_PATH" ] && OSUPID="$(pgrep osu!.exe)" && {
+    if [ -x "$YAWL_INSTALL_PATH" ] && OSUPID="$(pgrep osu!.exe)"; then
         HANDLERRUN=("env" "YAWL_VERBS=enter=$OSUPID" "$YAWL_INSTALL_PATH" "${HANDLERRUN[0]}")
         echo "Trying to open osu-handler-wine in the running container for osu! (PID=$OSUPID)" >&2
-    }
+    else
+        HANDLERRUN=("env" "${WINE}") # we don't actually need osu-handler if we're starting a new instance
+        echo "Trying to open a new instance of osu! to handle ${ARG}" >&2
+    fi
 
     case "$ARG" in
     osu://*)
@@ -885,10 +888,17 @@ osuHandlerHandle() {
         exec "${HANDLERRUN[@]}" 'C:\\windows\\system32\\start.exe' "$ARG"
         ;;
     *.osr | *.osz | *.osk | *.osz2)
-        local EXT="${ARG##*.}" FULLARGPATH
-        FULLARGPATH="$(realpath "$ARG")" || FULLARGPATH="$ARG"
+        local EXT="${ARG##*.}" FULLARGPATH FILEDIR
+        FULLARGPATH="$(realpath "${ARG}")" || FULLARGPATH="${ARG}" # || for fallback if realpath failed
+
+        # also, add the containing directory to the PRESSURE_VESSEL_FILESYSTEMS_RW, because it might be in some other location
+        FILEDIR="$(realpath "$(dirname "${FULLARGPATH}")")"
+        if [ -n "${FILEDIR}" ] && [ "${FILEDIR}" != "/" ]; then
+            export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW}:${FILEDIR}"
+        fi
+
         echo "Trying to load file ($FULLARGPATH).." >&2
-        exec "${HANDLERRUN[@]}"  'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$FULLARGPATH"
+        exec "${HANDLERRUN[@]}" 'C:\\windows\\system32\\start.exe' "/ProgIDOpen" "osustable.File.$EXT" "$FULLARGPATH"
         ;;
     esac
     # If we reached here, it must means osu-handler failed/none of the cases matched

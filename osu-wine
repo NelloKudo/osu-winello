@@ -94,17 +94,17 @@ MainScriptUpdate() {
     _reset
     # check again, doesn't hurt
     [ -d "$XDG_DATA_HOME/osuconfig/update" ] || ErrorAndExit "Your osu-winello folder is broken, please reinstall from scratch..."
-    MainScript "${*}"
+    MainScript "${@:-}"
     return $?
 }
 
 # Same as above, but without checking for updates
 MainScript() {
     declare -a CMD POST_ARGS
-    IFS=" " read -r -a POST_ARGS <<<"${*}"
+    POST_ARGS=("${@:-}")
     CMD=("bash")
     # Check for MainScript(Update) exec <command> to not re-enter the launcher after calling the main script
-    [ "${POST_ARGS[0]}" = "exec" ] && CMD=("exec" "bash") && POST_ARGS=("${POST_ARGS[@]:1}")
+    [[ "${POST_ARGS[0]}" = exec* ]] && CMD=("exec" "bash") && POST_ARGS=("${POST_ARGS[@]:1}")
     [ -z "${POST_ARGS[*]}" ] && ErrorAndExit "(internal) Missing arguments?"
 
     "${CMD[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${POST_ARGS[@]}"
@@ -115,9 +115,10 @@ LaunchOsu() {
     declare -a PRE_ARGS POST_ARGS
     # only add custom arguments from config if there were none passed to LaunchOsu
     if [ -z "${*}" ]; then
+        # this is sketchy because double spaces won't be handled properly
         IFS=" " read -r -a POST_ARGS <<<"${POST_LAUNCH_ARGS}"
     else
-        IFS=" " read -r -a POST_ARGS <<<"${*}"
+        POST_ARGS=("${@:-}")
     fi
     IFS=" " read -r -a PRE_ARGS <<<"env ${PRE_LAUNCH_ARGS}"
 
