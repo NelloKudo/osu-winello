@@ -16,7 +16,7 @@ LASTWINEVERSION=0
 
 # Wine-osu mirror
 WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-${WINEVERSION}/wine-osu-winello-fonts-wow64-${WINEVERSION}-x86_64.tar.xz"
-WINECACHYLINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-cachyos-v10.0-2/wine-osu-cachy-winello-fonts-wow64-10.0-2-x86_64.tar.xz"
+WINECACHYLINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-cachyos-v10.0-3/wine-osu-cachy-winello-fonts-wow64-10.0-3-x86_64.tar.xz"
 
 # Other versions for external downloads
 DISCRPCBRIDGEVERSION=1.2
