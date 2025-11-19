@@ -10,7 +10,7 @@
 # Wine-osu current versions for update
 MAJOR=10
 MINOR=15
-PATCH=3
+PATCH=4
 WINEVERSION=$MAJOR.$MINOR-$PATCH
 LASTWINEVERSION=0
 
@@ -281,7 +281,7 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
 # Function configuring folders to install the game
 InitialOsuInstall() {
     local installpath=1
-    Info "Where do you want to install the game?: 
+    Info "Where do you want to install the game?:
           1 - Default path ($XDG_DATA_HOME/osu-wine)
           2 - Custom path"
     read -r -p "$(Info "Choose your option: ")" installpath
