@@ -56,8 +56,7 @@ If you're still confused, try installing Steam with your package manager. That w
 Check if it's already on your system with:
 
 ```
-export LANG=C
-pactl info | grep "Server Name"
+LANG=C pactl info | grep "Server Name"
 ```
 
 If it shows `Server Name: PulseAudio (on Pipewire)` , then you're good to go. 
