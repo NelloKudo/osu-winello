@@ -23,6 +23,7 @@ DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
 YAWLVERSION=0.7.1
+MAPPINGTOOLSVERSION=1.12.27
 
 # Other download links
 WINETRICKSLINK="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"                 # Winetricks for --fixprefix
@@ -36,6 +37,7 @@ DISCRPCLINK="https://github.com/EnderIce2/rpc-bridge/releases/download/v${DISCRP
 GOSUMEMORYLINK="https://github.com/l3lackShark/gosumemory/releases/download/${GOSUMEMORYVERSION}/gosumemory_windows_amd64.zip"
 TOSULINK="https://github.com/tosuapp/tosu/releases/download/v${TOSUVERSION}/tosu-windows-v${TOSUVERSION}.zip"
 AKATSUKILINK="https://air_conditioning.akatsuki.gg/loader"
+MAPPINGTOOLSLINK="https://github.com/OliBomby/Mapping_Tools/releases/download/v${MAPPINGTOOLSVERSION}/mapping_tools_installer_x64.exe"
 
 # The URL for our git repo
 WINELLOGIT="https://github.com/NelloKudo/osu-winello.git"
@@ -774,6 +776,42 @@ akatsukiPatcher() {
     return 0
 }
 
+# Installs osu! Mapping Tools (https://github.com/olibomby/mapping_tools)
+mappingTools() {
+    local MAPPINGTOOLSPATH="${WINEPREFIX}/drive_c/Program Files/Mapping Tools"
+    local OSUPID
+
+    export DOTNET_BUNDLE_EXTRACT_BASE_DIR="C:\\dotnet_tmp"
+    export DOTNET_ROOT="C:\\Program Files\\dotnet"
+    [ ! -d "${WINEPREFIX}/drive_c/dotnet_tmp" ] && mkdir -p "${WINEPREFIX}/drive_c/dotnet_tmp"
+    [ ! -d "${WINEPREFIX}/drive_c/Program Files/dotnet" ] && mkdir -p "${WINEPREFIX}/drive_c/Program Files/dotnet"
+
+    # Disable icu.dll to prevent issues
+    export WINEDLLOVERRIDES="${WINEDLLOVERRIDES};icu.dll=d"
+
+    if [ ! -d "${MAPPINGTOOLSPATH}" ]; then
+        if OSUPID="$(pgrep osu!.exe)"; then Quit "Please close osu! before installing mapping tools for the first time."; fi
+
+        "$WINESERVER" -k
+
+        Info "Setting up regedit for Mapping Tools.."
+        waitWine reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Avalon.Graphics" /v DisableHWAcceleration /t REG_DWORD /d 1 /f
+
+        Info "Downloading Mapping Tools, please confirm the installer prompts.."
+        DownloadFile "${MAPPINGTOOLSLINK}" /tmp/mapping_tools_installer_x64.exe
+
+        waitWine /tmp/mapping_tools_installer_x64.exe
+        rm /tmp/mapping_tools_installer_x64.exe
+    fi
+
+    if [ -x "$YAWL_INSTALL_PATH" ] && OSUPID="$(pgrep osu!.exe)"; then
+        Info "Launching Mapping Tools.."
+        YAWL_VERBS="enter=$OSUPID" "${WINE_INSTALL_PATH}/bin/wine" "$MAPPINGTOOLSPATH/"'Mapping Tools.exe'
+    else
+        Quit "Please launch osu! before launching Mapping Tools!"
+    fi
+}
+
 # Installs rpc-bridge for Discord RPC (https://github.com/EnderIce2/rpc-bridge)
 discordRpc() {
     Info "Setting up Discord RPC integration..."
@@ -997,6 +1035,10 @@ case "$1" in
 
 'akatsukiPatcher')
     akatsukiPatcher || exit 1
+    ;;
+
+'mappingTools')
+    mappingTools || exit 1
     ;;
 
 'discordrpc')

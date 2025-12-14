@@ -302,6 +302,12 @@ case "$1" in
 
     ###################################################################################################
 
+'--mappingtools')
+    MainScript "mappingTools" || ErrorAndExit "Couldn't launch Mapping Tools..."
+    ;;
+
+    ###################################################################################################
+
 *--disable-@(*osu*|memory*))
     rm -f "$OSUPATH/launch_with_memory.bat"
     Info "Memory reader (tosu/gosumemory) disabled."
