@@ -115,6 +115,7 @@ MainScript() {
 if [ "$WINE_USE_CACHY" == "true" ]; then
     MainScript winecachy-setup
     export WINE="$XDG_DATA_HOME/osuconfig/yawl-winello-cachy"
+    export WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0"
 fi
 
 LaunchOsu() {
