@@ -166,6 +166,8 @@ osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the spec
 osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
 osu-wine --tosu: Installs and runs tosu without any needed config!
 osu-wine --disable-memory-reader: Turn off gosumemory and tosu
+osu-wine --akatsuki: Installs and runs Akatsuki patcher
+osu-wine --mappingtools: Installs and runs osu! Mapping Tools (experimental, WINE_USE_CACHY=true recommended)
 ```
 
 NOTE: Any command can be prefixed by the letter 'n' to avoid updating when running it.

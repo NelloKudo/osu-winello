@@ -78,7 +78,9 @@ Help() {
     osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
     osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
     osu-wine --tosu: Installs and runs tosu without any needed config!
-    osu-wine --disable-memory-reader: Turn off gosumemory and tosu"
+    osu-wine --disable-memory-reader: Turn off gosumemory and tosu
+    osu-wine --akatsuki: Installs and runs Akatsuki patcher
+    osu-wine --mappingtools: Installs and runs osu! Mapping Tools (experimental, WINE_USE_CACHY=true recommended)"
 }
 
 # Won't return failure if there's no internet connection, but tries to update the main script first before calling the function
