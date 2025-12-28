@@ -225,8 +225,15 @@ case "$1" in
     ###################################################################################################
 
 '--winetricks')
-    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { $mainscriptcommand "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
-    "$WINETRICKS" "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
+    [ ! -x "$WINETRICKS" ] && { $mainscriptcommand "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
+    # Run winetricks inside yawl to avoid container re-creation overhead when winetricks runs wine a bunch of times internally
+    if [[ "$WINE" = */yawl* ]]; then
+        WINE="${WINE_INSTALL_PATH}/bin/wine" WINESERVER="${WINE_INSTALL_PATH}/bin/wineserver" YAWL_VERBS="exec=$WINETRICKS" \
+            "${XDG_DATA_HOME}/osuconfig/yawl" "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
+    else
+        # Not if wine was explicitly overridden though.
+        "$WINETRICKS" "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
+    fi
     ;;
 
     ###################################################################################################

@@ -22,7 +22,7 @@ WINECACHYLINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-o
 DISCRPCBRIDGEVERSION=1.2
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
-YAWLVERSION=0.7.1
+YAWLVERSION=0.8.2
 MAPPINGTOOLSVERSION=1.12.27
 
 # Other download links
@@ -225,6 +225,15 @@ waitWine() {
         "$WINE" "${@:-"--version"}"
     }
     return 0
+}
+
+# Wrapper to run winetricks inside yawl with the current wine setup
+runWinetricks() {
+    # Install if it isn't already, does nothing if it is
+    installWinetricks &&
+        WINE="${WINE_INSTALL_PATH}/bin/wine" WINESERVER="${WINE_INSTALL_PATH}/bin/wineserver" \
+            YAWL_VERBS="exec=${WINETRICKS}" "${YAWL_INSTALL_PATH}" "${@:-}"
+    return $?
 }
 
 # Function to install script files, yawl and Wine-osu
@@ -459,8 +468,6 @@ reconfigurePrefix() {
         shift
     done
 
-    installWinetricks
-
     [ -n "${freshprefix}" ] && {
         Info "Checking for internet connection.." # The bundled prefix install already checks for internet, so no point checking again
         ! ping -c 2 1.1.1.1 >/dev/null 2>&1 && { Error "Please connect to internet before continuing xd. Run the script again" && return 1; }
@@ -470,7 +477,7 @@ reconfigurePrefix() {
         Info "Downloading and installing a new prefix with winetricks. This might take a while, so go make a coffee or something."
         "$WINESERVER" -k
         PATH="${SCRDIR}/stuff:${PATH}" WINEDEBUG="fixme-winediag,${WINEDEBUG:-}" WINENTSYNC=0 WINEESYNC=0 WINEFSYNC=0 \
-            "$WINETRICKS" -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo dxvk win10 ||
+            runWinetricks -q nocrashdialog autostart_winedbg=disabled dotnet48 dotnet20 gdiplus_winxp meiryo dxvk win10 ||
             { Error "winetricks failed catastrophically!" && return 1; }
     }
 
@@ -756,7 +763,7 @@ akatsukiPatcher() {
 
     if ! grep -q 'dotnetdesktop6' "$WINEPREFIX/winetricks.log" 2>/dev/null; then
         Info "Akatsuki Patcher needs .NET Desktop Runtime 6, installing it with winetricks..."
-        $WINETRICKS -q -f dotnetdesktop6
+        runWinetricks -q -f dotnetdesktop6
     fi
 
     if [ ! -d "$AKATSUKI_PATH" ]; then
