@@ -366,6 +366,9 @@ FullInstall() {
 longPathsFix() {
     Info "Applying fix for long song names (e.g. because of deeply nested osu! folder)..."
 
+    # replace default wineprefix username with user's username
+    sed -i -e "s|nellokudo|${USER}|g" "${WINEPREFIX}"/{userdef.reg,user.reg,system.reg}
+
     rm -rf "$WINEPREFIX/dosdevices"
     rm -rf "$WINEPREFIX/drive_c/users/nellokudo"
     mkdir -p "$WINEPREFIX/dosdevices"
