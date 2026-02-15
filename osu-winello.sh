@@ -170,6 +170,42 @@ DownloadFile() {
     return 1
 }
 
+# detect the currently running shell by walking up the process tree
+detectRunningShell() {
+    local current_shell=""
+    local ppid=$PPID
+    local max_iterations=10
+    local iteration=0
+    
+    while [ "$ppid" -gt 1 ] && [ $iteration -lt $max_iterations ]; do
+        iteration=$((iteration + 1))
+        
+        if [ -f "/proc/$ppid/status" ]; then
+            ppid=$(grep "^PPid:" /proc/$ppid/status | awk '{print $2}')
+            
+            if [ -f "/proc/$ppid/comm" ]; then
+                local proc_name=$(cat /proc/$ppid/comm)
+                
+                case "$proc_name" in
+                    bash|zsh|fish|ksh|mksh|dash|tcsh|csh) # i surely hope these are enough...
+                        current_shell="$proc_name"
+                        break
+                        ;;
+                esac
+            fi
+        else
+            break
+        fi
+    done
+    
+    # fallback to $SHELL if detection failed
+    if [ -z "$current_shell" ]; then
+        current_shell=$(basename "$SHELL")
+    fi
+    
+    echo "$current_shell"
+}
+
 # Function looking for basic stuff needed for installation
 InitialSetup() {
     # Better to not run the script as root, right?
@@ -187,21 +223,28 @@ InitialSetup() {
 
     # If $BINDIR is not in PATH:
     if [ "$pathcheck" != "y" ]; then
-
-        if grep -q "bash" "$SHELL"; then
-            touch -a "$HOME/.bashrc"
-            echo "export PATH=$BINDIR:$PATH" >>"$HOME/.bashrc"
-        fi
-
-        if grep -q "zsh" "$SHELL"; then
-            touch -a "$HOME/.zshrc"
-            echo "export PATH=$BINDIR:$PATH" >>"$HOME/.zshrc"
-        fi
-
-        if grep -q "fish" "$SHELL"; then
-            mkdir -p "$HOME/.config/fish" && touch -a "$HOME/.config/fish/config.fish"
-            fish -c fish_add_path "$BINDIR/"
-        fi
+        current_shell=$(detectRunningShell)
+        
+        case "$current_shell" in
+            bash)
+                touch -a "$HOME/.bashrc"
+                echo "export PATH=$BINDIR:\$PATH" >>"$HOME/.bashrc"
+                Info "Added $BINDIR to PATH in ~/.bashrc (restart shell or run: source ~/.bashrc)"
+                ;;
+            zsh)
+                touch -a "$HOME/.zshrc"
+                echo "export PATH=$BINDIR:\$PATH" >>"$HOME/.zshrc"
+                Info "Added $BINDIR to PATH in ~/.zshrc (restart shell or run: source ~/.zshrc)"
+                ;;
+            fish)
+                mkdir -p "$HOME/.config/fish" && touch -a "$HOME/.config/fish/config.fish"
+                fish -c "fish_add_path $BINDIR/"
+                Info "Added $BINDIR to PATH in fish config (restart shell)"
+                ;;
+            *)
+                Warning "Could not detect shell ($current_shell). Please manually add $BINDIR to your PATH"
+                ;;
+        esac
     fi
 
     # Well, we do need internet ig...
