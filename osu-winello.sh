@@ -903,6 +903,18 @@ folderFixSetup() {
     else
         waitWine reg add "HKEY_CLASSES_ROOT\folder\shell\open\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
     fi
+
+    # Associate .osu and .osb files with winebrowser
+    waitWine reg add "HKEY_CLASSES_ROOT\\.osu" /f /ve /t REG_SZ /d "osu_winello_file"
+    waitWine reg add "HKEY_CLASSES_ROOT\\.osb" /f /ve /t REG_SZ /d "osu_winello_file"
+
+    waitWine reg add "HKEY_CLASSES_ROOT\\osu_winello_file" /f
+    waitWine reg add "HKEY_CLASSES_ROOT\\osu_winello_file\\shell\\open\\command" /f
+    if [ -z "${fallback:-}" ]; then
+        waitWine reg add "HKEY_CLASSES_ROOT\\osu_winello_file\\shell\\open\\command" /f /ve /t REG_SZ /d "wscript.exe \"${VBS_WINPATH//\\/\\\\}\" \"%1\""
+    else
+        waitWine reg add "HKEY_CLASSES_ROOT\\osu_winello_file\\shell\\open\\command" /f /ve /t REG_SZ /d "${FALLBACK_PATH} xdg-open \"%1\""
+    fi
     $okay
 }
 
