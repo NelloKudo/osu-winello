@@ -4,7 +4,7 @@
 #   Welcome to Winello!
 #   The whole script is divided in different
 #   functions to make it easier to read.
-#   Feel free to contribute!
+#   Feel free to contribute! 
 #   =======================================
 
 # Wine-osu current versions for update
