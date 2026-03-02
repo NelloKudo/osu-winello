@@ -155,7 +155,7 @@ Error() {
 }
 
 # Shorthand for a lot of functions succeeding
-okay="eval 信息 完成! && return 0"
+okay="eval Info Done! && return 0"
 
 wgetcommand="wget -q --show-progress"
 _wget() {
