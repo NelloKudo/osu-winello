@@ -3,7 +3,7 @@
 
 针对本项目，您可以直接：
 ```
-git clone https://github.com/DeminTiC/osu-winello_for_cn_fork.git
+git clone https://cdn.gh-proxy.org/https://github.com/DeminTiC/osu-winello_for_cn_fork.git
 cd osu-winello_for_cn_fork
 chmod +x ./osu-winello.sh
 ./osu-winello.sh
