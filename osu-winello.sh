@@ -630,7 +630,7 @@ launcherUpdate() {
 }
 
 installYawl() {
-    Info "安装 yawl..."
+    Info "安装Yawl..."
     DownloadFile "$YAWLLINK" "/tmp/yawl" || return 1
     mv "/tmp/yawl" "$XDG_DATA_HOME/osuconfig"
     chmod +x "$YAWL_INSTALL_PATH"
