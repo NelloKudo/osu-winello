@@ -739,7 +739,7 @@ Uninstall() {
     read -r -p "$(Info "您想要卸载游戏文件吗？ (y/N)")" choice
 
     if [ "$choice" = 'y' ] || [ "$choice" = 'Y' ]; then
-        read -r -p "$(Info "你确定吗？这将删除你的游戏文件！(y/N)" choice2
+        read -r -p "$(Info "你确定吗？这将删除你的文件！(y/N)")" choice2
 
         if [ "$choice2" = 'y' ] || [ "$choice2" = 'Y' ]; then
             Info "卸载游戏:"
