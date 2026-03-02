@@ -2,25 +2,24 @@
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
-## Welcome to your osu! launch script!
+## 欢迎使用 osu! 启动脚本！
 
 set -a
-## Add your launch options to a file in $XDG_DATA_HOME/osuconfig/configs, likely ~/.local/share/osuconfig/configs
-## You can look at the $XDG_DATA_HOME/osuconfig/configs/example.cfg for some common options (also on the git repo under 'stuff/').
-## This example file won't be overwritten, but you can copy/rename it etc. as long as it ends in .cfg
+## 将你的启动选项添加到 $XDG_DATA_HOME/osuconfig/configs 的文件中，通常是 ~/.local/share/osuconfig/configs
+## 你可以在 $XDG_DATA_HOME/osuconfig/configs/example.cfg 中查看一些常见选项（也可以在 git 仓库的 'stuff/' 目录下找到）。
+## 这个示例文件不会被覆盖，但你可以复制/重命名等操作，只要它以 .cfg 结尾即可。
 
-## Variables are explained with comments, but if you just need to prepend
-## any argument (like gamemoderun or mangohud) before osu!, use 'PRE_LAUNCH_ARGS'!
+## 变量通过注释说明，但如果你只需要在 osu! 之前添加任何参数（如 gamemoderun 或 mangohud），请使用 'PRE_LAUNCH_ARGS'！
 
 source "$XDG_DATA_HOME/osuconfig/configs/"*.cfg 2>/dev/null
 set +a
 
 ###################################################################################################
-# osu-winello internal variables, you probably don't have to touch these!
+# osu-winello 内部变量，通常不需要修改这些！
 ###################################################################################################
 
 set -a
-# Don't change this 'winello-default' file! It'll be overwritten on updates.
+# 不要更改这个 'winello-default' 文件！它会在更新时被覆盖。
 source "$XDG_DATA_HOME/osuconfig/update/stuff/winello-default.cfg"
 set +a
 
@@ -31,96 +30,96 @@ export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-$XDG_DATA_HOME/osuconfig/wine-osu
 
 export WINETRICKS="${WINETRICKS:-$XDG_DATA_HOME/osuconfig/winetricks}"
 
-export WINEDLLOVERRIDES="winemenubuilder.exe=;" # Blocks wine from creating .desktop files
+export WINEDLLOVERRIDES="winemenubuilder.exe=;" # 阻止 wine 创建 .desktop 文件
 
 LAUNCHERPATH="$(realpath "$0")"
 export LAUNCHERPATH
 
-# Make all paths visible to pressure-vessel
+# 使所有路径对 pressure-vessel 可见
 _mainscriptpath="$(realpath "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh")"
-_mountline="$(df -P "$_mainscriptpath" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:" # mountpoint to main script path
-_mountline="$(df -P "$LAUNCHERPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _curdir_mount="${_mountline##* }:"        # mountpoint to current directory
-_mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:"         # mountpoint to XDG_DATA_HOME
+_mountline="$(df -P "$_mainscriptpath" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:" # 主脚本路径的挂载点
+_mountline="$(df -P "$LAUNCHERPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _curdir_mount="${_mountline##* }:"        # 当前目录的挂载点
+_mountline="$(df -P "$XDG_DATA_HOME" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _home_mount="${_mountline##* }:"         # XDG_DATA_HOME 的挂载点
 PRESSURE_VESSEL_FILESYSTEMS_RW+="${_mainscript_mount:-}${_curdir_mount:-}${_home_mount:-}/mnt:/media:/run/media"
 [ -r "$XDG_DATA_HOME/osuconfig/osupath" ] && OSUPATH=$(</"$XDG_DATA_HOME/osuconfig/osupath") &&
-    PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs 2>/dev/null)" # mountpoint to osu/songs directory
-export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW//\/:/:}" OSUPATH               # clean any "just /" mounts, pressure-vessel doesn't like that
+    PRESSURE_VESSEL_FILESYSTEMS_RW+=":$(realpath "$OSUPATH"):$(realpath "$OSUPATH"/Songs 2>/dev/null)" # osu/songs 目录的挂载点
+export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW//\/:/:}" OSUPATH               # 清理任何 "/" 挂载，pressure-vessel 不喜欢
 
 mapfile -t configs < <(find "$XDG_DATA_HOME/osuconfig/configs" -name '*.cfg')
 
 ###################################################################################################
-# Helper functions for the launcher script
+# 启动脚本的辅助函数
 ###################################################################################################
 
 Help() {
-    Info "NOTE: Any command can be prefixed by the letter 'n' to avoid updating when running it
-          e.g. \`osu-wine n --fixprefix\` will run \`--fixprefix\` without overwriting any of your files from the osu-winello git repo
-    Script features:
-    osu-wine: Runs osu!
-    osu-wine --help: Show this help
-    osu-wine --info: Troubleshooting and more info
-    osu-wine --edit-config: Open your configuration file to edit launch arguments and other customizations
-    osu-wine --winecfg : Runs winecfg on the osu! Wineprefix
-    osu-wine --winetricks: Install packages on osu! Wineprefix
-    osu-wine --regedit: Opens regedit on osu! Wineprefix
-    osu-wine --wine <args>: Runs wine + your arguments as if it was normal wine
-    osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
-    osu-wine --kill9: Kills osu! but with wineserver -k9
-    osu-wine --update: Updates wine-osu to the latest version
-    osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
-    osu-wine --fixfolders: Reconfigure osu-handler and native file integration (run this if osu!direct/.osz/.osk handling, or opening folders/.osu/.osb files from ingame is broken)
-    osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
-    osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
-    osu-wine --remove: Uninstalls osu! and the script
-    osu-wine --changedir: Changes directory of the install according to the user
-    osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
-    osu-wine --runinprefix <file>: Launches a custom executable within osu!'s Wineprefix
-    osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
-    osu-wine --gosumemory: Installs and runs gosumemory without any needed config!
-    osu-wine --tosu: Installs and runs tosu without any needed config!
-    osu-wine --disable-memory-reader: Turn off gosumemory and tosu
-    osu-wine --akatsuki: Installs and runs Akatsuki patcher
-    osu-wine --mappingtools: Installs and runs osu! Mapping Tools (experimental, WINE_USE_CACHY=true recommended)"
+    Info "注意：任何命令前面都可以加上字母 'n' 来避免运行更新
+          例如：osu-wine n --fixprefix 将运行 --fixprefix 而不会从 osu-winello git 仓库覆盖你的任何文件
+    脚本功能：
+    osu-wine: 运行 osu！
+    osu-wine --help: 显示此帮助
+    osu-wine --info: 故障排除和更多信息
+    osu-wine --edit-config: 打开配置文件以编辑启动参数和其他自定义选项
+    osu-wine --winecfg : 在 osu! Wine 容器上运行 winecfg
+    osu-wine --winetricks: 在 osu! Wine 容器上安装软件包
+    osu-wine --regedit: 在 osu! Wine 容器上打开注册表编辑器
+    osu-wine --wine <参数>: 像普通 wine 一样运行 wine + 你的参数
+    osu-wine --kill: 终止 osu! Wine 容器中的 osu! 及相关进程
+    osu-wine --kill9: 使用 wineserver -k9 终止 osu!
+    osu-wine --update: 将 wine-osu 更新到最新版本
+    osu-wine --fixprefix: 从系统重新安装 osu! Wine 容器
+    osu-wine --fixfolders: 重新配置 osu-handler 和本地文件集成（如果 osu!direct/.osz/.osk 处理，或者从游戏内打开文件夹/.osu/.osb 文件出现问题，请运行此命令）
+    osu-wine --fix-yawl: 如果出现问题，重新安装与 yawl 和 Steam 运行时相关的文件
+    osu-wine --fixrpc: 如果需要，重新安装 rpc-bridge！
+    osu-wine --remove: 卸载 osu! 和脚本
+    osu-wine --changedir: 根据用户更改安装目录
+    osu-wine --devserver <地址>: 使用备用服务器运行 osu（例如 --devserver akatsuki.gg）
+    osu-wine --runinprefix <文件>: 在 osu! 的 Wine 容器中启动自定义可执行文件
+    osu-wine --osuhandler <beatmap, skin..>: 使用指定的文件/链接启动 osu-handler-wine
+    osu-wine --gosumemory: 安装并运行 gosumemory，无需任何配置！
+    osu-wine --tosu: 安装并运行 tosu，无需任何配置！
+    osu-wine --disable-memory-reader: 关闭 gosumemory 和 tosu
+    osu-wine --akatsuki: 安装并运行 Akatsuki 补丁工具
+    osu-wine --mappingtools: 安装并运行 osu! Mapping Tools（实验性，建议使用 WINE_USE_CACHY=true）"
 }
 
-# Won't return failure if there's no internet connection, but tries to update the main script first before calling the function
+# 如果没有网络连接，不会返回失败，但会先尝试更新主脚本，然后调用函数
 MainScriptUpdate() {
     _clone() { GIT_TERMINAL_PROMPT=0 git clone "https://github.com/NelloKudo/osu-winello.git" "$XDG_DATA_HOME/osuconfig/update" --quiet 2>/dev/null; }
     _pull() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" pull --quiet 2>/dev/null; }
     _reset() { GIT_TERMINAL_PROMPT=0 git -C "$XDG_DATA_HOME/osuconfig/update" reset --hard "${1:-HEAD}" --quiet 2>/dev/null; }
     if [ ! -d "$XDG_DATA_HOME/osuconfig/update" ]; then
-        _clone # where did the update directory go? need to clone it first.
+        _clone # 更新目录不见了？需要先克隆。
     else
-        _pull || { _reset origin/main && _pull; } # I think this should handle when a branch is deleted/main branch changes?
+        _pull || { _reset origin/main && _pull; } # 当分支被删除/主分支更改时，这应该能处理？
     fi
     _reset
-    # check again, doesn't hurt
-    [ -d "$XDG_DATA_HOME/osuconfig/update" ] || ErrorAndExit "Your osu-winello folder is broken, please reinstall from scratch..."
+    # 再次检查，无害
+    [ -d "$XDG_DATA_HOME/osuconfig/update" ] || ErrorAndExit "你的 osu-winello 文件夹损坏，请从头重新安装..."
     MainScript "${@:-}"
     return $?
 }
 
-# Same as above, but without checking for updates
+# 同上，但不检查更新
 MainScript() {
     declare -a CMD POST_ARGS
     POST_ARGS=("${@:-}")
     CMD=("bash")
-    # Check for MainScript(Update) exec <command> to not re-enter the launcher after calling the main script
+    # 检查是否以 exec <command> 调用 MainScript(Update)，以避免调用主脚本后重新进入启动器
     [[ "${POST_ARGS[0]}" = exec* ]] && CMD=("exec" "bash") && POST_ARGS=("${POST_ARGS[@]:1}")
-    [ -z "${POST_ARGS[*]}" ] && ErrorAndExit "(internal) Missing arguments?"
+    [ -z "${POST_ARGS[*]}" ] && ErrorAndExit "（内部）缺少参数？"
 
     "${CMD[@]}" "$XDG_DATA_HOME/osuconfig/update/osu-winello.sh" "${POST_ARGS[@]}"
-    return $? # shouldn't reach this if using exec
+    return $? # 如果使用 exec，不应该到达这里
 }
 
-# Use wine-osu-cachy when enabled in the configuration file
+# 如果在配置文件中启用，则使用 wine-osu-cachy
 if [ "$WINE_USE_CACHY" == "true" ]; then
     MainScript winecachy-setup
     export WINE="$XDG_DATA_HOME/osuconfig/yawl-winello-cachy"
     export WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0"
 fi
 
-# Allow using bundled gstreamer
+# 允许使用捆绑的 gstreamer
 if [ -f "${WINE_INSTALL_PATH}/lib/wine/x86_64-unix/libgstfaad.so" ]; then
     export GST_PLUGIN_SYSTEM_PATH_1_0="${WINE_INSTALL_PATH}/lib/wine/x86_64-unix"
     export WINE_GST_REGISTRY_DIR="${WINEPREFIX}/gstreamer-1.0"
@@ -129,34 +128,34 @@ fi
 
 LaunchOsu() {
     declare -a PRE_ARGS POST_ARGS
-    # only add custom arguments from config if there were none passed to LaunchOsu
+    # 只有在没有向 LaunchOsu 传递参数时才添加配置文件中的自定义参数
     if [ -z "${*}" ]; then
-        # this is sketchy because double spaces won't be handled properly
+        # 这有点问题，因为双空格不会被正确处理
         IFS=" " read -r -a POST_ARGS <<<"${POST_LAUNCH_ARGS}"
     else
         POST_ARGS=("${@:-}")
     fi
     IFS=" " read -r -a PRE_ARGS <<<"env ${PRE_LAUNCH_ARGS}"
 
-    Info "Opening: $OSUPATH/osu!.exe ${POST_ARGS[*]}"
+    Info "打开：$OSUPATH/osu!.exe ${POST_ARGS[*]}"
     if [ -f "${OSUPATH}/launch_with_memory.bat" ]; then
         if command -v pgrep &>/dev/null; then
-            { pgrep 'osu!.exe' &>/dev/null; } || $WINESERVER -k # stop lingering tosu process if any
+            { pgrep 'osu!.exe' &>/dev/null; } || $WINESERVER -k # 如果有残留的 tosu 进程，停止它
         fi
         OSU_EXE=("launch_with_memory.bat")
-        Info "Click here to open the tosu/gosumemory page: http://localhost:24050 or http://127.0.0.1:24050"
+        Info "点击此处打开 tosu/gosumemory 页面：http://localhost:24050 或 http://127.0.0.1:24050"
     else
         OSU_EXE=("osu!.exe")
     fi
     WINELLO_LOGS_PATH="${XDG_DATA_HOME}/osuconfig/winello.log"
 
-    echo "Using configs: ${configs[*]}" &>"${WINELLO_LOGS_PATH}"
+    echo "使用的配置文件：${configs[*]}" &>"${WINELLO_LOGS_PATH}"
 
-    Info "The run log is located in ${WINELLO_LOGS_PATH}. Attach this file if you make an issue on GitHub or ask for help on Discord."
-    Info "Launching: ${PRE_ARGS[*]} ${WINE} ${OSU_EXE[*]} ${POST_ARGS[*]}"
+    Info "运行日志位于 ${WINELLO_LOGS_PATH}。如果你在 GitHub 上提交问题或在 Discord 上寻求帮助，请附上此文件。"
+    Info "启动命令：${PRE_ARGS[*]} ${WINE} ${OSU_EXE[*]} ${POST_ARGS[*]}"
 
     export WINEDEBUG="+timestamp,+pid,+tid,+threadname,+debugstr,+loaddll,+winebrowser,+exec${WINEDEBUG:+,${WINEDEBUG}}"
-    cd "${OSUPATH}" || { Error "Couldn't change the working directory to your osu! folder... Did you remove it? Try \`osu-wine --changedir\`." && return 1; }
+    cd "${OSUPATH}" || { Error "无法切换到你的 osu! 文件夹... 你删除了它吗？尝试 \`osu-wine --changedir\`。" && return 1; }
     exec "${PRE_ARGS[@]}" "${WINE}" "${OSU_EXE[@]}" "${POST_ARGS[@]}" &>>"${WINELLO_LOGS_PATH}" || return 1
     return 0
 }
@@ -170,27 +169,27 @@ Warning() {
 }
 
 Error() {
-    echo -e '\033[1;31m'"Winello (error):\033[0m $*"
+    echo -e '\033[1;31m'"Winello（错误）:\033[0m $*"
 }
 
 ErrorAndExit() {
-    echo -e '\033[1;31m'"Script failed:\033[0m $*"
+    echo -e '\033[1;31m'"脚本失败:\033[0m $*"
     exit 1
 }
 
 ###################################################################################################
-# Begin argument handling
+# 开始参数处理
 ###################################################################################################
 
-# default to MainSciptUpdate, allow overriding from config
+# 默认为 MainScriptUpdate，允许从配置中覆盖
 : "${mainscriptcommand:=MainScriptUpdate}"
 
 case "$1" in
 'n')
-    # Don't update the launcher before running a command
-    # e.g. osu-wine n --fixprefix
+    # 运行命令前不更新启动器
+    # 例如：osu-wine n --fixprefix
     mainscriptcommand=MainScript
-    export NOLAUNCHERUPDATE=1 # let osu-winello.sh know we don't want osu-wine to be updated/overwritten
+    export NOLAUNCHERUPDATE=1 # 让 osu-winello.sh 知道我们不想更新/覆盖 osu-wine
     shift
     ;;
 esac
@@ -199,7 +198,7 @@ shopt -s extglob
 
 case "$1" in
 '--devserver')
-    if [ -z "$2" ]; then ErrorAndExit "You need to specify a server, e.g. --devserver akatsuki.gg"; fi
+    if [ -z "$2" ]; then ErrorAndExit "你需要指定一个服务器，例如 --devserver akatsuki.gg"; fi
     LaunchOsu "-devserver" "${@:2}"
     ;;
 
@@ -224,28 +223,28 @@ case "$1" in
     ###################################################################################################
 
 '--edit-config')
-    Info "Opening your configuration files: ${configs[*]}"
+    Info "正在打开你的配置文件：${configs[*]}"
     command -v "${CUSTOMEDITOR}" >/dev/null 2>&1 && exec "${CUSTOMEDITOR}" "${configs[*]}"
-    xdg-open "${configs[*]}" || ErrorAndExit "No text editors were able to open your configuration files..."
+    xdg-open "${configs[*]}" || ErrorAndExit "没有文本编辑器能够打开你的配置文件..."
     ;;
 
     ###################################################################################################
 
 '--winetricks')
-    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { $mainscriptcommand "installwinetricks" || ErrorAndExit "Couldn't install winetricks..."; }
-    "$WINETRICKS" "${@:2}" || ErrorAndExit "Your winetricks command completed with errors..."
+    [ ! -x "$XDG_DATA_HOME/osuconfig/winetricks" ] && { $mainscriptcommand "installwinetricks" || ErrorAndExit "无法安装 winetricks..."; }
+    "$WINETRICKS" "${@:2}" || ErrorAndExit "你的 winetricks 命令执行时出现错误..."
     ;;
 
     ###################################################################################################
 
 '--changedir')
-    $mainscriptcommand "changedir" || ErrorAndExit "Changing directories failed..."
+    $mainscriptcommand "changedir" || ErrorAndExit "更改目录失败..."
     ;;
 
     ###################################################################################################
 
 '--remove')
-    $mainscriptcommand "uninstall" || ErrorAndExit "You may have to uninstall/remove the folders manually..."
+    $mainscriptcommand "uninstall" || ErrorAndExit "你可能需要手动卸载/删除文件夹..."
     ;;
 
     ###################################################################################################
@@ -263,84 +262,84 @@ case "$1" in
     ###################################################################################################
 
 '--update')
-    # It might look pointless to allow "not-updating" if you want to update... but it's better to leave it predictable
-    $mainscriptcommand "exec" "update" || ErrorAndExit "The update partially or completely failed..."
+    # 在想要更新时允许“不更新”可能看起来没意义，但最好保持可预测性
+    $mainscriptcommand "exec" "update" || ErrorAndExit "更新部分或完全失败..."
     ;;
 
     ###################################################################################################
 
 '--fixfolders')
-    $mainscriptcommand "fixfolders" || Error "The native file manager integration failed. Will still try to fix osu-handler..."
-    $mainscriptcommand "fixosuhandler" || ErrorAndExit "The osu-handler setup was unsuccessful..."
+    $mainscriptcommand "fixfolders" || Error "本地文件管理器集成失败。仍将尝试修复 osu-handler..."
+    $mainscriptcommand "fixosuhandler" || ErrorAndExit "osu-handler 设置失败..."
     ;;
 
     ###################################################################################################
 
 *--fix*yawl*)
-    $mainscriptcommand "fixyawl" || ErrorAndExit "yawl may not have been fixed..."
+    $mainscriptcommand "fixyawl" || ErrorAndExit "yawl 可能未修复..."
     ;;
 
     ###################################################################################################
 
 '--fixrpc')
-    $mainscriptcommand "discordrpc" || ErrorAndExit "The Discord RPC bridge installation completed with errors..."
+    $mainscriptcommand "discordrpc" || ErrorAndExit "Discord RPC 桥接安装完成但存在错误..."
     ;;
 
     ###################################################################################################
 
 '--fixprefix')
     $mainscriptcommand "fixprefix" ||
-        ErrorAndExit "The prefix setup completed with issues... It might have worked, though, so try osu!, or --fixprefix again if it didn't work."
-    $mainscriptcommand "fixosuhandler" || ErrorAndExit "The osu-handler setup was unsuccessful..."
+        ErrorAndExit "容器设置完成但存在问题... 不过可能已经成功，所以尝试运行 osu！如果不行，再试一次 --fixprefix。"
+    $mainscriptcommand "fixosuhandler" || ErrorAndExit "osu-handler 设置失败..."
     ;;
 
     ###################################################################################################
 
 '--tosu')
-    $mainscriptcommand "tosu" || ErrorAndExit "Couldn't set up tosu..."
+    $mainscriptcommand "tosu" || ErrorAndExit "无法设置 tosu..."
     ;;
 '--gosumemory')
-    $mainscriptcommand "gosumemory" || ErrorAndExit "Couldn't set up gosumemory..."
+    $mainscriptcommand "gosumemory" || ErrorAndExit "无法设置 gosumemory..."
     ;;
 
     ###################################################################################################
 
 '--akatsuki')
-    MainScript "akatsukiPatcher" || ErrorAndExit "Couldn't launch akatsuki patcher..."
+    MainScript "akatsukiPatcher" || ErrorAndExit "无法启动 akatsuki 补丁工具..."
     ;;
 
     ###################################################################################################
 
 '--mappingtools')
-    MainScript "mappingTools" || ErrorAndExit "Couldn't launch Mapping Tools..."
+    MainScript "mappingTools" || ErrorAndExit "无法启动 Mapping Tools..."
     ;;
 
     ###################################################################################################
 
 *--disable-@(*osu*|memory*))
     rm -f "$OSUPATH/launch_with_memory.bat"
-    Info "Memory reader (tosu/gosumemory) disabled."
+    Info "内存读取器（tosu/gosumemory）已禁用。"
     ;;
 
     ###################################################################################################
 
 '--osuhandler')
-    # don't update to avoid unnecessary slowdown
+    # 不更新以避免不必要的减速
     MainScript "exec" "handle" "${@:2}"
     ;;
 
     ###################################################################################################
 
 '--info')
-    Info "Need info?:
-    Wineprefix location: $WINEPREFIX
-    osu! folder: '$OSUPATH'
+    Info "需要信息？：
+    Wine 容器位置：$WINEPREFIX
+    osu! 文件夹：'$OSUPATH'
 
-    If you need to add more options to osu!, check the Launch function of the script (ex. nano $BINDIR/osu-wine)
-    You can run 'osu-wine --help' to see all the script's functions (fix prefix, change dir etc.)
-    You can find more troubleshooting and info at here: https://osu.ppy.sh/community/forums/topics/1248084?n=1
+    如果你需要向 osu! 添加更多选项，请检查脚本的 Launch 函数（例如 nano $BINDIR/osu-wine）
+    你可以运行 'osu-wine --help' 查看脚本的所有功能（修复容器、更改目录等）
+    你可以在以下网址找到更多故障排除和信息：https://osu.ppy.sh/community/forums/topics/1248084?n=1
 
-    If you get an error like 'Runtime Platform missing or download incomplete', try running 'osu-wine --fix-yawl'."
+    如果你遇到类似“缺少运行时平台或下载不完整”的错误，请尝试运行 'osu-wine --fix-yawl'。"
     ;;
 
     ###################################################################################################
@@ -352,7 +351,7 @@ case "$1" in
     ###################################################################################################
 
 *)
-    # Fall through to osu
+    # 默认情况下执行 osu
     LaunchOsu "${@:1}"
     ;;
 esac
