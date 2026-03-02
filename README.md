@@ -1,3 +1,6 @@
+因未修改，此fork等待更新，请暂时不要使用该项目。
+如有需要，请转到https://github.com/DeminTiC/osu-winello_for_cn
+
 # osu-winello
 osu! stable installer for Linux with patched wine-osu and other features.
 
