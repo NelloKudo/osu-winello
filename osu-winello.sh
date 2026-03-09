@@ -4,7 +4,7 @@
 #   Welcome to Winello!
 #   The whole script is divided in different
 #   functions to make it easier to read.
-#   Feel free to contribute!
+#   Feel free to contribute! 
 #   =======================================
 
 # Wine-osu current versions for update
@@ -217,6 +217,14 @@ InitialSetup() {
 
     Info "Welcome to the script! Follow it to install osu! 8)"
 
+    # Ask whether to auto-start osu! after installation
+    read -r -p "$(Info "Do you want osu! to be auto started once installation finishes? (Y/n): ")" autostart_choice
+    if [[ "$autostart_choice" =~ ^(n|N)(o|O)?$ ]]; then
+        AUTOSTART_OSU="false"
+    else
+        AUTOSTART_OSU="true"
+    fi
+
     # Checking if $BINDIR is in PATH:
     mkdir -p "$BINDIR"
     pathcheck=$(echo "$PATH" | grep -q "$BINDIR" && echo "y")
@@ -397,6 +405,10 @@ FullInstall() {
 
     Info "Installation is completed! Run 'osu-wine' to play osu!"
     Warning "If 'osu-wine' doesn't work, just close and relaunch your terminal."
+    if [ "${AUTOSTART_OSU:-false}" = "true" ]; then
+        Info "Starting osu!..."
+        exec "$BINDIR/osu-wine"
+    fi
     exit 0
 }
 
