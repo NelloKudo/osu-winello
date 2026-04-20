@@ -71,7 +71,7 @@ Help() {
     osu-wine --fixfolders: Reconfigure osu-handler and native file integration (run this if osu!direct/.osz/.osk handling, or opening folders/.osu/.osb files from ingame is broken)
     osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
     osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
-    osu-wine --remove: Uninstalls osu! and the script
+    osu-wine --remove: Uninstall the script and/or uninstall osu!
     osu-wine --changedir: Changes directory of the install according to the user
     osu-wine --devserver <address>: Runs osu with an alternative server (e.g. --devserver akatsuki.gg)
     osu-wine --osuhandler <beatmap, skin..>: Launches osu-handler-wine with the specified file/link
