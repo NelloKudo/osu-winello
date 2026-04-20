@@ -176,16 +176,16 @@ detectRunningShell() {
     local ppid=$PPID
     local max_iterations=10
     local iteration=0
-    
+
     while [ "$ppid" -gt 1 ] && [ $iteration -lt $max_iterations ]; do
         iteration=$((iteration + 1))
-        
+
         if [ -f "/proc/$ppid/status" ]; then
             ppid=$(grep "^PPid:" /proc/$ppid/status | awk '{print $2}')
-            
+
             if [ -f "/proc/$ppid/comm" ]; then
                 local proc_name=$(cat /proc/$ppid/comm)
-                
+
                 case "$proc_name" in
                     bash|zsh|fish|ksh|mksh|dash|tcsh|csh) # i surely hope these are enough...
                         current_shell="$proc_name"
@@ -197,12 +197,12 @@ detectRunningShell() {
             break
         fi
     done
-    
+
     # fallback to $SHELL if detection failed
     if [ -z "$current_shell" ]; then
         current_shell=$(basename "$SHELL")
     fi
-    
+
     echo "$current_shell"
 }
 
@@ -224,7 +224,7 @@ InitialSetup() {
     # If $BINDIR is not in PATH:
     if [ "$pathcheck" != "y" ]; then
         current_shell=$(detectRunningShell)
-        
+
         case "$current_shell" in
             bash)
                 touch -a "$HOME/.bashrc"
@@ -450,7 +450,7 @@ deleteFolder() {
     read -r -p "$(Info "Choose your option (y/N): ")" dirchoice
 
     if [ "$dirchoice" = 'y' ] || [ "$dirchoice" = 'Y' ]; then
-        read -r -p "$(Info "Are you sure? This will delete your osu! files! (y/N)")" dirchoice2
+        read -r -p "$(Info "Are you sure? This WILL delete your osu! files! (y/N)")" dirchoice2
         if [ "$dirchoice2" = 'y' ] || [ "$dirchoice2" = 'Y' ]; then
             rm -rf "${folder}" || { Error "Couldn't remove folder!" && return 1; }
             return 0
@@ -709,10 +709,10 @@ Uninstall() {
         Info "Skipping.."
     fi
 
-    read -r -p "$(Info "Do you want to uninstall game files? (y/N)")" choice
+    read -r -p "$(Info "Do you want to uninstall osu! game files? (y/N)")" choice
 
     if [ "$choice" = 'y' ] || [ "$choice" = 'Y' ]; then
-        read -r -p "$(Info "Are you sure? This will delete your files! (y/N)")" choice2
+        read -r -p "$(Info "Are you sure? This will DELETE ALL YOUR GAME FILES! (y/N)")" choice2
 
         if [ "$choice2" = 'y' ] || [ "$choice2" = 'Y' ]; then
             Info "Uninstalling game:"
