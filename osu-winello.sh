@@ -529,6 +529,24 @@ reconfigurePrefix() {
     $okay
 }
 
+redownloadPrefix() {
+    Info "Checking for internet connection.."
+    ! ping -c 2 1.1.1.1 >/dev/null 2>&1 && { Error "Please connect to internet before continuing xd. Run the script again" && return 1; }
+
+    [ -d "${WINEPREFIX:?}" ] && rm -rf "${WINEPREFIX}"
+
+    Info "Downloading prefix.. this might take a while."
+    mkdir -p "$HOME/.winellotmp"
+    DownloadFile "${PREFIXLINK}" "$HOME/.winellotmp/osu-winello-prefix.tar.xz" || { rm -rf "$HOME/.winellotmp" && return 1; }
+
+    Info "Extracting prefix.."
+    tar -xf "$HOME/.winellotmp/osu-winello-prefix.tar.xz" -C "$XDG_DATA_HOME/wineprefixes" || { rm -rf "$HOME/.winellotmp" && return 1; }
+    mv "$XDG_DATA_HOME/wineprefixes/osu-prefix" "$XDG_DATA_HOME/wineprefixes/osu-wineprefix"
+    rm -rf "$HOME/.winellotmp"
+
+    reconfigurePrefix || return 1
+}
+
 # Remember whether the user wants to overwrite their local files
 askConfirmTimeout() {
     [ -z "${1:-}" ] && Info "Missing an argument for ${FUNCNAME[0]}!?" && exit 1
@@ -1108,7 +1126,11 @@ case "$1" in
     ;;
 
 'fixprefix')
-    reconfigurePrefix fresh || exit 1
+    if [ "${2:-}" = "--redl" ]; then
+        redownloadPrefix || exit 1
+    else
+        reconfigurePrefix fresh || exit 1
+    fi
     ;;
 
 'winecachy-setup')

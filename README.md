@@ -154,7 +154,7 @@ osu-wine --wine <args>: Runs wine + your arguments as if it was normal wine insi
 osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
 osu-wine --kill9: Kills osu! but with wineserver -k9
 osu-wine --update: Updates wine-osu to the latest version
-osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system
+osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system (add --redl to redownload the prebuilt prefix instead of recreating it)
 osu-wine --fixfolders: Reconfigure osu-handler and native file integration (run this if osu!direct/.osz/.osk handling, or opening folders/.osu/.osb files from ingame is broken)
 osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
 osu-wine --fixrpc: Reinstalls rpc-bridge if needed!
