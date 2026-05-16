@@ -19,7 +19,7 @@ WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-st
 WINECACHYLINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-cachyos-v10.0-3/wine-osu-cachy-winello-fonts-wow64-10.0-3-x86_64.tar.xz"
 
 # Other versions for external downloads
-DISCRPCBRIDGEVERSION=1.2
+DISCRPCBRIDGEVERSION=1.4.1.3
 GOSUMEMORYVERSION=1.3.9
 TOSUVERSION=4.3.1
 YAWLVERSION=0.8.2
