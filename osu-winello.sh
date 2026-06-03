@@ -986,6 +986,7 @@ Icon=$XDG_DATA_HOME/icons/osu-wine.png" | tee "$XDG_DATA_HOME/applications/osuwi
 # Open files/links with osu-handler-wine
 osuHandlerHandle() {
     local ARG="${*:-}" OSUPID
+    local -a PRE_ARGS
     local HANDLERRUN=("$XDG_DATA_HOME/osuconfig/update/stuff/osu-handler-wine")
     [ ! -x "${HANDLERRUN[0]}" ] && chmod +x "${HANDLERRUN[0]}"
 
@@ -993,7 +994,8 @@ osuHandlerHandle() {
         HANDLERRUN=("env" "YAWL_VERBS=enter=$OSUPID" "$YAWL_INSTALL_PATH" "${HANDLERRUN[0]}")
         echo "Trying to open osu-handler-wine in the running container for osu! (PID=$OSUPID)" >&2
     else
-        HANDLERRUN=("env" "${WINE}") # we don't actually need osu-handler if we're starting a new instance
+        IFS=" " read -r -a PRE_ARGS <<<"env ${PRE_LAUNCH_ARGS}"
+        HANDLERRUN=("${PRE_ARGS[@]}" "${WINE}") # we don't actually need osu-handler if we're starting a new instance
         echo "Trying to open a new instance of osu! to handle ${ARG}" >&2
     fi
 
