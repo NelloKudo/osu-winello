@@ -1197,8 +1197,6 @@ update*)
 
 'detectabsolutetablethack')
     detectAbsoluteTabletHack || exit 1
-    Info "OpenTabletDriver absolute mode detected, enabling WINE_ENABLE_ABS_TABLET_HACK=2."
-    Info "If you have issues with your mouse, disable it by setting WINE_ENABLE_ABS_TABLET_HACK=0 in your config (osu-wine --edit-config)."
     ;;
 
 *help* | '-h')

@@ -114,6 +114,7 @@ MainScript() {
 
 if MainScript "detectabsolutetablethack" 2>/dev/null; then
     export WINE_ENABLE_ABS_TABLET_HACK=2
+    is_otd_abs_mode=1
 fi
 
 # Use wine-osu-cachy when enabled in the configuration file
@@ -131,6 +132,11 @@ if [ -f "${WINE_INSTALL_PATH}/lib/wine/x86_64-unix/libgstfaad.so" ]; then
 fi
 
 LaunchOsu() {
+    if [ "${is_otd_abs_mode:-}" = "1" ]; then
+        Info "OpenTabletDriver absolute mode detected, enabling WINE_ENABLE_ABS_TABLET_HACK=2."
+        Info "If you have issues with your mouse, disable it by setting WINE_ENABLE_ABS_TABLET_HACK=0 in your config (osu-wine --edit-config)."
+    fi
+
     declare -a PRE_ARGS POST_ARGS
     # only add custom arguments from config if there were none passed to LaunchOsu
     if [ -z "${*}" ]; then
