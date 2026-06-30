@@ -112,6 +112,10 @@ MainScript() {
     return $? # shouldn't reach this if using exec
 }
 
+if MainScript "detectabsolutetablethack" 2>/dev/null; then
+    export WINE_ENABLE_ABS_TABLET_HACK=2
+fi
+
 # Use wine-osu-cachy when enabled in the configuration file
 if [ "$WINE_USE_CACHY" == "true" ]; then
     MainScript winecachy-setup

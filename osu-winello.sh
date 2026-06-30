@@ -1076,6 +1076,31 @@ WineCachySetup() {
     fi
 }
 
+detectAbsoluteTabletHack() {
+    # skip if user already set this explicitly
+    [ -n "${WINE_ENABLE_ABS_TABLET_HACK+x}" ] && return 1
+
+    # only enable on wayland / xwayland
+    if [ "${XDG_SESSION_TYPE:-}" != "wayland" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
+        return 1
+    fi
+
+    [ -r /proc/bus/input/devices ] || return 1
+    grep -q 'Name="OpenTabletDriver Virtual Tablet"' /proc/bus/input/devices || return 1
+
+    # check if absolute mode is enabled from otd settings
+    local settings_json
+    for settings_json in \
+        "$HOME/.config/OpenTabletDriver/settings.json" \
+        "$HOME/.var/app/net.opentabletdriver.OpenTabletDriver/config/OpenTabletDriver/settings.json"; do
+        [ -r "$settings_json" ] || continue
+        grep -Eq '"Enable"[[:space:]]*:[[:space:]]*true' "$settings_json" &&
+            grep -Eq '"Path"[[:space:]]*:[[:space:]]*".*\.AbsoluteMode"' "$settings_json" &&
+            return 0
+    done
+    return 1
+}
+
 # Help!
 Help() {
     Info "To install the game, run ./osu-winello.sh
@@ -1168,6 +1193,12 @@ update*)
 
 *yawl*)
     FixYawl || exit 1
+    ;;
+
+'detectabsolutetablethack')
+    detectAbsoluteTabletHack || exit 1
+    Info "OpenTabletDriver absolute mode detected, enabling WINE_ENABLE_ABS_TABLET_HACK=2."
+    Info "If you have issues with your mouse, disable it by setting WINE_ENABLE_ABS_TABLET_HACK=0 in your config (osu-wine --edit-config)."
     ;;
 
 *help* | '-h')
