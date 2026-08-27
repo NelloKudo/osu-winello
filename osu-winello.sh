@@ -12,11 +12,16 @@ MAJOR=11
 MINOR=12
 PATCH=2
 WINEVERSION=$MAJOR.$MINOR-$PATCH
-LASTWINEVERSION=0
 
-# Wine-osu mirror
+# Wine-osu-cachy current versions for update
+CACHYMAJOR=10
+CACHYMINOR=0
+CACHYPATCH=3
+WINECACHYVERSION=$CACHYMAJOR.$CACHYMINOR-$CACHYPATCH
+
+# Wine-osu mirrors
 WINELINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-staging-${WINEVERSION}/wine-osu-winello-fonts-wow64-${WINEVERSION}-x86_64.tar.xz"
-WINECACHYLINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-cachyos-v10.0-3/wine-osu-cachy-winello-fonts-wow64-10.0-3-x86_64.tar.xz"
+WINECACHYLINK="https://github.com/NelloKudo/WineBuilder/releases/download/wine-osu-cachyos-v${WINECACHYVERSION}/wine-osu-cachy-winello-fonts-wow64-${WINECACHYVERSION}-x86_64.tar.xz"
 
 # Other versions for external downloads
 DISCRPCBRIDGEVERSION=1.4.1.3
@@ -76,6 +81,17 @@ export WINESERVER="${WINESERVER:-"${WINE}server"}"
 export WINEPREFIX="${WINEPREFIX:-"$XDG_DATA_HOME/wineprefixes/osu-wineprefix"}"
 export WINE_INSTALL_PATH="${WINE_INSTALL_PATH:-"$XDG_DATA_HOME/osuconfig/wine-osu"}"
 
+# where each wine build is installed and which version file tracks it
+# not using WINE_INSTALL_PATH cause the launcher repoints that at cachy
+WINEOSU_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu"
+WINEVERFILE="$XDG_DATA_HOME/osuconfig/wineverupdate"
+
+WINECACHY_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy"
+WINECACHYVERFILE="$XDG_DATA_HOME/osuconfig/winecachyverupdate"
+
+# wine-osu-cachy used to be installed here, only kept around to clean it up
+WINECACHY_LEGACY_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0"
+
 # Make all paths visible to pressure-vessel
 [ -z "${PRESSURE_VESSEL_FILESYSTEMS_RW}" ] && {
     _mountline="$(df -P "$SCRPATH" 2>/dev/null | tail -1)" && [ -n "${_mountline}" ] && _mainscript_mount="${_mountline##* }:"  # mountpoint to main script path
@@ -118,7 +134,8 @@ Revert() {
     rm -f "$XDG_DATA_HOME/applications/osu-wine.desktop"
     rm -f "$BINDIR/osu-wine"
     rm -rf "$XDG_DATA_HOME/osuconfig"
-    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
+    rm -f "/tmp/wine-osu-$WINEVERSION.tar.xz"
+    rm -f "/tmp/wine-osu-cachy-$WINECACHYVERSION.tar.xz"
     rm -f "/tmp/osu-mime.tar.xz"
     rm -rf "/tmp/osu-mime"
     rm -f "$XDG_DATA_HOME/mime/packages/osuwinello-file-extensions.xml"
@@ -299,13 +316,8 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
     fi
 
     Info "Installing Wine-osu:"
-    # Downloading Wine..
-    DownloadFile "$WINELINK" "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" || InstallError "Couldn't download wine-osu."
-
-    # This will extract Wine-osu and set last version to the one downloaded
-    tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
-    LASTWINEVERSION="$WINEVERSION"
-    rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
+    updateWineBuild "$WINELINK" "$WINEVERSION" "$WINEVERFILE" "$WINEOSU_INSTALL_PATH" ||
+        InstallError "Couldn't install wine-osu."
 
     # Install and verify yawl ASAP, the wrapper mode does not download/install the runtime if no arguments are passed
     installYawl || Revert
@@ -319,8 +331,6 @@ Categories=Wine;Game;" | tee "$XDG_DATA_HOME/applications/osu-wine.desktop" >/de
         InstallError "Git failed, check your connection.."
 
     git -C "$XDG_DATA_HOME/osuconfig/update" remote set-url origin "${WINELLOGIT}"
-
-    echo "$LASTWINEVERSION" >>"$XDG_DATA_HOME/osuconfig/wineverupdate"
 }
 
 # Function configuring folders to install the game
@@ -620,6 +630,37 @@ launcherUpdate() {
     $okay
 }
 
+# installs updated wine-osu or wine-osu-cachy when needed
+updateWineBuild() {
+    local link="$1" version="$2" verfile="$3" destdir="$4"
+    local name archive installed=0
+    name="$(basename "$destdir")"
+
+    WINEBUILDUPDATED=0
+    # only the first line, older installs appended to this file instead of overwriting it
+    [ -r "$verfile" ] && installed="$(head -n 1 "$verfile")"
+
+    # the folder check also covers a version file left behind by a deleted build
+    if [ "$installed" = "$version" ] && [ -d "$destdir" ]; then
+        Info "Your $name is already up-to-date! ($version)"
+        return 0
+    fi
+
+    archive="/tmp/$name-$version.tar.xz"
+    DownloadFile "$link" "$archive" || return 1
+
+    Info "Installing $name $version.."
+    rm -rf "$destdir"
+    mkdir -p "$destdir"
+    # strip the folder inside the tarball so its name doesn't have to match the version
+    tar -xf "$archive" -C "$destdir" --strip-components=1 || { rm -f "$archive" && return 1; }
+    rm -f "$archive"
+
+    echo "$version" >"$verfile"
+    WINEBUILDUPDATED=1
+    return 0
+}
+
 installYawl() {
     Info "Installing yawl..."
     DownloadFile "$YAWLLINK" "/tmp/yawl" || return 1
@@ -650,24 +691,19 @@ Update() {
         fi
     fi
 
-    # Reading the last version installed
-    [ -r "$XDG_DATA_HOME/osuconfig/wineverupdate" ] && LASTWINEVERSION=$(</"$XDG_DATA_HOME/osuconfig/wineverupdate")
+    local wineupdated=0
+    updateWineBuild "$WINELINK" "$WINEVERSION" "$WINEVERFILE" "$WINEOSU_INSTALL_PATH" || return 1
+    [ "$WINEBUILDUPDATED" = 1 ] && wineupdated=1
 
-    if [ "$LASTWINEVERSION" \!= "$WINEVERSION" ]; then
-        # Downloading Wine..
-        DownloadFile "$WINELINK" "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" || return 1
+    # also update wine-osu-cachy, but only when this install actually uses it
+    if [ -d "$WINECACHY_INSTALL_PATH" ] || [ -d "$WINECACHY_LEGACY_PATH" ] || [ "${WINE_USE_CACHY:-}" = "true" ]; then
+        WineCachySetup || Warning "Couldn't update wine-osu-cachy, continuing.."
+        [ "$WINEBUILDUPDATED" = 1 ] && wineupdated=1
+    fi
 
-        # This will extract Wine-osu and set last version to the one downloaded
-        Info "Updating Wine-osu"...
-        rm -rf "$XDG_DATA_HOME/osuconfig/wine-osu"
-        tar -xf "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
-        rm -f "/tmp/wine-osu-winello-fonts-wow64-$MAJOR.$MINOR-$PATCH-x86_64.tar.xz"
-
-        echo "$WINEVERSION" >"$XDG_DATA_HOME/osuconfig/wineverupdate"
+    if [ "$wineupdated" = 1 ]; then
         Info "Update is completed!"
         waitWine wineboot -u
-    else
-        Info "Your Wine-osu is already up-to-date!"
     fi
 
     mkdir -p "$XDG_DATA_HOME/osuconfig/configs" # make the configs directory and copy the example if it doesnt exist
@@ -714,7 +750,7 @@ Uninstall() {
     rm -f "$XDG_DATA_HOME/applications/osuwinello-url-handler.desktop"
 
     Info "Uninstalling wine-osu:"
-    rm -rf "$XDG_DATA_HOME/osuconfig/wine-osu"
+    rm -rf "$WINEOSU_INSTALL_PATH" "$WINECACHY_INSTALL_PATH" "$WINECACHY_LEGACY_PATH"
 
     Info "Uninstalling yawl and the steam runtime:"
     rm -rf "$XDG_DATA_HOME/yawl"
@@ -1064,16 +1100,21 @@ FixYawl() {
     $okay
 }
 
+# installs wine-osu-cachy the first time and keeps it updated afterwards
 WineCachySetup() {
-    # First time setup: yawl-winello-cachy
-    if [ ! -d "$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0" ]; then
-        DownloadFile "$WINECACHYLINK" "/tmp/winecachy.tar.xz"
-        tar -xf "/tmp/winecachy.tar.xz" -C "$XDG_DATA_HOME/osuconfig"
-        rm -f "/tmp/winecachy.tar.xz"
+    # this build used to live in a folder named after its version, so a new one couldn't be
+    # dropped in place: throw the old folder away and get the current build instead
+    [ -d "$WINECACHY_LEGACY_PATH" ] && rm -rf "$WINECACHY_LEGACY_PATH"
 
-        WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0"
-        YAWL_VERBS="make_wrapper=winello-cachy;exec=$WINE_INSTALL_PATH/bin/wine;wineserver=$WINE_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH"
+    updateWineBuild "$WINECACHYLINK" "$WINECACHYVERSION" "$WINECACHYVERFILE" "$WINECACHY_INSTALL_PATH" || return 1
+
+    # point yawl at the build when it changed, or when the wrapper isn't set up yet
+    if [ "$WINEBUILDUPDATED" = 1 ] || [ ! -x "${YAWL_INSTALL_PATH}-winello-cachy" ]; then
+        YAWL_VERBS="make_wrapper=winello-cachy;exec=$WINECACHY_INSTALL_PATH/bin/wine;wineserver=$WINECACHY_INSTALL_PATH/bin/wineserver" "$YAWL_INSTALL_PATH" ||
+            { Error "Couldn't set up the yawl wrapper for wine-osu-cachy." && return 1; }
     fi
+
+    return 0
 }
 
 detectAbsoluteTabletHack() {

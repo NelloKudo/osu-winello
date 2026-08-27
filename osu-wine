@@ -66,7 +66,7 @@ Help() {
     osu-wine --wine <args>: Runs wine + your arguments as if it was normal wine inside osu's wineprefix
     osu-wine --kill: Kills osu! and related processes in osu! Wineprefix
     osu-wine --kill9: Kills osu! but with wineserver -k9
-    osu-wine --update: Updates wine-osu to the latest version
+    osu-wine --update: Updates wine-osu (and wine-osu-cachy, if you use it) to the latest version
     osu-wine --fixprefix: Reinstalls the osu! Wineprefix from system (use --fixprefix --redl to redownload the prebuilt prefix instead)
     osu-wine --fixfolders: Reconfigure osu-handler and native file integration (run this if osu!direct/.osz/.osk handling, or opening folders/.osu/.osb files from ingame is broken)
     osu-wine --fix-yawl: Reinstalls files related to yawl and the Steam Runtime in case something went wrong
@@ -121,7 +121,7 @@ fi
 if [ "$WINE_USE_CACHY" == "true" ]; then
     MainScript winecachy-setup
     export WINE="$XDG_DATA_HOME/osuconfig/yawl-winello-cachy"
-    export WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy-10.0"
+    export WINE_INSTALL_PATH="$XDG_DATA_HOME/osuconfig/wine-osu-cachy"
 fi
 
 # Allow using bundled gstreamer
