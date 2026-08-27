@@ -697,7 +697,7 @@ Update() {
 
     # also update wine-osu-cachy, but only when this install actually uses it
     if [ -d "$WINECACHY_INSTALL_PATH" ] || [ -d "$WINECACHY_LEGACY_PATH" ] || [ "${WINE_USE_CACHY:-}" = "true" ]; then
-        WineCachySetup || Warning "Couldn't update wine-osu-cachy, continuing.."
+        WineCachySetup update || Warning "Couldn't update wine-osu-cachy, continuing.."
         [ "$WINEBUILDUPDATED" = 1 ] && wineupdated=1
     fi
 
@@ -1100,8 +1100,11 @@ FixYawl() {
     $okay
 }
 
-# installs wine-osu-cachy the first time and keeps it updated afterwards
+# installs wine-osu-cachy, only looking for a new version when called with 'update'
 WineCachySetup() {
+    # on launch we just install a missing build, version bumps are left to --update
+    [ "${1:-}" = "update" ] || [ ! -d "$WINECACHY_INSTALL_PATH" ] || return 0
+
     # this build used to live in a folder named after its version, so a new one couldn't be
     # dropped in place: throw the old folder away and get the current build instead
     [ -d "$WINECACHY_LEGACY_PATH" ] && rm -rf "$WINECACHY_LEGACY_PATH"
