@@ -1120,6 +1120,30 @@ WineCachySetup() {
     return 0
 }
 
+# prints the env needed for the libs bundled in wine-osu, eval'd by the launcher
+steamRuntimeTweaks() {
+    local unixlibs="${WINE_INSTALL_PATH}/lib/wine/x86_64-unix"
+    local alsapipewire="${unixlibs}/libasound_module_pcm_pipewire.so"
+    local asoundconf="${XDG_DATA_HOME}/osuconfig/winello-asound.conf"
+
+    if [ -f "${unixlibs}/libgstfaad.so" ]; then
+        mkdir -p "${WINEPREFIX}/gstreamer-1.0"
+        echo "export GST_PLUGIN_SYSTEM_PATH_1_0=\"${unixlibs}\""
+        echo "export WINE_GST_REGISTRY_DIR=\"${WINEPREFIX}/gstreamer-1.0\""
+    fi
+
+    # the steam runtime only ships the pulseaudio alsa plugin
+    if [ -f "${alsapipewire}" ] && [ -z "${ALSA_CONFIG_PATH:-}" ] &&
+        [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/pipewire-0" ] &&
+        printf '</usr/share/alsa/alsa.conf>\npcm_type.pipewire { lib "%s" }\npcm.wine_pipewire { type pipewire }\n' \
+            "${alsapipewire}" 2>/dev/null >"${asoundconf}"; then
+        echo "export ALSA_CONFIG_PATH=\"${asoundconf}\""
+        echo "export WINE_ALSA_DEVICE=\"${WINE_ALSA_DEVICE:-wine_pipewire}\""
+    fi
+
+    return 0
+}
+
 detectAbsoluteTabletHack() {
     # skip if user already set this explicitly
     [ -n "${WINE_ENABLE_ABS_TABLET_HACK+x}" ] && return 1
@@ -1241,6 +1265,10 @@ update*)
 
 'detectabsolutetablethack')
     detectAbsoluteTabletHack || exit 1
+    ;;
+
+'steamruntimetweaks')
+    steamRuntimeTweaks || exit 1
     ;;
 
 *help* | '-h')
