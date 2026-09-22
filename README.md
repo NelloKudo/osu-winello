@@ -34,6 +34,8 @@ You can easily install them like this:
 
 **openSUSE:** `sudo zypper install -y git wget unzip zenity xdg-desktop-portal-gtk`
 
+**Void Linux:** `sudo xbps-install -S -y git wget unzip zenity xdg-desktop-portal-gtk xz`
+
 ## Drivers:
 
 As obvious as this might sound, installing drivers the **right** way is needed to have a great experience overall
